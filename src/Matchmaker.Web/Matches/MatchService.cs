@@ -90,12 +90,23 @@ public sealed class MatchService(MatchmakerDbContext db, TimeProvider time)
     }
 
     public async Task<IReadOnlyList<Match>> HistoryOfAsync(PlayerId player, int limit = 20, CancellationToken cancellationToken = default) =>
-        await db.Matches
+        await FinishedMatchesOf(player).Take(limit).ToListAsync(cancellationToken);
+
+    /// <summary>Toutes les parties terminées du joueur, de la plus récente à la plus ancienne, page par page.</summary>
+    public async Task<Page<Match>> HistoryPageAsync(PlayerId player, int page, int pageSize = 20, CancellationToken cancellationToken = default)
+    {
+        page = Math.Max(1, page);
+        var total = await FinishedMatchesOf(player).CountAsync(cancellationToken);
+        var items = await FinishedMatchesOf(player).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);
+        return new Page<Match>(items, page, pageSize, total);
+    }
+
+    private IQueryable<Match> FinishedMatchesOf(PlayerId player) =>
+        db.Matches
             .Where(m => m.First.Player == player || m.Second.Player == player)
             .Where(m => Finished.Contains(m.Status))
             .OrderByDescending(m => m.ProposedAt)
-            .Take(limit)
-            .ToListAsync(cancellationToken);
+            .ThenBy(m => m.Id);
 
     public async Task<IReadOnlyList<Player>> RankingAsync(int limit = 100, CancellationToken cancellationToken = default) =>
         await db.Players

@@ -268,6 +268,32 @@ public class MatchServiceTests(PostgresFixture postgres)
     }
 
     [Fact]
+    public async Task The_whole_history_is_kept_and_browsed_page_by_page()
+    {
+        var alice = await NewPlayer();
+        await using (var db = postgres.CreateDbContext())
+        {
+            for (var i = 0; i < 25; i++)
+            {
+                var match = AcceptedMatch(alice, await NewPlayer(), at: Noon.AddMinutes(i));
+                await Service(db).StartAsync(match);
+                await Service(db).AbandonAsync(alice, match.Id);
+            }
+        }
+
+        await using var reloaded = postgres.CreateDbContext();
+        var firstPage = await Service(reloaded).HistoryPageAsync(alice, page: 1, pageSize: 20);
+        var secondPage = await Service(reloaded).HistoryPageAsync(alice, page: 2, pageSize: 20);
+
+        Assert.Equal(25, firstPage.Total);
+        Assert.Equal(20, firstPage.Items.Count);
+        Assert.Equal(5, secondPage.Items.Count);
+        Assert.Equal(2, firstPage.PageCount);
+        Assert.Equal(Noon.AddMinutes(24), firstPage.Items[0].ProposedAt);
+        Assert.Equal(Noon, secondPage.Items[^1].ProposedAt);
+    }
+
+    [Fact]
     public async Task The_ranking_lists_ranked_players_by_rating()
     {
         var (winner, loser, matchId) = await StartedMatch();
