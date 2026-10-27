@@ -3,6 +3,7 @@ using Matchmaker.Domain.Matchmaking;
 using Matchmaker.Domain.Players;
 using Matchmaker.Web.Data;
 using Matchmaker.Web.Matches;
+using Matchmaker.Web.Push;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matchmaker.Web.Matchmaking;
@@ -15,12 +16,15 @@ public sealed record ScheduledOverview(IReadOnlyList<ScheduledSearch> OpenSearch
 /// pas en ligne en même temps. Une proposition reste 24 h à accepter (au plus tard 1 h avant la partie) ;
 /// une fois acceptée, la partie se déroule comme une partie immédiate.
 /// </summary>
-public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches, PlayerNotifier notifier, TimeProvider time)
+public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches, PlayerNotifier notifier, PushOutbox push, TimeProvider time)
 {
     // Une seule instance du site : sérialiser les appariements évite de proposer deux fois la même recherche.
     private static readonly SemaphoreSlim Gate = new(1, 1);
 
     private static readonly ScheduledSearchStatus Open = ScheduledSearchStatus.Open;
+
+    // Notifications push, envoyées seulement une fois les changements enregistrés.
+    private readonly List<(PlayerId, PushMessage)> _pushes = [];
 
     public async Task<ScheduledSearch> PlanAsync(PlayerId player, Guid armyListId, bool ranked, DateTimeOffset plannedFor,
         CancellationToken cancellationToken = default)
@@ -65,7 +69,10 @@ public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches,
             var match = await ProposalAsync(player, matchId, cancellationToken);
             match.Accept(player, time.GetUtcNow());
             if (match.Status == MatchStatus.Accepted)
+            {
                 await matches.PrepareStartAsync(match, cancellationToken);
+                _pushes.AddRange([(match.First.Player, PushMessages.ScheduledConfirmed(match)), (match.Second.Player, PushMessages.ScheduledConfirmed(match))]);
+            }
             changed.AddRange([match.First.Player, match.Second.Player]);
             return match;
         }, cancellationToken);
@@ -149,6 +156,7 @@ public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches,
         var match = search.MatchWith(opponent, now);
         db.Matches.Add(match);
         changed.AddRange([match.First.Player, match.Second.Player]);
+        _pushes.AddRange([(match.First.Player, PushMessages.ScheduledProposal(match)), (match.Second.Player, PushMessages.ScheduledProposal(match))]);
     }
 
     // Après un refus ou une expiration : la recherche des joueurs qui voulaient jouer repart, les autres s'arrêtent.
@@ -166,8 +174,14 @@ public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches,
                 continue;
             }
             search.Reopen(now);
+            if (search.Status != Open)
+            {
+                _pushes.Add((search.Ticket.Player, PushMessages.SearchStopped(search.PlannedFor)));
+                continue;
+            }
+            await TryMatchAsync(search, now, changed, cancellationToken);
             if (search.Status == Open)
-                await TryMatchAsync(search, now, changed, cancellationToken);
+                _pushes.Add((search.Ticket.Player, PushMessages.SearchGoesOn(search.PlannedFor)));
         }
     }
 
@@ -178,6 +192,7 @@ public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches,
         await Gate.WaitAsync(cancellationToken);
         try
         {
+            _pushes.Clear();
             result = await work(changed);
             await db.SaveChangesAsync(cancellationToken);
         }
@@ -186,6 +201,7 @@ public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches,
             Gate.Release();
         }
         notifier.Notify(changed);
+        push.Send(_pushes);
         return result;
     }
 }

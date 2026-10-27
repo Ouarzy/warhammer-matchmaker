@@ -32,6 +32,9 @@ services:
       # Pas de Kerberos (GSS) : sinon Npgsql cherche une bibliothèque absente de l'image et l'écrit dans les journaux.
       ConnectionStrings__Matchmaker: Host=db;Database=matchmaker;Username=matchmaker;Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD manquant dans deploy/.env};GSS Encryption Mode=Disable
       Steam__ApplicationKey: ${STEAM_API_KEY:?STEAM_API_KEY manquant dans deploy/.env}
+      # Clés VAPID des notifications push (facultatives : sans elles, la fonction est masquée).
+      Push__PublicKey: ${VAPID_PUBLIC_KEY:-}
+      Push__PrivateKey: ${VAPID_PRIVATE_KEY:-}
     volumes:
       - keys:/data/keys
     depends_on:

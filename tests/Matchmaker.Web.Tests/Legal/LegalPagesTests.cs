@@ -35,6 +35,7 @@ public sealed class LegalPagesTests(PostgresFixture postgres) : IDisposable
         Assert.Contains("publi", html);
         Assert.Contains("cookie", html);
         Assert.Contains("CNIL", html);
+        Assert.Contains("Notifications push", html);
         Assert.Contains("emilien@pecoul.fr", html);
     }
 

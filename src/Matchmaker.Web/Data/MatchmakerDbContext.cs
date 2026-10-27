@@ -4,6 +4,7 @@ using Matchmaker.Domain.Matches;
 using Matchmaker.Domain.Matchmaking;
 using Matchmaker.Domain.Players;
 using Matchmaker.Domain.Ratings;
+using Matchmaker.Web.Push;
 using Matchmaker.Web.Tts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -19,6 +20,7 @@ public sealed class MatchmakerDbContext(DbContextOptions<MatchmakerDbContext> op
     public DbSet<ArchivedArmyList> ArchivedArmyLists => Set<ArchivedArmyList>();
     public DbSet<ReportCode> ReportCodes => Set<ReportCode>();
     public DbSet<ScheduledSearch> ScheduledSearches => Set<ScheduledSearch>();
+    public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>();
 
     private static readonly ValueConverter<PlayerId, string> PlayerIdConverter = new(id => id.SteamId, steamId => new PlayerId(steamId));
     private static readonly ValueConverter<EloRating, int> EloRatingConverter = new(rating => rating.Value, value => new EloRating(value));
@@ -84,6 +86,21 @@ public sealed class MatchmakerDbContext(DbContextOptions<MatchmakerDbContext> op
             archive.ComplexProperty(a => a.Format, MapFormat);
             MapRoster(archive.Property(a => a.Roster));
             archive.Property(a => a.ArchivedAt).HasColumnName("archived_at");
+        });
+
+        modelBuilder.Entity<PushSubscription>(subscription =>
+        {
+            subscription.ToTable("push_subscriptions");
+            subscription.HasKey(s => s.Id);
+            subscription.Property(s => s.Id).HasColumnName("id").ValueGeneratedNever();
+            subscription.Property(s => s.Player).HasColumnName("steam_id").HasMaxLength(20).HasConversion(PlayerIdConverter);
+            subscription.HasOne<Player>().WithMany().HasForeignKey(s => s.Player).OnDelete(DeleteBehavior.Cascade);
+            subscription.HasIndex(s => s.Player);
+            subscription.Property(s => s.Endpoint).HasColumnName("endpoint").HasMaxLength(PushSubscription.EndpointMaxLength);
+            subscription.HasIndex(s => s.Endpoint).IsUnique();
+            subscription.Property(s => s.P256dh).HasColumnName("p256dh").HasMaxLength(PushSubscription.KeyMaxLength);
+            subscription.Property(s => s.Auth).HasColumnName("auth").HasMaxLength(PushSubscription.KeyMaxLength);
+            subscription.Property(s => s.CreatedAt).HasColumnName("created_at");
         });
 
         modelBuilder.Entity<ScheduledSearch>(search =>

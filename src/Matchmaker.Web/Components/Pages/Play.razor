@@ -145,7 +145,7 @@
             <div class="card status searching">
                 <h3>Recherche d'un adversaire pour le <LocalTime Value="search.PlannedFor" /></h3>
                 <p>@search.Ticket.Format.Name · @(search.Ticket.Ranked ? "classée" : "amicale") · à une heure près</p>
-                <p class="hint">Inutile de garder la page ouverte : la proposition vous attendra ici, signalée dans le menu.</p>
+                <p class="hint">Inutile de garder la page ouverte : la proposition vous attendra ici, signalée dans le menu. <a href="/profile">Activez les notifications</a> pour être prévenu même site fermé.</p>
                 <button class="button secondary" @onclick="() => CancelPlannedAsync(search.Id)" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="close" /> Annuler</button>
             </div>
         }

@@ -424,6 +424,50 @@ namespace Matchmaker.Web.Data.Migrations
                     b.ToTable("players", (string)null);
                 });
 
+            modelBuilder.Entity("Matchmaker.Web.Push.PushSubscription", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Auth")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("auth");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Endpoint")
+                        .IsRequired()
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)")
+                        .HasColumnName("endpoint");
+
+                    b.Property<string>("P256dh")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("p256dh");
+
+                    b.Property<string>("Player")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("steam_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Endpoint")
+                        .IsUnique();
+
+                    b.HasIndex("Player");
+
+                    b.ToTable("push_subscriptions", (string)null);
+                });
+
             modelBuilder.Entity("Matchmaker.Web.Tts.ReportCode", b =>
                 {
                     b.Property<Guid>("MatchId")
@@ -449,6 +493,15 @@ namespace Matchmaker.Web.Data.Migrations
                     b.HasOne("Matchmaker.Domain.Players.Player", null)
                         .WithMany()
                         .HasForeignKey("Owner")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Matchmaker.Web.Push.PushSubscription", b =>
+                {
+                    b.HasOne("Matchmaker.Domain.Players.Player", null)
+                        .WithMany()
+                        .HasForeignKey("Player")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

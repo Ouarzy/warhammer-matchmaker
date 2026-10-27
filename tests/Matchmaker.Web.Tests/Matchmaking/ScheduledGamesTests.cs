@@ -6,6 +6,7 @@ using Matchmaker.Web.ArmyLists;
 using Matchmaker.Web.Data;
 using Matchmaker.Web.Matches;
 using Matchmaker.Web.Matchmaking;
+using Matchmaker.Web.Push;
 using Matchmaker.Web.Tests.Infrastructure;
 using Matchmaker.Web.Tts;
 using Microsoft.EntityFrameworkCore;
@@ -31,7 +32,8 @@ public sealed class ScheduledGamesTests(PostgresFixture postgres) : IDisposable
         var db = services.GetRequiredService<MatchmakerDbContext>();
         var notifier = new PlayerNotifier();
         notifier.PlayerChanged += _notified.Add;
-        var games = new ScheduledGames(db, new MatchService(db, _time), notifier, _time);
+        var outbox = services.GetRequiredService<PushOutbox>();
+        var games = new ScheduledGames(db, new MatchService(db, _time, outbox), notifier, outbox, _time);
         return await work(games, services);
     }
 

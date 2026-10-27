@@ -7,6 +7,8 @@
     <base href="/" />
     <ResourcePreloader />
     <link rel="stylesheet" href="@Assets["app.css"]" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#121317" />
     <link rel="stylesheet" href="@Assets["Matchmaker.Web.styles.css"]" />
     <ImportMap />
     <HeadOutlet />
@@ -16,6 +18,7 @@
     <Routes />
     <ReconnectModal />
     <script src="@Assets["_framework/blazor.web.js"]"></script>
+    <script type="module" src="@Assets["js/push.js"]"></script>
     <script>
         // Menu burger (téléphone) : se referme dès qu'on choisit une entrée.
         document.addEventListener("click", (event) => {

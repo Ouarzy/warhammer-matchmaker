@@ -7,6 +7,7 @@ using Matchmaker.Domain.Ratings;
 using Matchmaker.Web.Accounts;
 using Matchmaker.Web.ArmyLists;
 using Matchmaker.Web.Matches;
+using Matchmaker.Web.Push;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -24,14 +25,23 @@ public sealed class MatchmakerWebFactory(PostgresFixture postgres) : WebApplicat
         builder.UseSetting("ConnectionStrings:Matchmaker", postgres.ConnectionString);
         builder.UseSetting("Steam:ApplicationKey", "test-key");
         builder.UseSetting("Tts:Enabled", "true");
+        builder.UseSetting("Push:PublicKey", TestPublicKey);
+        builder.UseSetting("Push:PrivateKey", "test-private-key");
 
         builder.ConfigureTestServices(services =>
         {
             services.AddAuthentication().AddScheme<AuthenticationSchemeOptions, TestAuthentication>(TestAuthentication.Scheme, null);
             services.PostConfigure<AuthenticationOptions>(options => options.DefaultAuthenticateScheme = TestAuthentication.Scheme);
             services.AddSingleton<IRosterProvider, StubRosterProvider>();
+            services.AddSingleton(Push);
+            services.AddScoped<IPushSender>(_ => Push);
         });
     }
+
+    public const string TestPublicKey = "BTestPublicKey";
+
+    /// <summary>Notifications push envoyées par le site pendant le test.</summary>
+    public RecordingPushSender Push { get; } = new();
 
     public HttpClient CreateAnonymousClient() =>
         CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });

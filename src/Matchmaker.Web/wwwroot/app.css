@@ -366,3 +366,7 @@ body > .site-footer { max-width: 64rem; margin-inline: auto; }
 .scheduled .card { margin: 0; }
 .when { display: flex; flex-wrap: wrap; gap: 1rem; border: 0; padding: 0; margin: 0; }
 .when legend { padding: 0; margin-bottom: 0.3rem; }
+
+/* Notifications push (Mon compte) */
+.push { margin-top: 1.5rem; }
+.push h2 { margin-top: 0; }
