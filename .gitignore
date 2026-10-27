@@ -486,3 +486,7 @@ $RECYCLE.BIN/
 .DS_Store
 # Dossier parasite créé par dotnet-ef sur macOS
 bin\\*/
+
+# Déploiement : secrets et sauvegardes restent sur le serveur
+deploy/.env
+deploy/backups/
