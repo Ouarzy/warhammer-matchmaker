@@ -29,7 +29,8 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       # Caddy est devant le site : on fait confiance à ses en-têtes X-Forwarded-* (HTTPS, adresse du client).
       ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
-      ConnectionStrings__Matchmaker: Host=db;Database=matchmaker;Username=matchmaker;Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD manquant dans deploy/.env}
+      # Pas de Kerberos (GSS) : sinon Npgsql cherche une bibliothèque absente de l'image et l'écrit dans les journaux.
+      ConnectionStrings__Matchmaker: Host=db;Database=matchmaker;Username=matchmaker;Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD manquant dans deploy/.env};GSS Encryption Mode=Disable
       Steam__ApplicationKey: ${STEAM_API_KEY:?STEAM_API_KEY manquant dans deploy/.env}
     volumes:
       - keys:/data/keys
