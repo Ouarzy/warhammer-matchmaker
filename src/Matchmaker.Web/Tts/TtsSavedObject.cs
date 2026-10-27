@@ -26,7 +26,7 @@ public static class TtsSavedObject
             {
                 GUID = "a40k01",
                 Name = "BlockSquare",
-                Transform = new { posX = 0, posY = 1, posZ = 0, rotX = 0, rotY = 180, rotZ = 0, scaleX = 8, scaleY = 0.2, scaleZ = 5 },
+                Transform = new { posX = 0, posY = 1, posZ = 0, rotX = 0, rotY = 180, rotZ = 0, scaleX = 13, scaleY = 0.2, scaleZ = 7 },
                 Nickname = ObjectName,
                 Description = "Envoie le score de la feuille LCT à warhammer-matchmaker.com",
                 ColorDiffuse = new { r = 0.12, g = 0.12, b = 0.16 },

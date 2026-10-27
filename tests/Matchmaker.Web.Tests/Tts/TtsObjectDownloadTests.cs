@@ -37,8 +37,8 @@ public sealed class TtsObjectDownloadTests(PostgresFixture postgres) : IDisposab
 
         using var saved = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         var transform = saved.RootElement.GetProperty("ObjectStates")[0].GetProperty("Transform");
-        Assert.Equal(8, transform.GetProperty("scaleX").GetDouble());
-        Assert.Equal(5, transform.GetProperty("scaleZ").GetDouble());
+        Assert.Equal(13, transform.GetProperty("scaleX").GetDouble());
+        Assert.Equal(7, transform.GetProperty("scaleZ").GetDouble());
     }
 
     [Fact]

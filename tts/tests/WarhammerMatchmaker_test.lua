@@ -22,6 +22,7 @@ local function newWorld()
         createButton = function(button) table.insert(world.buttons, button) end,
         createInput = function(input) table.insert(world.inputs, input) end,
         editButton = function(edit) world.buttons[edit.index + 1].label = edit.label end,
+        getScale = function() return { x = 13, y = 0.2, z = 7 } end,
     }
     Player = {
         Red = fakePlayer("111", true, true),
@@ -55,7 +56,8 @@ local function answer(request, responseCode, message)
     request.callback({ response_code = responseCode, text = "answer", is_error = responseCode >= 400 })
 end
 
-local function statusLabel() return world.buttons[3].label end
+-- La ligne d'état est coupée en plusieurs lignes : on la relit d'un seul tenant.
+local function statusLabel() return (world.buttons[3].label:gsub("\n", " ")) end
 local function typeCode(value) onCodeChanged(self, "Red", value, false) end
 
 -- Petit cadre de test ------------------------------------------------------------------------------
@@ -96,6 +98,30 @@ test("l'objet a un titre, un champ pour le code, un bouton d'envoi et une ligne 
     eq("onCodeChanged", world.inputs[1].input_function)
     eq("sendFinalScore", world.buttons[2].click_function)
     eq("Collez le code de la partie (page de la partie sur le site).", statusLabel())
+end)
+
+test("les boutons gardent leur taille sur un bloc aplati, quelle que soit son échelle", function()
+    onLoad("")
+    local title, send = world.buttons[1], world.buttons[2]
+    eq(2, title.scale[1] * 13, "largeur du titre"); eq(2, title.scale[3] * 7, "hauteur du titre")
+    eq(-2.2, title.position[3] * 7, "titre en haut")
+    eq(0.6, send.position[3] * 7, "bouton d'envoi")
+    eq(2, world.inputs[1].scale[1] * 13, "largeur du champ")
+end)
+
+test("le titre et la ligne d'état sont écrits en blanc sur le bloc sombre", function()
+    onLoad("")
+    eq(1, world.buttons[1].font_color[1]); eq(1, world.buttons[3].font_color[3])
+end)
+
+test("une ligne d'état trop longue est coupée entre les mots", function()
+    local text = "Score 45 - 30 envoyé, en attente de confirmation par l'adversaire."
+    local wrapped = wrap(text)
+    for line in wrapped:gmatch("[^\n]+") do
+        assert(#line <= STATUS_LINE_LENGTH, "ligne trop longue : " .. line)
+    end
+    eq(text, (wrapped:gsub("\n", " ")), "texte complet")
+    eq("Code enregistré.", wrap("Code enregistré."), "texte court inchangé")
 end)
 
 test("la réponse du site est affichée à tous", function()

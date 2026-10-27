@@ -16,25 +16,58 @@ status = "Collez le code de la partie (page de la partie sur le site)."
 
 -- Interface ------------------------------------------------------------------------------------
 
--- L'objet est un bloc aplati (échelle 8 x 5) : on compense pour que les boutons ne soient pas déformés
--- (0,25 x 8 = 0,4 x 5 = 2 : boutons agrandis 2 fois).
-local UI_SCALE = { 0.25, 1, 0.4 }
+-- Les boutons d'un objet sont étirés avec lui. Le bloc est aplati (13 x 7 dans le fichier téléchargé) :
+-- on lit son échelle réelle pour garder des boutons de taille fixe (UI_SIZE), sans déformation, même
+-- si le joueur le redimensionne. Les positions sont données en unités de la table, depuis le centre.
+UI_SIZE = 2
+WHITE = { 1, 1, 1 }
+STATUS_LINE_LENGTH = 45
+
+function layout(worldZ)
+    local scale = self.getScale()
+    return {
+        position = { 0, 0.6, worldZ / scale.z },
+        scale = { UI_SIZE / scale.x, 1, UI_SIZE / scale.z },
+    }
+end
+
+function withLayout(worldZ, element)
+    local placed = layout(worldZ)
+    element.position = placed.position
+    element.scale = placed.scale
+    element.function_owner = self
+    return element
+end
 
 function onLoad(savedState)
     if savedState and savedState ~= "" then
         code = savedState
     end
-    self.createButton({ click_function = "noop", function_owner = self, label = "Warhammer Matchmaker",
-        position = { 0, 0.6, -0.36 }, scale = UI_SCALE, width = 0, height = 0, font_size = 220 })
-    self.createInput({ input_function = "onCodeChanged", function_owner = self, label = "Code de la partie",
+    self.createButton(withLayout(-2.2, { click_function = "noop", label = "Warhammer Matchmaker",
+        width = 0, height = 0, font_size = 220, font_color = WHITE }))
+    self.createInput(withLayout(-0.8, { input_function = "onCodeChanged", label = "Code de la partie",
         value = code, alignment = 3, validation = 1, tooltip = "Code de 8 caractères affiché sur la page de la partie",
-        position = { 0, 0.6, -0.12 }, scale = UI_SCALE, width = 1800, height = 260, font_size = 180 })
-    self.createButton({ click_function = "sendFinalScore", function_owner = self, label = "Envoyer le score final",
-        position = { 0, 0.6, 0.13 }, scale = UI_SCALE, width = 1800, height = 260, font_size = 150,
-        color = { 0.85, 0.65, 0.2 } })
-    self.createButton({ click_function = "noop", function_owner = self, label = status,
-        position = { 0, 0.6, 0.36 }, scale = UI_SCALE, width = 0, height = 0, font_size = 100 })
+        width = 1800, height = 260, font_size = 180 }))
+    self.createButton(withLayout(0.6, { click_function = "sendFinalScore", label = "Envoyer le score final",
+        width = 1800, height = 260, font_size = 150, color = { 0.85, 0.65, 0.2 } }))
+    self.createButton(withLayout(2.0, { click_function = "noop", label = wrap(status),
+        width = 0, height = 0, font_size = 100, font_color = WHITE }))
     Wait.time(shareLiveScore, LIVE_INTERVAL_SECONDS, -1)
+end
+
+-- Coupe un texte en lignes d'au plus STATUS_LINE_LENGTH caractères, entre les mots, pour rester dans le cadre.
+function wrap(text)
+    local lines, line = {}, ""
+    for word in text:gmatch("%S+") do
+        if line ~= "" and #line + 1 + #word > STATUS_LINE_LENGTH then
+            table.insert(lines, line)
+            line = word
+        else
+            line = (line == "") and word or (line .. " " .. word)
+        end
+    end
+    if line ~= "" then table.insert(lines, line) end
+    return table.concat(lines, "\n")
 end
 
 function onSave()
@@ -48,7 +81,7 @@ local STATUS_BUTTON = 2
 
 function setStatus(text)
     status = text
-    self.editButton({ index = STATUS_BUTTON, label = text })
+    self.editButton({ index = STATUS_BUTTON, label = wrap(text) })
 end
 
 function onCodeChanged(_, _, value, stillEditing)
