@@ -276,6 +276,11 @@ dt { font-weight: 600; margin-top: 0.5rem; }
 dd { margin-left: 0; color: #c9c6c1; }
 .ranking tr.me td { background: #2a2618; }
 
+/* Code de partie pour l'objet TTS. */
+.tts-code { border: 1px dashed var(--accent); border-radius: var(--radius); padding: 0.75rem 1rem; margin-block: 1rem; }
+.tts-code p { margin: 0.3rem 0; }
+.code-value code { font-size: 1.5rem; letter-spacing: 0.2em; padding: 0.2rem 0.6rem; }
+
 /* Menu burger : caché sur grand écran. */
 .burger, .menu-toggle, .menu-backdrop { display: none; }
 

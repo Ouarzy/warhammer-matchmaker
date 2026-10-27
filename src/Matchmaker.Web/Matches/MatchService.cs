@@ -3,6 +3,7 @@ using Matchmaker.Domain.Matches;
 using Matchmaker.Domain.Players;
 using Matchmaker.Domain.Ratings;
 using Matchmaker.Web.Data;
+using Matchmaker.Web.Tts;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matchmaker.Web.Matches;
@@ -28,6 +29,8 @@ public sealed class MatchService(MatchmakerDbContext db, TimeProvider time)
         var lists = await db.ArmyLists.Where(l => listIds.Contains(l.Id)).ToListAsync(cancellationToken);
         var now = time.GetUtcNow();
         db.ArchivedArmyLists.AddRange(lists.Select(list => list.ArchiveFor(match.Id, now)));
+        // Code secret pour envoyer le score depuis l'objet TTS.
+        db.ReportCodes.Add(new ReportCode(match.Id, ReportCode.Generate()));
 
         db.Matches.Add(match);
         await db.SaveChangesAsync(cancellationToken);

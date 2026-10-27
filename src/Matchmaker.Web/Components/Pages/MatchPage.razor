@@ -7,6 +7,7 @@
 @using Matchmaker.Web.Accounts
 @using Matchmaker.Web.Matches
 @using Matchmaker.Web.Matchmaking
+@using Matchmaker.Web.Tts
 @inject PlayerNotifier Notifier
 @inject IServiceScopeFactory ScopeFactory
 @inject NavigationManager Navigation
@@ -43,6 +44,15 @@
                         <li>Consultez sa liste ci-dessus avant de commencer.</li>
                         <li>À la fin de la partie, l'un de vous déclare le score ci-dessous et l'autre le confirme.</li>
                     </ol>
+
+                    @if (_reportCode is not null)
+                    {
+                        <div class="tts-code">
+                            <p><Icon Name="send" /> <strong>Envoyer le score depuis TTS</strong> : collez ce code dans l'objet « Warhammer Matchmaker » de votre table.</p>
+                            <p class="code-value"><code>@_reportCode</code></p>
+                            <p class="hint">Code secret de cette partie : ne le donnez qu'à votre adversaire. <a href="/tts">Installer l'objet TTS</a></p>
+                        </div>
+                    }
 
                     <div class="result-form">
                         <h2>Déclarer le résultat</h2>
@@ -108,6 +118,7 @@
     private Match? _match;
     private IReadOnlyDictionary<PlayerId, Player> _players = new Dictionary<PlayerId, Player>();
     private ArchivedLists _archives = ArchivedLists.None;
+    private string? _reportCode;
     private int _myVictoryPoints;
     private int _opponentVictoryPoints;
     private bool _confirmingAbandon;
@@ -129,6 +140,9 @@
             if (player == _match.First.Player || player == _match.Second.Player)
                 _me = player;
         }
+
+        if (_me is not null)
+            _reportCode = await UsingServices(services => services.GetRequiredService<TtsReporting>().CodeOfAsync(Id));
 
         (_players, _archives) = await UsingServices(async services => (
             await services.GetRequiredService<PlayerAccounts>().FindManyAsync([_match.First.Player, _match.Second.Player]),

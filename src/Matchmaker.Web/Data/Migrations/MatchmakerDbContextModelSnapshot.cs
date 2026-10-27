@@ -339,6 +339,26 @@ namespace Matchmaker.Web.Data.Migrations
                     b.ToTable("players", (string)null);
                 });
 
+            modelBuilder.Entity("Matchmaker.Web.Tts.ReportCode", b =>
+                {
+                    b.Property<Guid>("MatchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("match_id");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
+                        .HasColumnName("code");
+
+                    b.HasKey("MatchId");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("match_report_codes", (string)null);
+                });
+
             modelBuilder.Entity("Matchmaker.Domain.ArmyLists.ArmyList", b =>
                 {
                     b.HasOne("Matchmaker.Domain.Players.Player", null)

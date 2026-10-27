@@ -8,6 +8,7 @@ using Matchmaker.Web.Components;
 using Matchmaker.Web.Data;
 using Matchmaker.Web.Matches;
 using Matchmaker.Web.Matchmaking;
+using Matchmaker.Web.Tts;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,6 +34,7 @@ builder.Services.AddScoped<ArmyListService>();
 builder.Services.AddSingleton<PlayerNotifier>();
 builder.Services.AddSingleton<MatchmakingCoordinator>();
 builder.Services.AddScoped<MatchService>();
+builder.Services.AddScoped<TtsReporting>();
 builder.Services.AddHostedService<MatchExpiryService>();
 builder.Services.AddHostedService<ResultConfirmationService>();
 builder.Services.AddSteamAuthentication(builder.Configuration);

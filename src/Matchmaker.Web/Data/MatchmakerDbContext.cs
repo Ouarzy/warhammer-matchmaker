@@ -4,6 +4,7 @@ using Matchmaker.Domain.Matches;
 using Matchmaker.Domain.Matchmaking;
 using Matchmaker.Domain.Players;
 using Matchmaker.Domain.Ratings;
+using Matchmaker.Web.Tts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -16,6 +17,7 @@ public sealed class MatchmakerDbContext(DbContextOptions<MatchmakerDbContext> op
     public DbSet<ArmyList> ArmyLists => Set<ArmyList>();
     public DbSet<Match> Matches => Set<Match>();
     public DbSet<ArchivedArmyList> ArchivedArmyLists => Set<ArchivedArmyList>();
+    public DbSet<ReportCode> ReportCodes => Set<ReportCode>();
 
     private static readonly ValueConverter<PlayerId, string> PlayerIdConverter = new(id => id.SteamId, steamId => new PlayerId(steamId));
     private static readonly ValueConverter<EloRating, int> EloRatingConverter = new(rating => rating.Value, value => new EloRating(value));
@@ -56,6 +58,15 @@ public sealed class MatchmakerDbContext(DbContextOptions<MatchmakerDbContext> op
             list.ComplexProperty(l => l.Format, MapFormat);
             MapRoster(list.Property(l => l.Roster));
             list.Property(l => l.ImportedAt).HasColumnName("imported_at");
+        });
+
+        modelBuilder.Entity<ReportCode>(code =>
+        {
+            code.ToTable("match_report_codes");
+            code.HasKey(c => c.MatchId);
+            code.Property(c => c.MatchId).HasColumnName("match_id").ValueGeneratedNever();
+            code.Property(c => c.Code).HasColumnName("code").HasMaxLength(ReportCode.Length);
+            code.HasIndex(c => c.Code).IsUnique();
         });
 
         // Copies figées des listes jouées : indépendantes des listes d'origine (pas de clé étrangère).
