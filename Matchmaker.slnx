@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Matchmaker.Domain/Matchmaker.Domain.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Matchmaker.Domain.Tests/Matchmaker.Domain.Tests.csproj" />
+  </Folder>
+</Solution>
