@@ -42,6 +42,9 @@ public sealed class MatchService(MatchmakerDbContext db, TimeProvider time)
     public async Task<ArchivedArmyList?> FindArchivedListAsync(Guid id, CancellationToken cancellationToken = default) =>
         await db.ArchivedArmyLists.FindAsync([id], cancellationToken);
 
+    public async Task<Match?> FindAsync(Guid matchId, CancellationToken cancellationToken = default) =>
+        await db.Matches.FindAsync([matchId], cancellationToken);
+
     /// <summary>Le match, s'il existe et si ce joueur y participe.</summary>
     public async Task<Match?> FindForAsync(PlayerId player, Guid matchId, CancellationToken cancellationToken = default)
     {

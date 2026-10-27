@@ -8,13 +8,93 @@ namespace Matchmaker.Web.Tests.Matches;
 public sealed class MatchPageTests(PostgresFixture postgres) : IDisposable
 {
     private readonly MatchmakerWebFactory _factory = new(postgres);
+    private readonly int _suffix = Random.Shared.Next(100000);
 
     private async Task<(HttpClient Alice, PlayerId AliceId, HttpClient Bob, PlayerId BobId, Guid MatchId)> MatchInProgress()
     {
         var (alice, bob) = (MatchmakerWebFactory.NewPlayerId(), MatchmakerWebFactory.NewPlayerId());
-        var aliceClient = await _factory.CreateClientAsAsync(alice, "Alice");
-        var bobClient = await _factory.CreateClientAsAsync(bob, "Bob");
+        var aliceClient = await _factory.CreateClientAsAsync(alice, $"Alice{_suffix}");
+        var bobClient = await _factory.CreateClientAsAsync(bob, $"Bob{_suffix}");
         return (aliceClient, alice, bobClient, bob, await _factory.StartMatchAsync(alice, bob));
+    }
+
+    private static async Task<string> Text(HttpResponseMessage response) =>
+        WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync());
+
+    private async Task<string> AnonymousView(Guid matchId) =>
+        await Text(await _factory.CreateAnonymousClient().GetAsync($"/matches/{matchId}"));
+
+    [Fact]
+    public async Task Anyone_can_see_the_players_and_their_lists()
+    {
+        var (_, alice, _, bob, matchId) = await MatchInProgress();
+        var archives = await _factory.ArchivedListsOfAsync(matchId);
+
+        var html = await AnonymousView(matchId);
+
+        Assert.Contains($"href=\"/players/{alice.SteamId}\"", html);
+        Assert.Contains($"href=\"/players/{bob.SteamId}\"", html);
+        Assert.Contains($"href=\"/archived-lists/{archives.For(matchId, alice)!.Id}\"", html);
+        Assert.Contains($"href=\"/archived-lists/{archives.For(matchId, bob)!.Id}\"", html);
+    }
+
+    [Fact]
+    public async Task A_match_in_progress_has_no_score_yet()
+    {
+        var (_, _, _, _, matchId) = await MatchInProgress();
+
+        var html = await AnonymousView(matchId);
+
+        Assert.Contains("Partie en cours", html);
+        Assert.Contains("Pas encore de score", html);
+    }
+
+    [Fact]
+    public async Task A_declared_score_is_shown_as_awaiting_confirmation()
+    {
+        var (_, alice, _, _, matchId) = await MatchInProgress();
+        await _factory.WithMatchesAsync(matches => matches.DeclareResultAsync(alice, matchId, 85, 70));
+
+        var html = await AnonymousView(matchId);
+
+        Assert.Contains("En attente de confirmation", html);
+        Assert.Contains("85 VP", html);
+        Assert.Contains("70 VP", html);
+    }
+
+    [Fact]
+    public async Task A_finished_match_shows_the_final_score_and_rating_changes()
+    {
+        var (_, alice, _, bob, matchId) = await MatchInProgress();
+        await _factory.WithMatchesAsync(async matches =>
+        {
+            await matches.DeclareResultAsync(alice, matchId, 85, 70);
+            await matches.ConfirmResultAsync(bob, matchId);
+        });
+
+        var html = await AnonymousView(matchId);
+
+        Assert.Contains("Partie terminée", html);
+        Assert.Contains("85 VP", html);
+        Assert.Contains("WTC 12", html);
+        Assert.Contains("WTC 8", html);
+        Assert.Contains("Petite victoire", html);
+        Assert.Contains("Petite défaite", html);
+        Assert.Contains("Elo +4", html);
+        Assert.Contains("Elo -4", html);
+    }
+
+    [Fact]
+    public async Task An_abandon_is_shown_as_a_20_0()
+    {
+        var (_, _, _, bob, matchId) = await MatchInProgress();
+        await _factory.WithMatchesAsync(matches => matches.AbandonAsync(bob, matchId));
+
+        var html = await AnonymousView(matchId);
+
+        Assert.Contains("WTC 20", html);
+        Assert.Contains("WTC 0", html);
+        Assert.Contains("Abandon", html);
     }
 
     [Fact]
@@ -22,9 +102,8 @@ public sealed class MatchPageTests(PostgresFixture postgres) : IDisposable
     {
         var (alice, _, _, _, matchId) = await MatchInProgress();
 
-        var html = await alice.GetStringAsync($"/matches/{matchId}");
+        var html = await Text(await alice.GetAsync($"/matches/{matchId}"));
 
-        Assert.Contains("Bob", html);
         Assert.Contains("Déclarer le résultat", html);
         Assert.Contains("Abandonner", html);
     }
@@ -35,10 +114,9 @@ public sealed class MatchPageTests(PostgresFixture postgres) : IDisposable
         var (_, alice, bob, _, matchId) = await MatchInProgress();
         await _factory.WithMatchesAsync(matches => matches.DeclareResultAsync(alice, matchId, 85, 70));
 
-        var html = await bob.GetStringAsync($"/matches/{matchId}");
+        var html = await Text(await bob.GetAsync($"/matches/{matchId}"));
 
         Assert.Contains("Votre adversaire a déclaré le résultat", html);
-        Assert.Contains("Petite défaite", html);
         Assert.Contains("Confirmer", html);
         Assert.Contains("confirmé automatiquement", html);
     }
@@ -49,42 +127,31 @@ public sealed class MatchPageTests(PostgresFixture postgres) : IDisposable
         var (alice, aliceId, _, _, matchId) = await MatchInProgress();
         await _factory.WithMatchesAsync(matches => matches.DeclareResultAsync(aliceId, matchId, 85, 70));
 
-        var html = await alice.GetStringAsync($"/matches/{matchId}");
+        var html = await Text(await alice.GetAsync($"/matches/{matchId}"));
 
-        Assert.Contains("En attente de la confirmation", html);
+        Assert.Contains("En attente de la confirmation de votre adversaire", html);
         Assert.DoesNotContain(">Confirmer<", html);
     }
 
     [Fact]
-    public async Task A_finished_match_shows_its_outcome()
-    {
-        var (alice, _, _, bobId, matchId) = await MatchInProgress();
-        await _factory.WithMatchesAsync(matches => matches.AbandonAsync(bobId, matchId));
-
-        var html = await alice.GetStringAsync($"/matches/{matchId}");
-
-        Assert.Contains("Victoire écrasante", html);
-        Assert.Contains("abandon", html);
-        Assert.DoesNotContain("Déclarer le résultat", html);
-    }
-
-    [Fact]
-    public async Task Only_the_players_of_a_match_can_open_it()
+    public async Task Spectators_cannot_act_on_the_match()
     {
         var (_, _, _, _, matchId) = await MatchInProgress();
-        var stranger = await _factory.CreateClientAsAsync(MatchmakerWebFactory.NewPlayerId());
+        var spectator = await _factory.CreateClientAsAsync(MatchmakerWebFactory.NewPlayerId());
 
-        var response = await stranger.GetAsync($"/matches/{matchId}");
+        var html = await Text(await spectator.GetAsync($"/matches/{matchId}"));
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Contains("Partie en cours", html);
+        Assert.DoesNotContain("Déclarer le résultat", html);
+        Assert.DoesNotContain("Abandonner", html);
     }
 
     [Fact]
-    public async Task A_match_page_requires_to_be_signed_in()
+    public async Task An_unknown_match_is_not_found()
     {
         var response = await _factory.CreateAnonymousClient().GetAsync($"/matches/{Guid.NewGuid()}");
 
-        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     public void Dispose() => _factory.Dispose();

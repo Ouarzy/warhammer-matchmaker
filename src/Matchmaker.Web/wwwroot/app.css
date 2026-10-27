@@ -168,3 +168,9 @@ dd { margin-left: 0; color: #c9c6c1; }
 
 .match-line .lists { flex-basis: 100%; font-size: 0.9rem; color: #a9a6a1; }
 .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 1rem; background: #3a3f49; font-size: 0.8rem; margin: 0; }
+
+.match-header h1 { margin: 0.5rem 0 0.25rem; }
+.match-sides { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
+.match-sides .side h2 { margin: 0 0 0.5rem; font-size: 1.2rem; }
+.match-sides .side p { margin: 0.35rem 0; }
+.match-sides .score { font-size: 1.1rem; font-weight: 600; }

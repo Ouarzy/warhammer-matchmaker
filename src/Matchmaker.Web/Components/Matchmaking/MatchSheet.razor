@@ -1,0 +1,96 @@
+@using Matchmaker.Domain.Matches
+@using Matchmaker.Domain.Matchmaking
+@using Matchmaker.Domain.Players
+@using Matchmaker.Domain.Results
+@using Matchmaker.Web.Matches
+
+<header class="match-header">
+    <p class="badge">@StatusLabel</p>
+    <h1>Partie du @Match.ProposedAt.ToString("dd/MM/yyyy")</h1>
+    <p class="hint">
+        @Match.First.Format.Name · @(Match.First.Ranked ? "classée" : "amicale")
+        @if (Match.ConfirmedAutomatically)
+        {
+            @(" · résultat confirmé automatiquement")
+        }
+        @if (Match.Status == MatchStatus.Disputed)
+        {
+            @(" · résultat contesté, sans effet sur l'Elo")
+        }
+    </p>
+</header>
+
+<div class="match-sides">
+    @foreach (var side in new[] { Match.First, Match.Second })
+    {
+        var player = Players.GetValueOrDefault(side.Player);
+        var list = Archives.For(Match.Id, side.Player);
+        <section class="card side">
+            <h2>
+                @if (player is not null)
+                {
+                    <PlayerLink Player="player" />
+                }
+                else
+                {
+                    @side.Player.SteamId
+                }
+            </h2>
+            <p class="hint">
+                Elo au début : @side.Rating.Value
+                @if (Match.RatingChangeOf(side.Player) is { } change)
+                {
+                    <span class="@(change >= 0 ? "gain" : "loss")">Elo @ResultLabels.Signed(change)</span>
+                }
+            </p>
+            <p>
+                Liste :
+                @if (list is not null)
+                {
+                    <a href="/archived-lists/@list.Id">@list.Name</a>
+                    <span class="hint">· @(list.Faction ?? "Faction inconnue")</span>
+                }
+                else
+                {
+                    <span class="hint">non archivée</span>
+                }
+            </p>
+            <p class="score">@ScoreOf(side.Player)</p>
+        </section>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Match Match { get; set; } = default!;
+    [Parameter] public IReadOnlyDictionary<PlayerId, Player> Players { get; set; } = new Dictionary<PlayerId, Player>();
+    [Parameter] public ArchivedLists Archives { get; set; } = ArchivedLists.None;
+
+    private string StatusLabel => Match.Status switch
+    {
+        MatchStatus.Accepted => "Partie en cours",
+        MatchStatus.ResultDeclared => "En attente de confirmation",
+        MatchStatus.Disputed => "Résultat contesté",
+        _ => "Partie terminée",
+    };
+
+    private string ScoreOf(PlayerId player)
+    {
+        switch (Match.Status)
+        {
+            case MatchStatus.Completed:
+            {
+                var score = Match.ScoreOf(player);
+                return $"{Match.VictoryPointsOf(player)} VP · WTC {score.Points} · {ResultLabels.Of(score.Category)}";
+            }
+            case MatchStatus.Abandoned:
+            {
+                var score = Match.ScoreOf(player);
+                return $"WTC {score.Points} · {ResultLabels.Of(score.Category)}{(Match.AbandonedBy == player ? " · Abandon" : "")}";
+            }
+            case MatchStatus.ResultDeclared or MatchStatus.Disputed:
+                return $"{Match.VictoryPointsOf(player)} VP déclarés";
+            default:
+                return "Pas encore de score";
+        }
+    }
+}
