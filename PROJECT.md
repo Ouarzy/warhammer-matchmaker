@@ -76,7 +76,8 @@ Catégorie du résultat selon le score WTC du joueur :
 ### Appariement
 - Deux joueurs sont appariés s'ils cherchent le même format et le même mode (classé / non classé)
 - Écart d'Elo toléré très large au démarrage (à resserrer quand la base de joueurs grandit)
-- Les deux joueurs doivent accepter le match ; si l'un refuse ou ne répond pas, l'autre retourne dans la file
+- Les deux joueurs doivent accepter le match dans les 5 minutes ; si l'un refuse ou ne répond pas, l'autre retourne dans la file (en gardant son ancienneté)
+- Parmi les adversaires compatibles, on choisit l'Elo le plus proche, puis celui qui attend depuis le plus longtemps
 
 ## Données
 On s'identifie avec son compte steam.
