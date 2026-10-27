@@ -42,6 +42,14 @@ public sealed record ModelGroup(string Name, int Count, IReadOnlyList<string> We
 public sealed record Weapon(string Name, string Range, string A, string Skill, string S, string Ap, string D, string Abilities)
 {
     public bool IsMelee => Range.Equals("Melee", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Les aptitudes, sans les rappels vides que YellowScribe ajoute à la ligne (« Close-quarters: ») :
+    /// seuls les rappels qui ont une description sont gardés.
+    /// </summary>
+    public string DisplayedAbilities => string.Join(" · ", Abilities
+        .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .Where((line, index) => index == 0 || !line.EndsWith(':')));
 }
 
 public sealed record Ability(string Name, string Description);
