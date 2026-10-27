@@ -357,3 +357,12 @@ body > .site-footer { max-width: 64rem; margin-inline: auto; }
 @media (prefers-reduced-motion: reduce) {
     .sidebar { transition: none; }
 }
+
+/* Parties planifiées */
+.local-time[data-local] > .utc { display: none; }
+.local-time[data-local]::after { content: attr(data-local); }
+.nav-badge { margin-left: auto; min-width: 1.4rem; padding: 0.05rem 0.45rem; border-radius: 1rem; background: var(--danger); color: #fff; font-size: 0.8rem; font-weight: 700; text-align: center; }
+.scheduled { display: grid; gap: 0.75rem; }
+.scheduled .card { margin: 0; }
+.when { display: flex; flex-wrap: wrap; gap: 1rem; border: 0; padding: 0; margin: 0; }
+.when legend { padding: 0; margin-bottom: 0.3rem; }

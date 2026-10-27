@@ -38,7 +38,8 @@ public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches,
                     $"Vous avez déjà {MatchService.MaxActiveMatches} parties en cours, planifiées ou recherchées.");
 
             var now = time.GetUtcNow();
-            var search = ScheduledSearch.Open(new QueueTicket(player, list.Id, list.Format, ranked, account.Rating, now), plannedFor, now);
+            // PostgreSQL n'enregistre que des dates UTC ; l'heure saisie arrive dans le fuseau du joueur.
+            var search = ScheduledSearch.Open(new QueueTicket(player, list.Id, list.Format, ranked, account.Rating, now), plannedFor.ToUniversalTime(), now);
             db.ScheduledSearches.Add(search);
             changed.Add(player);
             await TryMatchAsync(search, now, changed, cancellationToken);
@@ -57,7 +58,8 @@ public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches,
             return 0;
         }, cancellationToken);
 
-    public Task AcceptAsync(PlayerId player, Guid matchId, CancellationToken cancellationToken = default) =>
+    /// <returns>Le match, au statut Accepted une fois accepté par les deux joueurs.</returns>
+    public Task<Match> AcceptAsync(PlayerId player, Guid matchId, CancellationToken cancellationToken = default) =>
         SerializedAsync(async changed =>
         {
             var match = await ProposalAsync(player, matchId, cancellationToken);
@@ -65,7 +67,7 @@ public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches,
             if (match.Status == MatchStatus.Accepted)
                 await matches.PrepareStartAsync(match, cancellationToken);
             changed.AddRange([match.First.Player, match.Second.Player]);
-            return 0;
+            return match;
         }, cancellationToken);
 
     public Task DeclineAsync(PlayerId player, Guid matchId, CancellationToken cancellationToken = default) =>

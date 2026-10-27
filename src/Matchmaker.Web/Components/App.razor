@@ -22,6 +22,19 @@
             const toggle = document.getElementById("menu-toggle");
             if (toggle && event.target.closest(".sidebar a, .sidebar button")) toggle.checked = false;
         });
+
+        window.matchmakerTimeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+        // Dates (<LocalTime>) dans le fuseau du lecteur. On n'ajoute qu'un attribut : le texte reste à Blazor.
+        const localTime = new Intl.DateTimeFormat("fr-FR", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+        const localize = () => document.querySelectorAll("time.local-time").forEach((time) => {
+            const iso = time.getAttribute("datetime");
+            if (time.dataset.localFor === iso) return;
+            time.dataset.local = localTime.format(new Date(iso));
+            time.dataset.localFor = iso;
+        });
+        localize();
+        new MutationObserver(localize).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["datetime"] });
     </script>
 </body>
 

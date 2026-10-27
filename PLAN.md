@@ -31,7 +31,9 @@ Spécifications : voir [PROJECT.md](PROJECT.md).
 | 6b | **Parties longues** : jusqu'à 5 parties en parallèle sans limite de durée, abandon = victoire 20-0 pour l'adversaire, confirmation automatique du résultat après 24 h sans réponse | Règles de jeu réelles | Fait |
 | 6c | **Préparation du déploiement** : image Docker, Docker Compose de production (site, PostgreSQL, Caddy HTTPS, sauvegardes), scripts, répétition générale en local | Prêt à déployer | Fait |
 | 6d | **Mise en ligne** : Gandi VPS Starter, image publiée par GitHub Actions sur ghcr.io, HTTPS Caddy, https://warhammer-matchmaker.com (connexion Steam validée en production le 2026-10-27) | Site public | Fait |
-| 7 | **V2** : objet TTS de remontée du score ([étude de faisabilité](docs/V2-OBJET-TTS.md) : faisable), parties planifiées, AOS… | Évolutions | À faire |
+| 7 | **V2** : objet TTS de remontée du score ([étude](docs/V2-OBJET-TTS.md)) : score en direct + bouton score final, en bêta, essai réel dans TTS à faire | Plus de saisie des VP | Fait (à essayer) |
+| 7b | **Parties planifiées** : recherche à une date et heure précises enregistrée en base, appariement à ± 1 h (heure la plus proche, puis Elo), partie fixée à l'heure du premier joueur, 24 h pour accepter et au plus tard 1 h avant, refus/expiration qui relancent la recherche de l'autre, pastille dans le menu, heures affichées dans le fuseau de chacun | Jouer sans être en ligne en même temps | Fait |
+| 8 | **Suite** : notifications push du navigateur, AOS… | Évolutions | À faire |
 
 ## Résultats de l'itération 0
 

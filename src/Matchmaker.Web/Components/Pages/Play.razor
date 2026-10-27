@@ -60,7 +60,24 @@
                 <input type="checkbox" @bind="_ranked" />
                 Partie classée <span class="hint">(compte pour l'Elo ; décochez pour une partie amicale)</span>
             </label>
-            <button class="button call-to-action" @onclick="SearchAsync" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="search" /> Rechercher un adversaire</button>
+            <fieldset class="when">
+                <legend>Quand ?</legend>
+                <label class="checkbox"><input type="radio" name="when" checked="@(!_planned)" @onchange="() => _planned = false" /> Maintenant</label>
+                <label class="checkbox"><input type="radio" name="when" checked="@_planned" @onchange="() => _planned = true" /> À une date et heure précises</label>
+            </fieldset>
+            @if (_planned)
+            {
+                <label>
+                    Date et heure de la partie <span class="hint">(votre heure locale)</span>
+                    <input type="datetime-local" @bind="_plannedLocal" step="900" />
+                </label>
+                <p class="hint">Vous serez mis en relation avec un joueur qui planifie une partie à une heure d'écart au plus. Il faudra l'accepter dans les 24 h, et au plus tard 1 h avant la partie.</p>
+                <button class="button call-to-action" @onclick="PlanAsync" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="clock" /> Planifier la partie</button>
+            }
+            else
+            {
+                <button class="button call-to-action" @onclick="SearchAsync" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="search" /> Rechercher un adversaire</button>
+            }
         </section>
         break;
 
@@ -99,6 +116,47 @@
         break;
 }
 
+@if (_scheduled.Proposals.Count > 0 || _scheduled.OpenSearches.Count > 0)
+{
+    <section class="scheduled">
+        <h2><Icon Name="clock" /> Parties planifiées</h2>
+        @foreach (var proposal in _scheduled.Proposals)
+        {
+            var opponent = proposal.OpponentOf(_me);
+            <div class="card status proposed">
+                <h3>Adversaire trouvé pour le <LocalTime Value="proposal.ScheduledFor!.Value" /></h3>
+                <Opponent Ticket="opponent" Player="_scheduledPlayers.GetValueOrDefault(opponent.Player)" List="ListLink.To(_scheduledLists.GetValueOrDefault(opponent.ArmyListId))" />
+                @if (proposal.HasAccepted(_me))
+                {
+                    <p>Vous avez accepté. En attente de votre adversaire, jusqu'au <LocalTime Value="proposal.AcceptanceDeadline" />.</p>
+                }
+                else
+                {
+                    <p>À accepter avant le <LocalTime Value="proposal.AcceptanceDeadline" />.</p>
+                    <div class="actions">
+                        <button class="button" @onclick="() => AcceptPlannedAsync(proposal.Id)" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="check" /> Accepter</button>
+                        <button class="button secondary" @onclick="() => DeclinePlannedAsync(proposal.Id)" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="close" /> Refuser</button>
+                    </div>
+                }
+            </div>
+        }
+        @foreach (var search in _scheduled.OpenSearches)
+        {
+            <div class="card status searching">
+                <h3>Recherche d'un adversaire pour le <LocalTime Value="search.PlannedFor" /></h3>
+                <p>@search.Ticket.Format.Name · @(search.Ticket.Ranked ? "classée" : "amicale") · à une heure près</p>
+                <p class="hint">Inutile de garder la page ouverte : la proposition vous attendra ici, signalée dans le menu.</p>
+                <button class="button secondary" @onclick="() => CancelPlannedAsync(search.Id)" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="close" /> Annuler</button>
+            </div>
+        }
+    </section>
+}
+
+@if (_confirmedPlanned)
+{
+    <p class="card status in-match">Partie planifiée confirmée ! Retrouvez-la dans <a href="/matches">Mes parties</a>.</p>
+}
+
 
 @code {
     [CascadingParameter] private Task<AuthenticationState> AuthenticationState { get; set; } = default!;
@@ -109,6 +167,13 @@
     private IReadOnlyList<ArmyList> _lists = [];
     private Guid _selectedListId;
     private bool _ranked = true;
+    private bool _planned;
+    private DateTime _plannedLocal = DateTime.Today.AddDays(1).AddHours(21);
+    private TimeZoneInfo _timeZone = TimeZoneInfo.Utc;
+    private bool _confirmedPlanned;
+    private ScheduledOverview _scheduled = new([], []);
+    private IReadOnlyDictionary<PlayerId, Player> _scheduledPlayers = new Dictionary<PlayerId, Player>();
+    private Dictionary<Guid, ArmyList> _scheduledLists = [];
     private string? _error;
 
     private Guid? _proposalLoadedFor;
@@ -148,6 +213,27 @@
     });
 
     private Task CancelSearch() => RunAsync(() => Coordinator.CancelSearch(_me));
+
+    private Task PlanAsync() => RunAsync(async () =>
+    {
+        var local = DateTime.SpecifyKind(_plannedLocal, DateTimeKind.Unspecified);
+        var plannedFor = new DateTimeOffset(local, _timeZone.GetUtcOffset(local));
+        if (plannedFor < Time.GetUtcNow() + Match.ScheduledAcceptanceNotice)
+            throw new InvalidOperationException("Choisissez une heure au moins 1 h à l'avance.");
+        await UsingServices(services => services.GetRequiredService<ScheduledGames>().PlanAsync(_me, _selectedListId, _ranked, plannedFor));
+    });
+
+    private Task CancelPlannedAsync(Guid searchId) =>
+        RunAsync(() => UsingServices(services => services.GetRequiredService<ScheduledGames>().CancelAsync(_me, searchId)));
+
+    private Task DeclinePlannedAsync(Guid matchId) =>
+        RunAsync(() => UsingServices(services => services.GetRequiredService<ScheduledGames>().DeclineAsync(_me, matchId)));
+
+    private Task AcceptPlannedAsync(Guid matchId) => RunAsync(async () =>
+    {
+        var match = await UsingServices(services => services.GetRequiredService<ScheduledGames>().AcceptAsync(_me, matchId));
+        _confirmedPlanned = match.Status == MatchStatus.Accepted;
+    });
 
     private Task Decline() => RunAsync(() => Coordinator.Decline(_me, _status.Match!.Id));
 
@@ -195,6 +281,7 @@
     {
         _activeMatches = await UsingServices(services => services.GetRequiredService<MatchService>().ActiveMatchesOfAsync(_me));
         _status = Coordinator.StatusOf(_me);
+        await RefreshScheduledAsync();
 
         var proposal = _status.Match;
         if (proposal is null || proposal.Id == _proposalLoadedFor) return;
@@ -203,6 +290,35 @@
             await services.GetRequiredService<PlayerAccounts>().FindAsync(proposal.Opponent.Player),
             await services.GetRequiredService<ArmyListService>().FindAsync(proposal.Opponent.ArmyListId)));
         _proposalLoadedFor = proposal.Id;
+    }
+
+    private async Task RefreshScheduledAsync()
+    {
+        _scheduled = await UsingServices(services => services.GetRequiredService<ScheduledGames>().OverviewAsync(_me));
+        var opponents = _scheduled.Proposals.Select(m => m.OpponentOf(_me)).ToList();
+        (_scheduledPlayers, _scheduledLists) = await UsingServices(async services =>
+        {
+            var lists = new Dictionary<Guid, ArmyList>();
+            foreach (var opponent in opponents)
+                if (await services.GetRequiredService<ArmyListService>().FindAsync(opponent.ArmyListId) is { } list)
+                    lists[list.Id] = list;
+            return (await services.GetRequiredService<PlayerAccounts>().FindManyAsync(opponents.Select(o => o.Player)), lists);
+        });
+    }
+
+    // L'heure saisie est celle du joueur : on lit le fuseau de son navigateur.
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        try
+        {
+            var zone = await JS.InvokeAsync<string>("matchmakerTimeZone");
+            _timeZone = TimeZoneInfo.FindSystemTimeZoneById(zone);
+        }
+        catch (Exception e) when (e is JSException or TimeZoneNotFoundException or InvalidTimeZoneException)
+        {
+            // Fuseau inconnu : l'heure est comprise en UTC, et affichée comme telle après coup.
+        }
     }
 
     private async Task RequestNotificationPermissionAsync()

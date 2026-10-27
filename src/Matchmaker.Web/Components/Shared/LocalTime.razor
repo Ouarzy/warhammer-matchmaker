@@ -1,0 +1,6 @@
+@* Date et heure affichées dans le fuseau du lecteur (script de App.razor) ; en UTC sans JavaScript. *@
+<time class="local-time" datetime="@Value.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ")"><span class="utc">@Value.UtcDateTime.ToString("dd/MM/yyyy HH:mm") UTC</span></time>
+
+@code {
+    [Parameter, EditorRequired] public DateTimeOffset Value { get; set; }
+}

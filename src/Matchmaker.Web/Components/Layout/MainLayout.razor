@@ -27,7 +27,7 @@
             <nav class="sidebar" aria-label="Menu principal">
                 <p class="sidebar-user"><Icon Name="account" /> @context.User.Identity?.Name</p>
                 <NavLink href="/profile"><Icon Name="account" /> Mon compte</NavLink>
-                <NavLink href="/play" class="primary"><Icon Name="search" /> Rechercher une partie</NavLink>
+                <NavLink href="/play" class="primary"><Icon Name="search" /> Rechercher une partie <ProposalsBadge /></NavLink>
                 <NavLink href="/matches" Match="NavLinkMatch.All"><Icon Name="matches" /> Mes parties</NavLink>
                 <NavLink href="/lists" Match="NavLinkMatch.All"><Icon Name="lists" /> Mes listes</NavLink>
                 <hr />

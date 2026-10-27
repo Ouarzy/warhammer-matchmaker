@@ -31,7 +31,17 @@
                     <a class="card @(toDo ? "to-do" : null)" href="/matches/@match.Id">
                         <span class="active-match-info">
                             <strong>@(_names.GetValueOrDefault(opponent.Player)?.DisplayName ?? opponent.Player.SteamId)</strong>
-                            <span class="hint">@opponent.Format.Name · @(opponent.Ranked ? "classée" : "amicale") · depuis le @match.ProposedAt.ToString("dd/MM")</span>
+                            <span class="hint">
+                                @opponent.Format.Name · @(opponent.Ranked ? "classée" : "amicale") ·
+                                @if (match.ScheduledFor is { } start)
+                                {
+                                    <text>Prévue le <LocalTime Value="start" /></text>
+                                }
+                                else
+                                {
+                                    <text>depuis le @match.ProposedAt.ToString("dd/MM")</text>
+                                }
+                            </span>
                             <span class="state"><Icon Name="@(toDo ? "flag" : "clock")" /> @label</span>
                         </span>
                         <Icon Name="chevron" Class="trailing" />

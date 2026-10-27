@@ -1,0 +1,24 @@
+@using Matchmaker.Web.Matchmaking
+@using Matchmaker.Web.Accounts
+@inject IServiceScopeFactory ScopeFactory
+
+@if (_count > 0)
+{
+    <span class="nav-badge" title="@_count @(_count > 1 ? "propositions" : "proposition") à accepter">@_count</span>
+}
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> AuthenticationState { get; set; } = default!;
+
+    private int _count;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await AuthenticationState).User;
+        if (user.Identity?.IsAuthenticated != true) return;
+
+        // Rendu en même temps que la page : un DbContext à part pour ne pas partager le sien.
+        await using var scope = ScopeFactory.CreateAsyncScope();
+        _count = await scope.ServiceProvider.GetRequiredService<ScheduledGames>().ProposalsToAnswerAsync(SteamAuthentication.PlayerIdOf(user));
+    }
+}

@@ -13,6 +13,10 @@
         {
             @(" · résultat confirmé automatiquement")
         }
+        @if (Match.ScheduledFor is { } start)
+        {
+            <text> · Partie prévue le <LocalTime Value="start" /></text>
+        }
         @if (Match.Status == MatchStatus.Disputed)
         {
             @(" · résultat contesté, sans effet sur l'Elo")

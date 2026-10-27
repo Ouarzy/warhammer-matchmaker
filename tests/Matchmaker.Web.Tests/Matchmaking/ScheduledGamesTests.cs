@@ -73,6 +73,17 @@ public sealed class ScheduledGamesTests(PostgresFixture postgres) : IDisposable
     }
 
     [Fact]
+    public async Task A_time_given_in_the_time_zone_of_the_player_is_stored_as_the_same_instant()
+    {
+        var alice = await NewPlayer("Alice");
+        var inParis = _evening.ToOffset(TimeSpan.FromHours(1));
+
+        await Plan(alice, inParis);
+
+        Assert.Equal(_evening, Assert.Single((await Overview(alice.Player)).OpenSearches).PlannedFor);
+    }
+
+    [Fact]
     public async Task A_player_planning_close_to_the_same_time_gets_a_proposal_at_the_time_of_the_first()
     {
         var (alice, bob) = (await NewPlayer("Alice"), await NewPlayer("Bob"));
