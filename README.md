@@ -24,6 +24,18 @@ dotnet run --project src/Matchmaker.Web --launch-profile https
 
 Puis ouvrir https://localhost:7040.
 
+### Tester le matchmaking à deux joueurs
+
+En développement uniquement, `/dev/login?name=<Nom>` connecte un joueur de test (sans Steam)
+qui possède déjà une liste d'exemple. Ouvrir une fenêtre normale et une fenêtre privée :
+
+- https://localhost:7040/dev/login?name=Alice
+- https://localhost:7040/dev/login?name=Bob
+
+puis lancer une recherche des deux côtés sur la page « Jouer ».
+
+La file d'attente et les matchs en cours sont gardés en mémoire : un redémarrage du site les efface.
+
 ## Tests
 
 ```sh
