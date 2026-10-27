@@ -1,58 +1,19 @@
 @page "/profile"
 @attribute [Authorize]
-@using Matchmaker.Domain.Matches
 @using Matchmaker.Domain.Players
 @using Matchmaker.Web.Accounts
-@using Matchmaker.Web.Matches
-@inject PlayerAccounts Accounts
-@inject MatchService Matches
 
-<PageTitle>Mon profil</PageTitle>
-
-@if (_player is not null)
+@if (_me is { } me)
 {
-    <section class="profile">
-        @if (_player.AvatarUrl is not null)
-        {
-            <img src="@_player.AvatarUrl" alt="" width="96" height="96" />
-        }
-        <div>
-            <h1>@_player.DisplayName</h1>
-            <p>Elo : <strong>@_player.Rating.Value</strong></p>
-            <p>Parties classées : @_player.RankedGamesPlayed</p>
-            <p>Steam ID : <code>@_player.Id.SteamId</code></p>
-        </div>
-    </section>
-
-    <section>
-        <h2>Historique</h2>
-        @if (_history.Count == 0)
-        {
-            <p>Aucun match terminé pour l'instant. <a href="/play">Trouver un adversaire</a></p>
-        }
-        else
-        {
-            @foreach (var match in _history)
-            {
-                var opponent = match.OpponentOf(_player.Id).Player;
-                <MatchSummaryLine Match="match" Me="_player.Id" OpponentName="@(_opponents.GetValueOrDefault(opponent)?.DisplayName)" />
-            }
-        }
-    </section>
+    <PlayerProfileView PlayerId="me" Page="Page ?? 1" BaseUrl="/profile" />
 }
 
 @code {
     [CascadingParameter] private Task<AuthenticationState> AuthenticationState { get; set; } = default!;
+    [SupplyParameterFromQuery] public int? Page { get; set; }
 
-    private Player? _player;
-    private IReadOnlyList<Match> _history = [];
-    private IReadOnlyDictionary<PlayerId, Player> _opponents = new Dictionary<PlayerId, Player>();
+    private PlayerId? _me;
 
-    protected override async Task OnInitializedAsync()
-    {
-        var me = SteamAuthentication.PlayerIdOf((await AuthenticationState).User);
-        _player = await Accounts.FindAsync(me);
-        _history = await Matches.HistoryOfAsync(me);
-        _opponents = await Accounts.FindManyAsync(_history.Select(m => m.OpponentOf(me).Player));
-    }
+    protected override async Task OnInitializedAsync() =>
+        _me = SteamAuthentication.PlayerIdOf((await AuthenticationState).User);
 }

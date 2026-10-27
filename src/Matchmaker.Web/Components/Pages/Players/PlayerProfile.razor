@@ -1,0 +1,9 @@
+@page "/players/{SteamId}"
+@using Matchmaker.Domain.Players
+
+<PlayerProfileView PlayerId="new PlayerId(SteamId)" Page="Page ?? 1" BaseUrl="@($"/players/{SteamId}")" />
+
+@code {
+    [Parameter] public string SteamId { get; set; } = "";
+    [SupplyParameterFromQuery] public int? Page { get; set; }
+}

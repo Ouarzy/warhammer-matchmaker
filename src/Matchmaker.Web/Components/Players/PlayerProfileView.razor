@@ -1,0 +1,110 @@
+@using Matchmaker.Domain.ArmyLists
+@using Matchmaker.Domain.Matches
+@using Matchmaker.Domain.Players
+@using Matchmaker.Web.Accounts
+@using Matchmaker.Web.ArmyLists
+@using Matchmaker.Web.Matches
+@inject PlayerAccounts Accounts
+@inject ArmyListService Lists
+@inject MatchService Matches
+@inject NavigationManager Navigation
+
+@if (_player is not null)
+{
+    <PageTitle>@_player.DisplayName</PageTitle>
+
+    <section class="profile">
+        @if (_player.AvatarUrl is not null)
+        {
+            <img src="@_player.AvatarUrl" alt="" width="96" height="96" />
+        }
+        <div>
+            <h1>@_player.DisplayName</h1>
+            <p>Elo : <strong>@_player.Rating.Value</strong></p>
+            <p>Parties classées : @_player.RankedGamesPlayed</p>
+            <p>
+                Steam ID : <code>@_player.Id.SteamId</code>
+                · <a href="https://steamcommunity.com/profiles/@_player.Id.SteamId" target="_blank" rel="noopener">Profil Steam</a>
+            </p>
+        </div>
+    </section>
+
+    <section>
+        <h2>Listes</h2>
+        @if (_lists.Count == 0)
+        {
+            <p class="hint">Aucune liste importée.</p>
+        }
+        else
+        {
+            <ul class="plain-list">
+                @foreach (var list in _lists)
+                {
+                    <li>
+                        <a href="/lists/@list.Id">@list.Name</a>
+                        <span class="hint">· @(list.Faction ?? "Faction inconnue") · @list.Format.Name</span>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+
+    <section>
+        <h2>Historique <span class="hint">(@_history.Total @(_history.Total > 1 ? "parties" : "partie"))</span></h2>
+        @if (_history.Total == 0)
+        {
+            <p>Aucun match terminé pour l'instant.</p>
+        }
+        else
+        {
+            @foreach (var match in _history.Items)
+            {
+                var opponent = match.OpponentOf(_player.Id).Player;
+                <MatchSummaryLine Match="match" Me="_player.Id" OpponentName="@(_opponents.GetValueOrDefault(opponent)?.DisplayName)" />
+            }
+
+            @if (_history.PageCount > 1)
+            {
+                <nav class="pagination" aria-label="Pages de l'historique">
+                    @if (_history.Number > 1)
+                    {
+                        <a href="@PageUrl(_history.Number - 1)">← Plus récentes</a>
+                    }
+                    <span>Page @_history.Number / @_history.PageCount</span>
+                    @if (_history.Number < _history.PageCount)
+                    {
+                        <a href="@PageUrl(_history.Number + 1)">Plus anciennes →</a>
+                    }
+                </nav>
+            }
+        }
+    </section>
+}
+
+@code {
+    [Parameter, EditorRequired] public PlayerId PlayerId { get; set; }
+    [Parameter] public int Page { get; set; } = 1;
+    /// <summary>Adresse de la page, à laquelle on ajoute ?page=N.</summary>
+    [Parameter, EditorRequired] public string BaseUrl { get; set; } = "";
+
+    private Player? _player;
+    private IReadOnlyList<ArmyList> _lists = [];
+    private Page<Match> _history = new([], 1, 20, 0);
+    private IReadOnlyDictionary<PlayerId, Player> _opponents = new Dictionary<PlayerId, Player>();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _player = await Accounts.FindAsync(PlayerId);
+        if (_player is null)
+        {
+            Navigation.NotFound();
+            return;
+        }
+
+        _lists = await Lists.ListOwnedByAsync(PlayerId);
+        _history = await Matches.HistoryPageAsync(PlayerId, Page);
+        _opponents = await Accounts.FindManyAsync(_history.Items.Select(m => m.OpponentOf(PlayerId).Player));
+    }
+
+    private string PageUrl(int page) => $"{BaseUrl}?page={page}";
+}

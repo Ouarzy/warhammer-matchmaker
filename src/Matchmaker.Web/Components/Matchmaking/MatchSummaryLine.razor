@@ -7,7 +7,7 @@
 }
 <p class="match-line">
     <span>@Match.ProposedAt.ToString("dd/MM/yyyy") · @Match.First.Format.Name · @(Match.First.Ranked ? "classée" : "amicale")</span>
-    <span>contre @opponentName</span>
+    <span>contre <a href="/players/@opponent.Player.SteamId">@opponentName</a></span>
     @if (Match.Status is MatchStatus.Completed or MatchStatus.Abandoned)
     {
         var score = Match.ScoreOf(Me);

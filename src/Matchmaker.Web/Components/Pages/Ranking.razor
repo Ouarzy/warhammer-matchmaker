@@ -27,15 +27,7 @@ else
                     var player = _ranking[i];
                     <tr class="@(player.Id == _me ? "me" : null)">
                         <td>@(i + 1)</td>
-                        <td>
-                            <span class="player">
-                                @if (player.AvatarUrl is not null)
-                                {
-                                    <img src="@player.AvatarUrl" alt="" width="24" height="24" />
-                                }
-                                @player.DisplayName
-                            </span>
-                        </td>
+                        <td><PlayerLink Player="player" /></td>
                         <td><strong>@player.Rating.Value</strong></td>
                         <td>@player.RankedGamesPlayed</td>
                     </tr>

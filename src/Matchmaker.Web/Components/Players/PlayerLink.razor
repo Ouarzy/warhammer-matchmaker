@@ -1,0 +1,13 @@
+@using Matchmaker.Domain.Players
+
+<a href="/players/@Player.Id.SteamId" class="player">
+    @if (Player.AvatarUrl is not null)
+    {
+        <img src="@Player.AvatarUrl" alt="" width="24" height="24" />
+    }
+    @Player.DisplayName
+</a>
+
+@code {
+    [Parameter, EditorRequired] public Player Player { get; set; } = default!;
+}

@@ -61,7 +61,7 @@ public sealed class RankingAndHistoryPagesTests(PostgresFixture postgres) : IDis
         var html = WebUtility.HtmlDecode(await client.GetStringAsync("/profile"));
 
         Assert.Contains("Historique", html);
-        Assert.Contains($"contre Rival{suffix}", html);
+        Assert.Contains($"href=\"/players/{opponent.SteamId}\">Rival{suffix}</a>", html);
         Assert.Contains("Petite victoire", html);
         Assert.Contains("Elo +4", html);
     }

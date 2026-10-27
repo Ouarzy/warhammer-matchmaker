@@ -1,0 +1,53 @@
+@page "/players"
+@using Matchmaker.Domain.Players
+@using Matchmaker.Web.Accounts
+@inject PlayerAccounts Accounts
+
+<PageTitle>Joueurs</PageTitle>
+
+<h1>Joueurs</h1>
+
+<form method="get" action="/players" class="inline-form" role="search">
+    <label>
+        Nom du joueur
+        <input type="search" name="q" value="@Q" minlength="@PlayerAccounts.SearchMinLength" placeholder="Rechercher un joueur…" />
+    </label>
+    <button type="submit" class="button">Rechercher</button>
+</form>
+
+@if (!string.IsNullOrWhiteSpace(Q))
+{
+    @if (_results.Count == 0)
+    {
+        <p>Aucun joueur ne correspond à « @Q ».</p>
+    }
+    else
+    {
+        <div class="table-scroll">
+            <table class="ranking">
+                <thead><tr><th>Joueur</th><th>Elo</th><th>Parties classées</th></tr></thead>
+                <tbody>
+                    @foreach (var player in _results)
+                    {
+                        <tr>
+                            <td><PlayerLink Player="player" /></td>
+                            <td><strong>@player.Rating.Value</strong></td>
+                            <td>@player.RankedGamesPlayed</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+
+@code {
+    [SupplyParameterFromQuery] public string? Q { get; set; }
+
+    private IReadOnlyList<Player> _results = [];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _results = string.IsNullOrWhiteSpace(Q) ? [] : await Accounts.SearchAsync(Q);
+    }
+}
