@@ -1,0 +1,16 @@
+﻿@page "/"
+
+<PageTitle>Warhammer Matchmaker</PageTitle>
+
+<h1>Trouvez un adversaire à votre niveau</h1>
+
+<p>Matchmaking automatique pour Warhammer 40 000 sur Tabletop Simulator, avec classement Elo.</p>
+
+<AuthorizeView>
+    <Authorized>
+        <p><a href="/profile" class="button">Voir mon profil</a></p>
+    </Authorized>
+    <NotAuthorized>
+        <p><a href="/login" class="button">Se connecter avec Steam</a></p>
+    </NotAuthorized>
+</AuthorizeView>

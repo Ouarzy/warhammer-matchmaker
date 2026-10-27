@@ -484,3 +484,5 @@ $RECYCLE.BIN/
 # Outils locaux
 .contextia/
 .DS_Store
+# Dossier parasite créé par dotnet-ef sur macOS
+bin\\*/

@@ -1,0 +1,35 @@
+@page "/profile"
+@attribute [Authorize]
+@using Matchmaker.Domain.Players
+@using Matchmaker.Web.Accounts
+@inject PlayerAccounts Accounts
+
+<PageTitle>Mon profil</PageTitle>
+
+@if (_player is not null)
+{
+    <section class="profile">
+        @if (_player.AvatarUrl is not null)
+        {
+            <img src="@_player.AvatarUrl" alt="" width="96" height="96" />
+        }
+        <div>
+            <h1>@_player.DisplayName</h1>
+            <p>Elo : <strong>@_player.Rating.Value</strong></p>
+            <p>Parties classées : @_player.RankedGamesPlayed</p>
+            <p>Steam ID : <code>@_player.Id.SteamId</code></p>
+        </div>
+    </section>
+}
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> AuthenticationState { get; set; } = default!;
+
+    private Player? _player;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await AuthenticationState).User;
+        _player = await Accounts.FindAsync(SteamAuthentication.PlayerIdOf(user));
+    }
+}

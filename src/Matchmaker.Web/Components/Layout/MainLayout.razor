@@ -1,0 +1,29 @@
+﻿@inherits LayoutComponentBase
+
+<header class="topbar">
+    <a href="/" class="brand">Warhammer Matchmaker</a>
+    <AuthorizeView>
+        <Authorized>
+            <nav>
+                <a href="/profile">@context.User.Identity?.Name</a>
+                <form method="post" action="/logout">
+                    <AntiforgeryToken />
+                    <button type="submit" class="link">Se déconnecter</button>
+                </form>
+            </nav>
+        </Authorized>
+        <NotAuthorized>
+            <a href="/login" class="button">Se connecter avec Steam</a>
+        </NotAuthorized>
+    </AuthorizeView>
+</header>
+
+<main>
+    @Body
+</main>
+
+<div id="blazor-error-ui" data-nosnippet>
+    Une erreur inattendue est survenue.
+    <a href="." class="reload">Recharger</a>
+    <span class="dismiss">🗙</span>
+</div>
