@@ -1,17 +1,21 @@
 #!/usr/bin/env bash
-# Met en ligne la dernière version de la branche main (à lancer depuis un poste de développement).
-# Usage : deploy/deploy.sh root@<ip-du-serveur> [domaine]
+# Met en ligne la dernière image publiée par GitHub Actions (à lancer depuis un poste de développement,
+# une fois la CI de main terminée). Usage : deploy/deploy.sh root@<ip-du-serveur> [domaine]
+# Pour revenir à une version précise : IMAGE_TAG=<hash du commit> deploy/deploy.sh root@<ip>
 set -euo pipefail
 
 SERVER="${1:?Usage : deploy/deploy.sh root@<ip-du-serveur> [domaine]}"
 DOMAIN="${2:-warhammer-matchmaker.com}"
 APP_DIR="${APP_DIR:-/opt/matchmaker}"
+IMAGE_TAG="${IMAGE_TAG:-latest}"
 
-echo "==> Mise à jour du code et redémarrage sur $SERVER"
+echo "==> Téléchargement de l'image ($IMAGE_TAG) et redémarrage sur $SERVER"
 ssh "$SERVER" "set -e
   cd '$APP_DIR'
   git pull --ff-only
-  docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
+  export IMAGE_TAG='$IMAGE_TAG'
+  docker compose -f deploy/docker-compose.yml --env-file deploy/.env pull web
+  docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d
   docker image prune -f >/dev/null"
 
 echo "==> Vérification de https://$DOMAIN/health"

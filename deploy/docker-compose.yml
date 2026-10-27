@@ -1,5 +1,6 @@
 # Production : site + PostgreSQL + Caddy (HTTPS automatique) + sauvegarde quotidienne.
-# Utilisation sur le serveur : docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
+# L'image du site est construite par GitHub Actions et publiée sur ghcr.io : le serveur ne compile rien.
+# Utilisation sur le serveur : docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d
 name: matchmaker
 
 services:
@@ -21,9 +22,8 @@ services:
       - web
 
   web:
-    build:
-      context: ..
-    image: matchmaker-web
+    # IMAGE_TAG : « latest » ou le hash d'un commit de main (pour revenir à une version précise).
+    image: ghcr.io/ouarzy/warhammer-matchmaker:${IMAGE_TAG:-latest}
     restart: unless-stopped
     environment:
       ASPNETCORE_ENVIRONMENT: Production

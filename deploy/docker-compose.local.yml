@@ -1,0 +1,7 @@
+# Complément pour la répétition en local : construit l'image depuis le code au lieu de la télécharger.
+# docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.local.yml --env-file <fichier> up -d --build
+services:
+  web:
+    build:
+      context: ..
+    image: matchmaker-web:local

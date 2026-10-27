@@ -11,6 +11,16 @@ apt-get update
 apt-get install -y ca-certificates git ufw docker.io docker-compose-v2
 systemctl enable --now docker
 
+# Petit VPS (1 Go) : 1 Go de mémoire d'appoint par sécurité lors des pics.
+if ! swapon --show | grep -q .; then
+  echo "==> Mémoire d'appoint (swap) de 1 Go"
+  fallocate -l 1G /swapfile
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile
+  echo '/swapfile none swap sw 0 0' >> /etc/fstab
+fi
+
 echo "==> Pare-feu : SSH, HTTP, HTTPS uniquement"
 ufw allow OpenSSH
 ufw allow 80/tcp
@@ -35,4 +45,4 @@ mkdir -p "$APP_DIR/deploy/backups"
 
 echo
 echo "Terminé. Complétez ACME_EMAIL et STEAM_API_KEY dans $ENV_FILE, puis lancez :"
-echo "  cd $APP_DIR && docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build"
+echo "  cd $APP_DIR && docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d"

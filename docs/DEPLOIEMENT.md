@@ -5,7 +5,7 @@ Le site tourne sur un seul serveur (VPS) avec Docker Compose :
 | Service | Rôle |
 |---|---|
 | `caddy` | Reçoit le trafic sur les ports 80/443, obtient et renouvelle seul le certificat HTTPS (Let's Encrypt), transmet au site. |
-| `web` | Le site (image construite depuis le `Dockerfile` du dépôt). Applique les migrations de base au démarrage. |
+| `web` | Le site : image `ghcr.io/ouarzy/warhammer-matchmaker`, construite et publiée par GitHub Actions à chaque push sur `main` (après les tests). Applique les migrations de base au démarrage. |
 | `db` | PostgreSQL 17, données sur le volume `pgdata`. |
 | `backup` | Une sauvegarde de la base par jour dans `deploy/backups/`, gardée 14 jours. |
 
@@ -13,7 +13,7 @@ Une seule instance du site : la file d'attente est gardée en mémoire. Les clé
 
 ## Prérequis
 
-- Un VPS **Ubuntu 24.04 LTS**, 2 vCPU / 4 Go de mémoire (ex. Hetzner CX22, OVH VPS), avec votre clé SSH.
+- Un VPS **Ubuntu 24.04 LTS**, au moins 1 Go de mémoire (ex. Gandi Cloud VPS Starter V-R1), avec votre clé SSH. Le serveur ne compile rien : il télécharge l'image. Pour quelques milliers de joueurs simultanés, passer à 2 Go ou plus.
 - Le nom de domaine, avec deux enregistrements DNS vers l'adresse IP du serveur :
   - `A` `@` → IP du serveur
   - `A` `www` → IP du serveur
@@ -23,27 +23,30 @@ Une seule instance du site : la file d'attente est gardée en mémoire. Les clé
 ## Première installation
 
 ```sh
-# 1. Sur le serveur, en root : Docker, pare-feu, code, deploy/.env
+# 1. Sur le serveur, en root : Docker, swap de 1 Go, pare-feu, code, deploy/.env
 ssh root@<ip> 'bash -s' < deploy/bootstrap.sh
 
 # 2. Compléter les secrets sur le serveur (ACME_EMAIL, STEAM_API_KEY)
 ssh root@<ip> 'nano /opt/matchmaker/deploy/.env'
 
 # 3. Démarrer
-ssh root@<ip> 'cd /opt/matchmaker && docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build'
+ssh root@<ip> 'cd /opt/matchmaker && docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d'
 ```
 
 Le certificat HTTPS est obtenu au premier accès, une fois le DNS propagé. Vérification : `https://<domaine>/health` doit répondre `Healthy`.
 
 ## Mettre en ligne une nouvelle version
 
-Depuis un poste de développement, une fois les commits poussés sur `main` :
+1. Pousser les commits sur `main` : GitHub Actions lance les tests puis publie l'image (onglet *Actions* du dépôt).
+2. Une fois la CI au vert, depuis un poste de développement :
 
 ```sh
 deploy/deploy.sh root@<ip>
 ```
 
-Le script récupère le code, reconstruit l'image, redémarre le site et vérifie `/health`. Les migrations de base s'appliquent au démarrage.
+Le script met à jour les fichiers de déploiement, télécharge la nouvelle image, redémarre le site et vérifie `/health`. Les migrations de base s'appliquent au démarrage.
+
+Pour revenir à une version précédente : `IMAGE_TAG=<hash du commit> deploy/deploy.sh root@<ip>` (chaque image est aussi publiée sous le hash de son commit).
 
 ## Exploitation
 
@@ -67,7 +70,7 @@ Les sauvegardes restent sur le serveur : pour s'en prémunir en cas de perte du 
 
 ## Répétition en local
 
-Toute la pile peut tourner sur un poste de développement, avec `localhost` (certificat local de Caddy) et d'autres ports :
+Toute la pile peut tourner sur un poste de développement, avec `localhost` (certificat local de Caddy), d'autres ports et une image construite localement (`deploy/docker-compose.local.yml`) :
 
 ```sh
 cat > /tmp/rehearsal.env <<'EOF'
@@ -78,7 +81,7 @@ STEAM_API_KEY=cle-factice
 HTTP_PORT=8088
 HTTPS_PORT=8443
 EOF
-docker compose -p matchmaker-rehearsal -f deploy/docker-compose.yml --env-file /tmp/rehearsal.env up -d --build
+docker compose -p matchmaker-rehearsal -f deploy/docker-compose.yml -f deploy/docker-compose.local.yml --env-file /tmp/rehearsal.env up -d --build
 curl -k https://localhost:8443/health
-docker compose -p matchmaker-rehearsal -f deploy/docker-compose.yml --env-file /tmp/rehearsal.env down -v
+docker compose -p matchmaker-rehearsal -f deploy/docker-compose.yml -f deploy/docker-compose.local.yml --env-file /tmp/rehearsal.env down -v
 ```
