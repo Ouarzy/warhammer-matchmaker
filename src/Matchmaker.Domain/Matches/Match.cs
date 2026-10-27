@@ -14,6 +14,9 @@ public sealed class Match
 {
     public static readonly TimeSpan AcceptanceDelay = TimeSpan.FromMinutes(5);
     public static readonly TimeSpan ResultConfirmationDelay = TimeSpan.FromHours(24);
+    public static readonly TimeSpan ScheduledAcceptanceDelay = TimeSpan.FromHours(24);
+    /// <summary>Une partie planifiée doit être acceptée au plus tard une heure avant de commencer.</summary>
+    public static readonly TimeSpan ScheduledAcceptanceNotice = TimeSpan.FromHours(1);
 
     // Un champ par camp (First / Second) : état simple à enregistrer en base.
     private bool _firstAccepted;
@@ -25,11 +28,12 @@ public sealed class Match
     private int? _firstRatingBefore;
     private int? _secondRatingBefore;
 
-    private Match(QueueTicket first, QueueTicket second, DateTimeOffset proposedAt)
+    private Match(QueueTicket first, QueueTicket second, DateTimeOffset proposedAt, DateTimeOffset? scheduledFor = null)
     {
         First = first;
         Second = second;
         ProposedAt = proposedAt;
+        ScheduledFor = scheduledFor;
     }
 
     // Pour EF Core, qui renseigne les propriétés lui-même.
@@ -43,17 +47,29 @@ public sealed class Match
     public QueueTicket First { get; }
     public QueueTicket Second { get; }
     public DateTimeOffset ProposedAt { get; }
+    /// <summary>Date et heure convenues d'une partie planifiée ; null pour une partie immédiate.</summary>
+    public DateTimeOffset? ScheduledFor { get; }
     public MatchStatus Status { get; private set; } = MatchStatus.Proposed;
     public PlayerId? Declarer { get; private set; }
     public DateTimeOffset? DeclaredAt { get; private set; }
     public bool ConfirmedAutomatically { get; private set; }
     public PlayerId? AbandonedBy { get; private set; }
 
-    public DateTimeOffset AcceptanceDeadline => ProposedAt + AcceptanceDelay;
+    public DateTimeOffset AcceptanceDeadline => ScheduledFor is { } start
+        ? Min(ProposedAt + ScheduledAcceptanceDelay, start - ScheduledAcceptanceNotice)
+        : ProposedAt + AcceptanceDelay;
     public DateTimeOffset? ResultConfirmationDeadline => DeclaredAt + ResultConfirmationDelay;
     public bool AffectsRating => First.Ranked && Status is MatchStatus.Completed or MatchStatus.Abandoned;
 
     public static Match Propose(QueueTicket first, QueueTicket second, DateTimeOffset now) => new(first, second, now);
+
+    public static Match ProposeScheduled(QueueTicket first, QueueTicket second, DateTimeOffset scheduledFor, DateTimeOffset now)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(scheduledFor, now + ScheduledAcceptanceNotice);
+        return new(first, second, now, scheduledFor);
+    }
+
+    private static DateTimeOffset Min(DateTimeOffset a, DateTimeOffset b) => a < b ? a : b;
 
     public QueueTicket OpponentOf(PlayerId player) => IsFirst(player) ? Second : First;
 

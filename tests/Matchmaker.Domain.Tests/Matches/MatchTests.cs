@@ -29,6 +29,49 @@ public class MatchTests
         return match;
     }
 
+    public class ScheduledAcceptance
+    {
+        [Fact]
+        public void An_immediate_match_is_not_scheduled()
+        {
+            Assert.Null(Proposed().ScheduledFor);
+        }
+
+        [Fact]
+        public void Players_have_24_hours_to_accept_a_game_planned_far_ahead()
+        {
+            var match = Match.ProposeScheduled(Alice, Bob, Noon.AddDays(3), Noon);
+
+            Assert.Equal(Noon.AddDays(3), match.ScheduledFor);
+            Assert.Equal(Noon.AddHours(24), match.AcceptanceDeadline);
+        }
+
+        [Fact]
+        public void A_scheduled_game_must_be_accepted_at_the_latest_one_hour_before_it_starts()
+        {
+            var match = Match.ProposeScheduled(Alice, Bob, Noon.AddHours(5), Noon);
+
+            Assert.Equal(Noon.AddHours(4), match.AcceptanceDeadline);
+        }
+
+        [Fact]
+        public void A_scheduled_game_is_accepted_like_an_immediate_one()
+        {
+            var match = Match.ProposeScheduled(Alice, Bob, Noon.AddDays(1), Noon);
+
+            match.Accept(Alice.Player, Noon.AddHours(2));
+            match.Accept(Bob.Player, Noon.AddHours(20));
+
+            Assert.Equal(MatchStatus.Accepted, match.Status);
+        }
+
+        [Fact]
+        public void A_scheduled_game_cannot_be_proposed_less_than_one_hour_ahead()
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(() => Match.ProposeScheduled(Alice, Bob, Noon.AddMinutes(59), Noon));
+        }
+    }
+
     public class Acceptance
     {
         [Fact]
