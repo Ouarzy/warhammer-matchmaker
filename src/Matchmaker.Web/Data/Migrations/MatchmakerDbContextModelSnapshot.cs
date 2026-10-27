@@ -74,6 +74,152 @@ namespace Matchmaker.Web.Data.Migrations
                     b.ToTable("army_lists", (string)null);
                 });
 
+            modelBuilder.Entity("Matchmaker.Domain.Matches.Match", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Declarer")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("declarer_steam_id");
+
+                    b.Property<DateTimeOffset>("ProposedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("proposed_at");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<bool>("_firstAccepted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("first_accepted");
+
+                    b.Property<int?>("_firstRatingChange")
+                        .HasColumnType("integer")
+                        .HasColumnName("first_rating_change");
+
+                    b.Property<int?>("_firstVictoryPoints")
+                        .HasColumnType("integer")
+                        .HasColumnName("first_victory_points");
+
+                    b.Property<bool>("_secondAccepted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("second_accepted");
+
+                    b.Property<int?>("_secondRatingChange")
+                        .HasColumnType("integer")
+                        .HasColumnName("second_rating_change");
+
+                    b.Property<int?>("_secondVictoryPoints")
+                        .HasColumnType("integer")
+                        .HasColumnName("second_victory_points");
+
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "First", "Matchmaker.Domain.Matches.Match.First#QueueTicket", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<Guid>("ArmyListId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("first_army_list_id");
+
+                            b1.Property<DateTimeOffset>("EnqueuedAt")
+                                .HasColumnType("timestamp with time zone")
+                                .HasColumnName("first_enqueued_at");
+
+                            b1.Property<string>("Player")
+                                .IsRequired()
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)")
+                                .HasColumnName("first_steam_id");
+
+                            b1.Property<bool>("Ranked")
+                                .HasColumnType("boolean")
+                                .HasColumnName("first_ranked");
+
+                            b1.Property<int>("Rating")
+                                .HasColumnType("integer")
+                                .HasColumnName("first_rating");
+
+                            b1.ComplexProperty(typeof(Dictionary<string, object>), "Format", "Matchmaker.Domain.Matches.Match.First#QueueTicket.Format#GameFormat", b2 =>
+                                {
+                                    b2.IsRequired();
+
+                                    b2.Property<string>("Game")
+                                        .IsRequired()
+                                        .HasMaxLength(32)
+                                        .HasColumnType("character varying(32)")
+                                        .HasColumnName("first_game");
+
+                                    b2.Property<string>("Name")
+                                        .IsRequired()
+                                        .HasMaxLength(32)
+                                        .HasColumnType("character varying(32)")
+                                        .HasColumnName("first_format");
+                                });
+                        });
+
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Second", "Matchmaker.Domain.Matches.Match.Second#QueueTicket", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<Guid>("ArmyListId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("second_army_list_id");
+
+                            b1.Property<DateTimeOffset>("EnqueuedAt")
+                                .HasColumnType("timestamp with time zone")
+                                .HasColumnName("second_enqueued_at");
+
+                            b1.Property<string>("Player")
+                                .IsRequired()
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)")
+                                .HasColumnName("second_steam_id");
+
+                            b1.Property<bool>("Ranked")
+                                .HasColumnType("boolean")
+                                .HasColumnName("second_ranked");
+
+                            b1.Property<int>("Rating")
+                                .HasColumnType("integer")
+                                .HasColumnName("second_rating");
+
+                            b1.ComplexProperty(typeof(Dictionary<string, object>), "Format", "Matchmaker.Domain.Matches.Match.Second#QueueTicket.Format#GameFormat", b2 =>
+                                {
+                                    b2.IsRequired();
+
+                                    b2.Property<string>("Game")
+                                        .IsRequired()
+                                        .HasMaxLength(32)
+                                        .HasColumnType("character varying(32)")
+                                        .HasColumnName("second_game");
+
+                                    b2.Property<string>("Name")
+                                        .IsRequired()
+                                        .HasMaxLength(32)
+                                        .HasColumnType("character varying(32)")
+                                        .HasColumnName("second_format");
+                                });
+                        });
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("matches", (string)null);
+                });
+
             modelBuilder.Entity("Matchmaker.Domain.Players.Player", b =>
                 {
                     b.Property<string>("Id")
@@ -100,7 +246,15 @@ namespace Matchmaker.Web.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("rating");
 
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("Rating");
 
                     b.ToTable("players", (string)null);
                 });

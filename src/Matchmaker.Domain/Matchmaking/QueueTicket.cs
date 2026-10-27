@@ -15,6 +15,11 @@ public sealed record QueueTicket(
     EloRating Rating,
     DateTimeOffset EnqueuedAt)
 {
+    // Pour EF Core, qui renseigne les propriétés lui-même.
+    private QueueTicket() : this(default, Guid.Empty, null!, false, default, default)
+    {
+    }
+
     public bool CanFace(QueueTicket other, int maxRatingGap) =>
         other.Player != Player
         && other.Format == Format
