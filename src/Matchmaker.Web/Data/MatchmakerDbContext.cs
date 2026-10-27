@@ -93,6 +93,7 @@ public sealed class MatchmakerDbContext(DbContextOptions<MatchmakerDbContext> op
                 match.Property<bool>($"{prefix}Accepted").HasColumnName($"{side}_accepted");
                 match.Property<int?>($"{prefix}VictoryPoints").HasColumnName($"{side}_victory_points");
                 match.Property<int?>($"{prefix}RatingChange").HasColumnName($"{side}_rating_change");
+                match.Property<int?>($"{prefix}RatingBefore").HasColumnName($"{side}_rating_before");
             }
             match.HasIndex(m => m.Status);
             match.Property<uint>("RowVersion").IsRowVersion();

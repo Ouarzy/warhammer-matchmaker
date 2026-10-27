@@ -22,6 +22,8 @@ public sealed class Match
     private int? _secondVictoryPoints;
     private int? _firstRatingChange;
     private int? _secondRatingChange;
+    private int? _firstRatingBefore;
+    private int? _secondRatingBefore;
 
     private Match(QueueTicket first, QueueTicket second, DateTimeOffset proposedAt)
     {
@@ -153,12 +155,15 @@ public sealed class Match
     /// <summary>Variation d'Elo du joueur, une fois appliquée (null sinon).</summary>
     public int? RatingChangeOf(PlayerId player) => IsFirst(player) ? _firstRatingChange : _secondRatingChange;
 
+    /// <summary>Elo du joueur juste avant la mise à jour par ce match (null tant qu'elle n'a pas eu lieu).</summary>
+    public int? RatingBeforeOf(PlayerId player) => IsFirst(player) ? _firstRatingBefore : _secondRatingBefore;
+
     public bool RatingApplied => _firstRatingChange is not null;
 
-    internal void RecordRatingChange(PlayerId player, int change)
+    internal void RecordRatingChange(PlayerId player, int before, int change)
     {
-        if (IsFirst(player)) _firstRatingChange = change;
-        else _secondRatingChange = change;
+        if (IsFirst(player)) (_firstRatingBefore, _firstRatingChange) = (before, change);
+        else (_secondRatingBefore, _secondRatingChange) = (before, change);
     }
 
     private void RespondToResult(PlayerId player, MatchStatus outcome)

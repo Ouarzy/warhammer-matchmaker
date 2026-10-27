@@ -1,6 +1,7 @@
 using Matchmaker.Domain.Matches;
 using Matchmaker.Domain.Players;
 using Matchmaker.Domain.Ratings;
+using Matchmaker.Domain.Results;
 using static Matchmaker.Domain.Tests.Tickets;
 
 namespace Matchmaker.Domain.Tests.Ratings;
@@ -61,6 +62,20 @@ public class MatchRatingTests
 
         Assert.Equal(20, match.RatingChangeOf(_alice.Id));
         Assert.Equal(-20, match.RatingChangeOf(_bob.Id));
+    }
+
+    [Fact]
+    public void The_match_keeps_the_rating_each_player_had_when_it_was_applied()
+    {
+        var match = Played(aliceVp: 100, bobVp: 40);
+        _bob.RecordRankedGame(new EloRating(1400), new WtcScore(20));
+        var bobBefore = _bob.Rating.Value;
+        Assert.Null(match.RatingBeforeOf(_alice.Id));
+
+        MatchRating.Apply(match, _alice, _bob);
+
+        Assert.Equal(1500, match.RatingBeforeOf(_alice.Id));
+        Assert.Equal(bobBefore, match.RatingBeforeOf(_bob.Id));
     }
 
     [Fact]

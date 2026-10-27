@@ -37,10 +37,14 @@
                 }
             </h2>
             <p class="hint">
-                Elo au début : @side.Rating.Value
-                @if (Match.RatingChangeOf(side.Player) is { } change)
+                @if (Match.RatingBeforeOf(side.Player) is { } before && Match.RatingChangeOf(side.Player) is { } change)
                 {
+                    @($"Elo {before} → {before + change}")
                     <span class="@(change >= 0 ? "gain" : "loss")">Elo @ResultLabels.Signed(change)</span>
+                }
+                else
+                {
+                    @($"Elo {side.Rating.Value} à la recherche")
                 }
             </p>
             <p>

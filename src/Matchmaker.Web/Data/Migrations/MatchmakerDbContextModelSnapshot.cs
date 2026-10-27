@@ -177,6 +177,10 @@ namespace Matchmaker.Web.Data.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("first_accepted");
 
+                    b.Property<int?>("_firstRatingBefore")
+                        .HasColumnType("integer")
+                        .HasColumnName("first_rating_before");
+
                     b.Property<int?>("_firstRatingChange")
                         .HasColumnType("integer")
                         .HasColumnName("first_rating_change");
@@ -188,6 +192,10 @@ namespace Matchmaker.Web.Data.Migrations
                     b.Property<bool>("_secondAccepted")
                         .HasColumnType("boolean")
                         .HasColumnName("second_accepted");
+
+                    b.Property<int?>("_secondRatingBefore")
+                        .HasColumnType("integer")
+                        .HasColumnName("second_rating_before");
 
                     b.Property<int?>("_secondRatingChange")
                         .HasColumnType("integer")

@@ -21,8 +21,8 @@ public static class MatchRating
         first.RecordRankedGame(secondBefore, firstScore);
         second.RecordRankedGame(firstBefore, secondScore);
 
-        match.RecordRatingChange(first.Id, first.Rating.Value - firstBefore.Value);
-        match.RecordRatingChange(second.Id, second.Rating.Value - secondBefore.Value);
+        match.RecordRatingChange(first.Id, firstBefore.Value, first.Rating.Value - firstBefore.Value);
+        match.RecordRatingChange(second.Id, secondBefore.Value, second.Rating.Value - secondBefore.Value);
         return true;
     }
 }
