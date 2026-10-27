@@ -8,6 +8,7 @@ using Matchmaker.Web.Components;
 using Matchmaker.Web.Data;
 using Matchmaker.Web.Matches;
 using Matchmaker.Web.Matchmaking;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,6 +36,14 @@ builder.Services.AddScoped<MatchService>();
 builder.Services.AddHostedService<MatchExpiryService>();
 builder.Services.AddHostedService<ResultConfirmationService>();
 builder.Services.AddSteamAuthentication(builder.Configuration);
+builder.Services.AddHealthChecks().AddDbContextCheck<MatchmakerDbContext>();
+
+// En production, les clés qui signent les cookies de connexion sont gardées sur un volume :
+// sans cela, chaque redémarrage du site déconnecterait tous les joueurs.
+if (builder.Configuration["DataProtection:KeysPath"] is { } keysPath)
+    builder.Services.AddDataProtection()
+        .SetApplicationName("Matchmaker")
+        .PersistKeysToFileSystem(new DirectoryInfo(keysPath));
 
 var app = builder.Build();
 
@@ -56,6 +65,7 @@ app.UseAuthorization();
 app.UseAntiforgery();
 
 app.MapStaticAssets();
+app.MapHealthChecks("/health");
 app.MapSteamAuthentication();
 app.MapDevelopmentLogin();
 app.MapRazorComponents<App>()
