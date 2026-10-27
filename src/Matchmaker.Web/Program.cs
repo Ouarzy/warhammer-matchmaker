@@ -53,6 +53,7 @@ app.UseAntiforgery();
 
 app.MapStaticAssets();
 app.MapSteamAuthentication();
+app.MapDevelopmentLogin();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
