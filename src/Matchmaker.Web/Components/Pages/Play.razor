@@ -1,0 +1,244 @@
+@page "/play"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@implements IAsyncDisposable
+@using Matchmaker.Domain.ArmyLists
+@using Matchmaker.Domain.Players
+@using Matchmaker.Web.Accounts
+@using Matchmaker.Web.ArmyLists
+@using Matchmaker.Web.Matchmaking
+@inject MatchmakingCoordinator Coordinator
+@inject IServiceScopeFactory ScopeFactory
+@inject IJSRuntime JS
+@inject TimeProvider Time
+
+<PageTitle>Jouer</PageTitle>
+
+<h1>Jouer</h1>
+
+@if (_error is not null)
+{
+    <p class="error" role="alert">@_error</p>
+}
+
+@switch (_status.Activity)
+{
+    case PlayerActivity.Idle:
+        @if (_lists.Count == 0)
+        {
+            <p>Importez d'abord une liste d'armée pour pouvoir chercher un adversaire.</p>
+            <p><a href="/lists" class="button">Importer une liste</a></p>
+        }
+        else
+        {
+            <section class="card form">
+                <label>
+                    Liste
+                    <select @bind="_selectedListId">
+                        @foreach (var list in _lists)
+                        {
+                            <option value="@list.Id">@list.Name (@list.Format.Name)</option>
+                        }
+                    </select>
+                </label>
+                <label class="checkbox">
+                    <input type="checkbox" @bind="_ranked" />
+                    Partie classée <span class="hint">(compte pour l'Elo ; décochez pour une partie amicale)</span>
+                </label>
+                <button class="button" @onclick="SearchAsync" disabled="@(!RendererInfo.IsInteractive)">Rechercher un adversaire</button>
+            </section>
+        }
+        break;
+
+    case PlayerActivity.Searching:
+        <section class="card status searching">
+            <h2>Recherche d'un adversaire…</h2>
+            <p>@_status.Search!.Format.Name · @(_status.Search.Ranked ? "classée" : "amicale") · depuis @Elapsed(_status.Search.EnqueuedAt)</p>
+            <p class="hint">Gardez cet onglet ouvert : vous serez prévenu dès qu'un adversaire est trouvé.</p>
+            <button class="button secondary" @onclick="CancelSearch">Annuler la recherche</button>
+        </section>
+        break;
+
+    case PlayerActivity.MatchProposed:
+        <section class="card status proposed">
+            <h2>Adversaire trouvé !</h2>
+            <Opponent Match="_status.Match!" Player="_opponent" List="_opponentList" />
+            <p>Temps restant pour accepter : <strong>@Remaining(_status.Match!.AcceptanceDeadline)</strong></p>
+            @if (_status.Match.IAccepted)
+            {
+                <p>Vous avez accepté. En attente de votre adversaire…</p>
+            }
+            else
+            {
+                <div class="actions">
+                    <button class="button" @onclick="Accept">Accepter</button>
+                    <button class="button secondary" @onclick="Decline">Refuser</button>
+                </div>
+            }
+        </section>
+        break;
+
+    case PlayerActivity.InMatch:
+        <section class="card status in-match">
+            <h2>Match accepté : à vous de jouer !</h2>
+            <Opponent Match="_status.Match!" Player="_opponent" List="_opponentList" />
+            <ol class="steps">
+                <li>
+                    Ajoutez votre adversaire sur Steam :
+                    <code>@_status.Match!.Opponent.Player.SteamId</code>
+                    · <a href="steam://friends/add/@_status.Match.Opponent.Player.SteamId">Ajouter en ami</a>
+                    · <a href="https://steamcommunity.com/profiles/@_status.Match.Opponent.Player.SteamId" target="_blank" rel="noopener">Profil Steam</a>
+                </li>
+                <li>Lancez Tabletop Simulator avec le mod LCT et invitez-le.</li>
+                <li>Consultez <a href="/lists/@_status.Match.Opponent.ArmyListId" target="_blank">sa liste</a> avant de commencer.</li>
+            </ol>
+            <p class="hint">La déclaration du résultat arrive à la prochaine étape.</p>
+            <button class="button danger" @onclick="Abandon">Abandonner le match</button>
+        </section>
+        break;
+}
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> AuthenticationState { get; set; } = default!;
+
+    private PlayerId _me;
+    private PlayerStatus _status = PlayerStatus.Idle;
+    private IReadOnlyList<ArmyList> _lists = [];
+    private Guid _selectedListId;
+    private bool _ranked = true;
+    private string? _error;
+
+    private Guid? _opponentLoadedFor;
+    private Player? _opponent;
+    private ArmyList? _opponentList;
+
+    private Timer? _clock;
+    private IJSObjectReference? _notifications;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _me = SteamAuthentication.PlayerIdOf((await AuthenticationState).User);
+        _lists = await UsingServices(services => services.GetRequiredService<ArmyListService>().ListOwnedByAsync(_me));
+        _selectedListId = _lists.FirstOrDefault()?.Id ?? Guid.Empty;
+        await RefreshAsync();
+
+        if (RendererInfo.IsInteractive)
+        {
+            Coordinator.PlayerChanged += OnPlayerChanged;
+            _clock = new Timer(_ => InvokeAsync(StateHasChanged), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+        }
+    }
+
+    private async Task SearchAsync()
+    {
+        await RunAsync(async () =>
+        {
+            await RequestNotificationPermissionAsync();
+            var (player, list) = await UsingServices(async services => (
+                await services.GetRequiredService<PlayerAccounts>().FindAsync(_me),
+                await services.GetRequiredService<ArmyListService>().FindAsync(_selectedListId)));
+            if (player is null || list is null)
+                throw new InvalidOperationException("Liste introuvable.");
+
+            Coordinator.Search(player, list, _ranked);
+        });
+    }
+
+    private Task CancelSearch() => RunAsync(() => Coordinator.CancelSearch(_me));
+    private Task Accept() => RunAsync(() => Coordinator.Accept(_me, _status.Match!.Id));
+    private Task Decline() => RunAsync(() => Coordinator.Decline(_me, _status.Match!.Id));
+    private Task Abandon() => RunAsync(() => Coordinator.Abandon(_me, _status.Match!.Id));
+
+    private async Task RunAsync(Action action) => await RunAsync(() => { action(); return Task.CompletedTask; });
+
+    private async Task RunAsync(Func<Task> action)
+    {
+        _error = null;
+        try
+        {
+            await action();
+        }
+        catch (InvalidOperationException e)
+        {
+            _error = e.Message;
+        }
+        await RefreshAsync();
+    }
+
+    private void OnPlayerChanged(PlayerId player)
+    {
+        if (player != _me) return;
+
+        _ = InvokeAsync(async () =>
+        {
+            var before = _status.Activity;
+            await RefreshAsync();
+            if (before != PlayerActivity.MatchProposed && _status.Activity == PlayerActivity.MatchProposed)
+                await NotifyMatchFoundAsync();
+            StateHasChanged();
+        });
+    }
+
+    private async Task RefreshAsync()
+    {
+        _status = Coordinator.StatusOf(_me);
+
+        var match = _status.Match;
+        if (match is null || match.Id == _opponentLoadedFor) return;
+
+        (_opponent, _opponentList) = await UsingServices(async services => (
+            await services.GetRequiredService<PlayerAccounts>().FindAsync(match.Opponent.Player),
+            await services.GetRequiredService<ArmyListService>().FindAsync(match.Opponent.ArmyListId)));
+        _opponentLoadedFor = match.Id;
+    }
+
+    private async Task RequestNotificationPermissionAsync()
+    {
+        try
+        {
+            _notifications ??= await JS.InvokeAsync<IJSObjectReference>("import", "./js/notifications.js");
+            await _notifications.InvokeVoidAsync("requestPermission");
+        }
+        catch (JSException)
+        {
+            // Pas de notification système : la page se met quand même à jour.
+        }
+    }
+
+    private async Task NotifyMatchFoundAsync()
+    {
+        try
+        {
+            _notifications ??= await JS.InvokeAsync<IJSObjectReference>("import", "./js/notifications.js");
+            await _notifications.InvokeVoidAsync("notifyMatchFound", _opponent?.DisplayName ?? "Votre adversaire");
+        }
+        catch (JSException)
+        {
+        }
+    }
+
+    // Composant interactif de longue durée : un scope (et donc un DbContext) par opération.
+    private async Task<T> UsingServices<T>(Func<IServiceProvider, Task<T>> work)
+    {
+        await using var scope = ScopeFactory.CreateAsyncScope();
+        return await work(scope.ServiceProvider);
+    }
+
+    private string Elapsed(DateTimeOffset since) => Format(Time.GetUtcNow() - since);
+
+    private string Remaining(DateTimeOffset deadline) => Format(deadline - Time.GetUtcNow());
+
+    private static string Format(TimeSpan duration) =>
+        duration <= TimeSpan.Zero ? "0:00" : $"{(int)duration.TotalMinutes}:{duration.Seconds:00}";
+
+    public async ValueTask DisposeAsync()
+    {
+        Coordinator.PlayerChanged -= OnPlayerChanged;
+        if (_clock is not null) await _clock.DisposeAsync();
+        if (_notifications is not null)
+        {
+            try { await _notifications.DisposeAsync(); }
+            catch (JSDisconnectedException) { }
+        }
+    }
+}

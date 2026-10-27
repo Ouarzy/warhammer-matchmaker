@@ -130,3 +130,15 @@ th { color: #a9a6a1; font-weight: 600; }
 details summary { cursor: pointer; color: #d4a73c; }
 dt { font-weight: 600; margin-top: 0.5rem; }
 dd { margin-left: 0; color: #c9c6c1; }
+
+.button.secondary { background: #3a3f49; color: #e8e6e3; }
+.checkbox { display: flex !important; gap: 0.5rem; align-items: center; }
+.actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.status h2 { margin-top: 0; }
+.status.proposed { border-color: #d4a73c; }
+.status.in-match { border-color: #3c9d5d; }
+.opponent { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-block: 0.75rem; }
+.opponent img { border-radius: 0.5rem; }
+.opponent p { margin: 0.2rem 0; }
+.opponent-name { font-size: 1.25rem; font-weight: 700; }
+.steps li { margin-block: 0.4rem; }

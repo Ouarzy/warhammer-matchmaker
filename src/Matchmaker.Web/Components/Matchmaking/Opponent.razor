@@ -1,0 +1,29 @@
+@using Matchmaker.Domain.ArmyLists
+@using Matchmaker.Domain.Players
+@using Matchmaker.Web.Matchmaking
+
+<div class="opponent">
+    @if (Player?.AvatarUrl is not null)
+    {
+        <img src="@Player.AvatarUrl" alt="" width="64" height="64" />
+    }
+    <div>
+        <p class="opponent-name">@(Player?.DisplayName ?? Match.Opponent.Player.SteamId)</p>
+        <p>
+            Elo @Match.Opponent.Rating.Value
+            · @(List?.Faction ?? "Faction inconnue")
+            · @Match.Opponent.Format.Name
+            · @(Match.Opponent.Ranked ? "classée" : "amicale")
+        </p>
+        @if (List is not null)
+        {
+            <p><a href="/lists/@List.Id" target="_blank">Voir sa liste « @List.Name »</a></p>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public MatchView Match { get; set; } = default!;
+    [Parameter] public Player? Player { get; set; }
+    [Parameter] public ArmyList? List { get; set; }
+}
