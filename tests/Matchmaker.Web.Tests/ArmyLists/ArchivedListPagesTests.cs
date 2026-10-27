@@ -37,6 +37,18 @@ public sealed class ArchivedListPagesTests(PostgresFixture postgres) : IDisposab
     }
 
     [Fact]
+    public async Task Units_do_not_repeat_their_weapons_below_the_tables()
+    {
+        var (client, alice, _, matchId) = await MatchBetweenAliceAndBob();
+        var archive = (await _factory.ArchivedListsOfAsync(matchId)).For(matchId, alice)!;
+
+        var html = await Text(await client.GetAsync($"/archived-lists/{archive.Id}"));
+
+        Assert.DoesNotContain("class=\"composition\"", html);
+        Assert.DoesNotContain("Trajann Valoris : ", html);
+    }
+
+    [Fact]
     public async Task The_match_screen_links_to_the_lists_played_by_both_players()
     {
         var (client, alice, bob, matchId) = await MatchBetweenAliceAndBob();

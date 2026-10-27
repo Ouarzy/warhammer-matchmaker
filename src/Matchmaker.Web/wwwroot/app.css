@@ -275,7 +275,6 @@ tbody tr:hover td { background: var(--surface); }
 .unit { border-top: 1px solid var(--border); padding-block: 1rem; }
 .unit h2 { margin: 0.5rem 0; }
 .unit .count { font-size: 0.9rem; font-weight: 400; color: var(--muted); margin-left: 0.5rem; }
-.composition { display: grid; gap: 0.2rem; font-size: 0.9rem; }
 .keywords { color: var(--muted); font-size: 0.85rem; }
 details summary { cursor: pointer; color: var(--accent); }
 dt { font-weight: 600; margin-top: 0.5rem; }

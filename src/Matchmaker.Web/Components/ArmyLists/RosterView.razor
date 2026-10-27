@@ -38,13 +38,6 @@
             </div>
         }
 
-        <p class="composition">
-            @foreach (var model in unit.Models)
-            {
-                <span>@(model.Count > 1 ? $"{model.Count}x " : "")@model.Name : @string.Join(", ", model.Weapons)</span>
-            }
-        </p>
-
         <details>
             <summary>Aptitudes (@unit.Abilities.Count)</summary>
             <dl>
