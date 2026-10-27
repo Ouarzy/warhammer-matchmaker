@@ -28,6 +28,7 @@ Spécifications : voir [PROJECT.md](PROJECT.md).
 | 4 | **Listes d'armée** : import (selon étude), plusieurs listes par joueur, format associé | On gère ses listes | Fait |
 | 5 | **File d'attente temps réel** : recherche, notification SignalR, écran d'acceptation, Steam ID + liste adverse | **Premier MVP jouable** | Fait |
 | 6 | **Résultats & classement** : déclaration, confirmation, historique, classement Elo | MVP complet | Fait |
+| 6b | **Parties longues** : jusqu'à 5 parties en parallèle sans limite de durée, abandon = victoire 20-0 pour l'adversaire, confirmation automatique du résultat après 24 h sans réponse | Règles de jeu réelles | Fait |
 | 7 | **V2** : objet TTS de remontée du score, parties planifiées, AOS… | Évolutions | À faire |
 
 ## Résultats de l'itération 0

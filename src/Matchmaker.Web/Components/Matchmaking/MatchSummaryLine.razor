@@ -15,11 +15,11 @@
             <strong>@ResultLabels.Of(score.Category)</strong>
             @if (Match.Status == MatchStatus.Abandoned)
             {
-                @($"(WTC {score.Points} – {score.Opponent.Points}, {(Match.AbandonedBy == Me ? "abandon" : $"abandon de {opponentName}")})")
+                @($" (WTC {score.Points} – {score.Opponent.Points}, {(Match.AbandonedBy == Me ? "abandon" : $"abandon de {opponentName}")})")
             }
             else
             {
-                @($"({Match.VictoryPointsOf(Me)} – {Match.VictoryPointsOf(opponent.Player)}, WTC {score.Points} – {score.Opponent.Points}{(Match.ConfirmedAutomatically ? ", confirmé automatiquement" : "")})")
+                @($" ({Match.VictoryPointsOf(Me)} – {Match.VictoryPointsOf(opponent.Player)}, WTC {score.Points} – {score.Opponent.Points}{(Match.ConfirmedAutomatically ? ", confirmé automatiquement" : "")})")
             }
         </span>
         @if (Match.RatingChangeOf(Me) is { } change)
