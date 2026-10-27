@@ -9,7 +9,7 @@ namespace Matchmaker.Web.ArmyLists;
 public sealed class ArmyListService(MatchmakerDbContext db, IRosterProvider rosters, TimeProvider time)
 {
     /// <exception cref="RosterImportException">La liste n'a pas pu être récupérée.</exception>
-    public async Task<ArmyList> ImportAsync(PlayerId owner, string code, string name, GameFormat format, CancellationToken cancellationToken = default)
+    public async Task<ArmyList> ImportAsync(PlayerId owner, string code, string? name, GameFormat format, CancellationToken cancellationToken = default)
     {
         var roster = await rosters.FetchAsync(code, cancellationToken);
         var list = ArmyList.Import(owner, name, format, roster, time.GetUtcNow());

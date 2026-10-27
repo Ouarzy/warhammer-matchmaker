@@ -19,7 +19,7 @@ public class ArmyListTests
         Unit("Inquisitor", "Agents of the Imperium"),
     ]);
 
-    private static ArmyList Imported(string name = "Custodes 2000") =>
+    private static ArmyList Imported(string? name = "Custodes 2000") =>
         ArmyList.Import(Owner, name, StrikeForce, Custodes(), Noon);
 
     [Fact]
@@ -55,11 +55,28 @@ public class ArmyListTests
     }
 
     [Theory]
+    [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void A_list_needs_a_name(string name)
+    public void Without_a_name_the_list_is_named_after_its_faction_and_format(string? name)
     {
-        Assert.Throws<ArgumentException>(() => Imported(name));
+        Assert.Equal("Adeptus Custodes – Strike Force", Imported(name).Name);
+    }
+
+    [Fact]
+    public void Without_a_name_nor_a_faction_the_list_is_named_after_its_format()
+    {
+        var list = ArmyList.Import(Owner, null, StrikeForce, new Roster("11e", [Unit("Mystery")]), Noon);
+
+        Assert.Equal("Liste – Strike Force", list.Name);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void A_list_cannot_be_renamed_with_a_blank_name(string name)
+    {
+        Assert.Throws<ArgumentException>(() => Imported().Rename(name));
     }
 
     [Fact]

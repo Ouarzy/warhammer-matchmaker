@@ -29,8 +29,8 @@
         <ValidationMessage For="() => Import.Code" class="error" />
 
         <label>
-            Nom de la liste
-            <InputText @bind-Value="Import.Name" placeholder="Custodes 2000" maxlength="@ArmyList.NameMaxLength" />
+            Nom de la liste <span class="hint">(facultatif : faction et format par défaut)</span>
+            <InputText @bind-Value="Import.Name" placeholder="Adeptus Custodes – Strike Force" maxlength="@ArmyList.NameMaxLength" />
         </label>
         <ValidationMessage For="() => Import.Name" class="error" />
 
@@ -126,9 +126,8 @@ else
         [RegularExpression(@"^\s*[0-9a-fA-F]{8}\s*$", ErrorMessage = "Un code YellowScribe contient 8 caractères (chiffres et lettres de a à f).")]
         public string Code { get; set; } = "";
 
-        [Required(ErrorMessage = "Donnez un nom à votre liste.")]
         [MaxLength(ArmyList.NameMaxLength, ErrorMessage = "Le nom est limité à 60 caractères.")]
-        public string Name { get; set; } = "";
+        public string? Name { get; set; }
 
         public string Format { get; set; } = GameFormats.StrikeForce.Name;
     }

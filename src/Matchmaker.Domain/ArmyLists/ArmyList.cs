@@ -37,12 +37,15 @@ public sealed class ArmyList
     public DateTimeOffset ImportedAt { get; }
     public string? Faction => Roster.Faction;
 
-    public static ArmyList Import(PlayerId owner, string name, GameFormat format, Roster roster, DateTimeOffset now)
+    /// <param name="name">Facultatif : YellowScribe ne transmet pas le nom de la liste.
+    /// Par défaut, la liste porte le nom de sa faction et de son format.</param>
+    public static ArmyList Import(PlayerId owner, string? name, GameFormat format, Roster roster, DateTimeOffset now)
     {
         if (roster.Units.Count == 0)
             throw new ArgumentException("La liste importée ne contient aucune unité.", nameof(roster));
 
-        return new ArmyList(Guid.NewGuid(), owner, ValidName(name), format, roster, now);
+        var chosenName = string.IsNullOrWhiteSpace(name) ? $"{roster.Faction ?? "Liste"} – {format.Name}" : name;
+        return new ArmyList(Guid.NewGuid(), owner, ValidName(chosenName), format, roster, now);
     }
 
     public void Rename(string name) => Name = ValidName(name);

@@ -62,6 +62,20 @@ public sealed class ArmyListPagesTests(PostgresFixture postgres) : IDisposable
     }
 
     [Fact]
+    public async Task The_name_is_optional_when_importing()
+    {
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+
+        var response = await client.SubmitAsync("/lists", "import", ImportForm(Samples.CustodesCode, name: ""));
+
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        using var scope = _factory.Services.CreateScope();
+        var stored = Assert.Single(await scope.ServiceProvider.GetRequiredService<ArmyListService>().ListOwnedByAsync(me));
+        Assert.Equal("Adeptus Custodes – Strike Force", stored.Name);
+    }
+
+    [Fact]
     public async Task An_expired_code_is_explained_to_the_player()
     {
         var client = await _factory.CreateClientAsAsync(MatchmakerWebFactory.NewPlayerId());
