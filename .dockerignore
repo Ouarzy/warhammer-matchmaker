@@ -1,0 +1,11 @@
+**/bin/
+**/obj/
+**/bin\\*/
+.git/
+.contextia/
+tests/
+docs/
+deploy/
+*.md
+docker-compose*.yml
+.env*
