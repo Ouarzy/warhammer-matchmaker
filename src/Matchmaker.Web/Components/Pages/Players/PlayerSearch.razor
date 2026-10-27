@@ -1,6 +1,7 @@
 @page "/players"
 @using Matchmaker.Domain.Players
 @using Matchmaker.Web.Accounts
+@using Matchmaker.Web.Matches
 @inject PlayerAccounts Accounts
 
 <PageTitle>Joueurs</PageTitle>
@@ -15,39 +16,54 @@
     <button type="submit" class="button"><Icon Name="search" /> Rechercher</button>
 </form>
 
-@if (!string.IsNullOrWhiteSpace(Q))
+@if (Searching && _players.Count == 0)
 {
-    @if (_results.Count == 0)
+    <p>Aucun joueur ne correspond à « @Q ». <a href="/players">Voir tous les joueurs</a></p>
+}
+else
+{
+    @if (Searching)
     {
-        <p>Aucun joueur ne correspond à « @Q ».</p>
+        <p class="hint">Résultats pour « @Q » · <a href="/players">Voir tous les joueurs</a></p>
     }
     else
     {
-        <div class="table-scroll">
-            <table class="ranking">
-                <thead><tr><th>Joueur</th><th>Elo</th><th>Parties classées</th></tr></thead>
-                <tbody>
-                    @foreach (var player in _results)
-                    {
-                        <tr>
-                            <td><PlayerLink Player="player" /></td>
-                            <td><strong>@player.Rating.Value</strong></td>
-                            <td>@player.RankedGamesPlayed</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+        <p class="hint">@_directory.Total joueurs, par ordre alphabétique.</p>
+    }
+    <div class="table-scroll">
+        <table class="ranking">
+            <thead><tr><th>Joueur</th><th>Elo</th><th>Parties classées</th></tr></thead>
+            <tbody>
+                @foreach (var player in _players)
+                {
+                    <tr><td><PlayerLink Player="player" /></td><td><strong>@player.Rating.Value</strong></td><td>@player.RankedGamesPlayed</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (!Searching)
+    {
+        <Pagination Number="_directory.Number" PageCount="_directory.PageCount" Url="@(n => $"/players?page={n}")" Label="Pages des joueurs" />
     }
 }
 
 @code {
     [SupplyParameterFromQuery] public string? Q { get; set; }
+    [SupplyParameterFromQuery] public int? Page { get; set; }
 
-    private IReadOnlyList<Player> _results = [];
+    private IReadOnlyList<Player> _players = [];
+    private Page<Player> _directory = new([], 1, PlayerAccounts.DirectoryPageSize, 0);
+
+    private bool Searching => !string.IsNullOrWhiteSpace(Q);
 
     protected override async Task OnParametersSetAsync()
     {
-        _results = string.IsNullOrWhiteSpace(Q) ? [] : await Accounts.SearchAsync(Q);
+        if (Searching)
+        {
+            _players = await Accounts.SearchAsync(Q!);
+            return;
+        }
+        _directory = await Accounts.DirectoryPageAsync(Page ?? 1);
+        _players = _directory.Items;
     }
 }

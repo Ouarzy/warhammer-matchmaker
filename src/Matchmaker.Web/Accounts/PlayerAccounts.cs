@@ -1,5 +1,6 @@
 using Matchmaker.Domain.Players;
 using Matchmaker.Web.Data;
+using Matchmaker.Web.Matches;
 using Microsoft.EntityFrameworkCore;
 
 namespace Matchmaker.Web.Accounts;
@@ -25,6 +26,22 @@ public sealed class PlayerAccounts(MatchmakerDbContext db)
             .ThenBy(p => p.DisplayName)
             .Take(limit)
             .ToListAsync(cancellationToken);
+    }
+
+    public const int DirectoryPageSize = 50;
+
+    /// <summary>Tous les joueurs, par ordre alphabétique sans tenir compte de la casse, page par page.</summary>
+    public async Task<Page<Player>> DirectoryPageAsync(int page, CancellationToken cancellationToken = default)
+    {
+        page = Math.Max(1, page);
+        var total = await db.Players.CountAsync(cancellationToken);
+        var players = await db.Players
+            .OrderBy(p => p.DisplayName.ToLower())
+            .ThenBy(p => p.Id)
+            .Skip((page - 1) * DirectoryPageSize)
+            .Take(DirectoryPageSize)
+            .ToListAsync(cancellationToken);
+        return new Page<Player>(players, page, DirectoryPageSize, total);
     }
 
     public async Task<IReadOnlyDictionary<PlayerId, Player>> FindManyAsync(IEnumerable<PlayerId> ids, CancellationToken cancellationToken = default)

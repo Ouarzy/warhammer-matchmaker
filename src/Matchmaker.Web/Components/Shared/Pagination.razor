@@ -1,0 +1,23 @@
+@if (PageCount > 1)
+{
+    <nav class="pagination" aria-label="@Label">
+        @if (Number > 1)
+        {
+            <a href="@Url(Number - 1)"><Icon Name="back" /> @Previous</a>
+        }
+        <span>Page @Number / @PageCount</span>
+        @if (Number < PageCount)
+        {
+            <a href="@Url(Number + 1)">@Next <Icon Name="chevron" /></a>
+        }
+    </nav>
+}
+
+@code {
+    [Parameter, EditorRequired] public int Number { get; set; }
+    [Parameter, EditorRequired] public int PageCount { get; set; }
+    [Parameter, EditorRequired] public Func<int, string> Url { get; set; } = default!;
+    [Parameter] public string Label { get; set; } = "Pages";
+    [Parameter] public string Previous { get; set; } = "Précédente";
+    [Parameter] public string Next { get; set; } = "Suivante";
+}

@@ -1,0 +1,72 @@
+@page "/live"
+@using Matchmaker.Domain.Matches
+@using Matchmaker.Domain.Players
+@using Matchmaker.Web.Accounts
+@using Matchmaker.Web.Matches
+@using Matchmaker.Web.Tts
+@inject MatchService Matches
+@inject PlayerAccounts Accounts
+@inject LiveScores LiveScores
+
+<PageTitle>Parties en cours</PageTitle>
+
+<h1><Icon Name="swords" /> Parties en cours</h1>
+
+@if (_games.Total == 0)
+{
+    <p class="card">Aucune partie en cours pour le moment.</p>
+}
+else
+{
+    <p class="hint">@_games.Total @(_games.Total > 1 ? "parties" : "partie") en cours, les plus récentes d'abord. Cliquez sur une partie pour la suivre.</p>
+    <ul class="active-matches">
+        @foreach (var match in _games.Items)
+        {
+            <li>
+                <a class="card" href="/matches/@match.Id">
+                    <span class="active-match-info">
+                        <strong>@NameOf(match.First.Player) – @NameOf(match.Second.Player)</strong>
+                        <span class="hint">
+                            @match.First.Format.Name · @(match.First.Ranked ? "classée" : "amicale") ·
+                            @if (match.ScheduledFor is { } start)
+                            {
+                                <text>prévue le <LocalTime Value="start" /></text>
+                            }
+                            else
+                            {
+                                <text>depuis le @match.ProposedAt.ToString("dd/MM")</text>
+                            }
+                        </span>
+                        <span class="state">@StateOf(match)</span>
+                    </span>
+                    <Icon Name="chevron" Class="trailing" />
+                </a>
+            </li>
+        }
+    </ul>
+    <Pagination Number="_games.Number" PageCount="_games.PageCount" Url="@(n => $"/live?page={n}")" Label="Pages des parties en cours"
+                Previous="Plus récentes" Next="Plus anciennes" />
+}
+
+@code {
+    [SupplyParameterFromQuery] public int? Page { get; set; }
+
+    private Page<Match> _games = new([], 1, MatchService.InProgressPageSize, 0);
+    private IReadOnlyDictionary<PlayerId, Player> _players = new Dictionary<PlayerId, Player>();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _games = await Matches.InProgressPageAsync(Page ?? 1);
+        _players = await Accounts.FindManyAsync(_games.Items.SelectMany(m => new[] { m.First.Player, m.Second.Player }));
+    }
+
+    private string NameOf(PlayerId player) => _players.GetValueOrDefault(player)?.DisplayName ?? "Joueur";
+
+    private string StateOf(Match match) => match.Status switch
+    {
+        MatchStatus.ResultDeclared => "Résultat déclaré, en attente de confirmation",
+        _ when LiveScores.Of(match.Id) is { } live =>
+            $"En direct : {live.FirstVictoryPoints} – {live.SecondVictoryPoints} (round {live.RoundsPlayed})",
+        _ => "En cours",
+    };
+}

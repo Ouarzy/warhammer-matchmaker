@@ -146,6 +146,23 @@ public sealed class MatchService(MatchmakerDbContext db, TimeProvider time, Push
             .OrderByDescending(m => m.ProposedAt)
             .ThenBy(m => m.Id);
 
+    public const int InProgressPageSize = 50;
+
+    /// <summary>Toutes les parties en cours sur le site, les plus récentes d'abord.</summary>
+    public async Task<Page<Match>> InProgressPageAsync(int page, CancellationToken cancellationToken = default)
+    {
+        page = Math.Max(1, page);
+        var inProgress = db.Matches.Where(m => InProgress.Contains(m.Status));
+        var total = await inProgress.CountAsync(cancellationToken);
+        var items = await inProgress
+            .OrderByDescending(m => m.ProposedAt)
+            .ThenBy(m => m.Id)
+            .Skip((page - 1) * InProgressPageSize)
+            .Take(InProgressPageSize)
+            .ToListAsync(cancellationToken);
+        return new Page<Match>(items, page, InProgressPageSize, total);
+    }
+
     public async Task<IReadOnlyList<Player>> RankingAsync(int limit = 100, CancellationToken cancellationToken = default) =>
         await db.Players
             .Where(p => p.RankedGamesPlayed > 0)
