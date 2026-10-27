@@ -21,6 +21,14 @@ public sealed class ArmyList
         ImportedAt = importedAt;
     }
 
+    // Pour EF Core, qui renseigne les propriétés lui-même.
+    private ArmyList()
+    {
+        Name = null!;
+        Format = null!;
+        Roster = null!;
+    }
+
     public Guid Id { get; }
     public PlayerId Owner { get; }
     public string Name { get; private set; }
