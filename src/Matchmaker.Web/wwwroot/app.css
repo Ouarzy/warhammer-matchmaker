@@ -98,7 +98,13 @@ a:has(> .icon) { display: inline-flex; gap: 0.35em; align-items: center; }
 .public-links a:not(.button):hover, .public-links a.active { color: var(--accent); }
 
 /* Menu latéral ----------------------------------------------------------- */
-.shell { display: grid; grid-template-columns: var(--sidebar-width) minmax(0, 1fr); min-height: calc(100vh - 3.5rem); }
+.shell {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+    min-height: calc(100vh - 3.5rem);
+    /* La colonne du menu garde son fond jusqu'en bas, pied de page compris. */
+    background: linear-gradient(to right, var(--surface) calc(var(--sidebar-width) - 1px), var(--border) calc(var(--sidebar-width) - 1px), var(--border) var(--sidebar-width), transparent var(--sidebar-width));
+}
 .sidebar {
     display: flex;
     flex-direction: column;
@@ -130,7 +136,7 @@ a:has(> .icon) { display: inline-flex; gap: 0.35em; align-items: center; }
 .sidebar-link { width: 100%; background: none; border: none; cursor: pointer; color: var(--muted); }
 
 main { padding: 2rem clamp(1rem, 4vw, 2.5rem); max-width: 64rem; width: 100%; }
-.shell > main { margin: 0; }
+.shell main { margin: 0; }
 body > main { margin: 0 auto; }
 
 /* Composants ------------------------------------------------------------- */
@@ -276,6 +282,24 @@ dt { font-weight: 600; margin-top: 0.5rem; }
 dd { margin-left: 0; color: #c9c6c1; }
 .ranking tr.me td { background: #2a2618; }
 
+/* Pied de page et pages légales. */
+.content { display: flex; flex-direction: column; min-width: 0; }
+.site-footer {
+    margin-top: auto;
+    padding: 1.25rem clamp(1rem, 4vw, 2.5rem) 2rem;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+body > .site-footer { max-width: 64rem; margin-inline: auto; }
+.site-footer nav { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; margin-bottom: 0.5rem; }
+.site-footer a { color: var(--muted); }
+.site-footer a:hover { color: var(--accent); }
+.site-footer p { margin: 0; }
+.legal { max-width: 46rem; }
+.legal h2 { margin-top: 1.5rem; }
+.legal li { margin-block: 0.35rem; }
+
 /* Code de partie pour l'objet TTS. */
 .tts-code { border: 1px dashed var(--accent); border-radius: var(--radius); padding: 0.75rem 1rem; margin-block: 1rem; }
 .tts-code p { margin: 0.3rem 0; }
@@ -300,7 +324,7 @@ dd { margin-left: 0; color: #c9c6c1; }
         cursor: pointer;
     }
     .burger .icon { width: 1.4em; height: 1.4em; }
-    .shell { grid-template-columns: 1fr; min-height: 0; }
+    .shell { grid-template-columns: 1fr; min-height: 0; background: none; }
     .sidebar {
         position: fixed;
         top: 0;

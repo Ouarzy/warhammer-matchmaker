@@ -39,11 +39,15 @@
                     <button type="submit" class="sidebar-link"><Icon Name="logout" /> Se déconnecter</button>
                 </form>
             </nav>
-            <main>@Body</main>
+            <div class="content">
+                <main>@Body</main>
+                <SiteFooter />
+            </div>
         </div>
     </Authorized>
     <NotAuthorized>
         <main>@Body</main>
+        <SiteFooter />
     </NotAuthorized>
 </AuthorizeView>
 
