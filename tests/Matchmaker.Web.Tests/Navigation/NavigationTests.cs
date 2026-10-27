@@ -62,6 +62,18 @@ public sealed class NavigationTests(PostgresFixture postgres) : IDisposable
     }
 
     [Fact]
+    public async Task On_small_screens_the_side_menu_opens_from_a_burger_button()
+    {
+        var client = await _factory.CreateClientAsAsync(MatchmakerWebFactory.NewPlayerId());
+
+        var html = await client.GetStringAsync("/ranking");
+
+        Assert.Contains("id=\"menu-toggle\"", html);
+        Assert.Contains("class=\"burger\" for=\"menu-toggle\"", html);
+        Assert.Contains("aria-label=\"Menu\"", html);
+    }
+
+    [Fact]
     public async Task Visitors_are_invited_to_sign_in_without_side_menu()
     {
         var html = await _factory.CreateAnonymousClient().GetStringAsync("/ranking");

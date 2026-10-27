@@ -16,6 +16,13 @@
     <Routes />
     <ReconnectModal />
     <script src="@Assets["_framework/blazor.web.js"]"></script>
+    <script>
+        // Menu burger (téléphone) : se referme dès qu'on choisit une entrée.
+        document.addEventListener("click", (event) => {
+            const toggle = document.getElementById("menu-toggle");
+            if (toggle && event.target.closest(".sidebar a, .sidebar button")) toggle.checked = false;
+        });
+    </script>
 </body>
 
 </html>

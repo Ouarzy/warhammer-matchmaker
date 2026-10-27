@@ -1,6 +1,12 @@
 ﻿@inherits LayoutComponentBase
 
 <header class="topbar">
+    <AuthorizeView>
+        <Authorized>
+            @* Téléphone : ouvre le menu latéral (case à cocher, fonctionne sans JavaScript). *@
+            <label class="burger" for="menu-toggle" aria-label="Menu"><Icon Name="menu" /></label>
+        </Authorized>
+    </AuthorizeView>
     <a href="/" class="brand"><Icon Name="swords" /> Warhammer Matchmaker</a>
     <AuthorizeView>
         <NotAuthorized>
@@ -15,6 +21,8 @@
 
 <AuthorizeView>
     <Authorized>
+        <input type="checkbox" id="menu-toggle" class="menu-toggle" aria-hidden="true" tabindex="-1" />
+        <label class="menu-backdrop" for="menu-toggle" aria-hidden="true"></label>
         <div class="shell">
             <nav class="sidebar" aria-label="Menu principal">
                 <p class="sidebar-user"><Icon Name="account" /> @context.User.Identity?.Name</p>
