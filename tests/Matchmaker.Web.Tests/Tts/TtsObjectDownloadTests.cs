@@ -31,6 +31,17 @@ public sealed class TtsObjectDownloadTests(PostgresFixture postgres) : IDisposab
     }
 
     [Fact]
+    public async Task The_object_is_big_enough_to_read_on_the_table()
+    {
+        var response = await _factory.CreateAnonymousClient().GetAsync("/tts/WarhammerMatchmaker.json");
+
+        using var saved = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var transform = saved.RootElement.GetProperty("ObjectStates")[0].GetProperty("Transform");
+        Assert.Equal(8, transform.GetProperty("scaleX").GetDouble());
+        Assert.Equal(5, transform.GetProperty("scaleZ").GetDouble());
+    }
+
+    [Fact]
     public async Task The_install_page_explains_how_to_add_the_object_and_send_the_score()
     {
         var response = await _factory.CreateAnonymousClient().GetAsync("/tts");

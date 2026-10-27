@@ -16,7 +16,8 @@ status = "Collez le code de la partie (page de la partie sur le site)."
 
 -- Interface ------------------------------------------------------------------------------------
 
--- L'objet est un bloc aplati (échelle 4 x 2,5) : on compense pour que les boutons ne soient pas déformés.
+-- L'objet est un bloc aplati (échelle 8 x 5) : on compense pour que les boutons ne soient pas déformés
+-- (0,25 x 8 = 0,4 x 5 = 2 : boutons agrandis 2 fois).
 local UI_SCALE = { 0.25, 1, 0.4 }
 
 function onLoad(savedState)
