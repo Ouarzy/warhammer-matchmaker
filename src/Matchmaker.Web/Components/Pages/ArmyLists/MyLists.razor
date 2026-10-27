@@ -31,6 +31,12 @@
         <ValidationMessage For="() => Import.Name" class="error" />
 
         <label>
+            Détachement <span class="hint">(facultatif : YellowScribe ne le transmet pas)</span>
+            <InputText @bind-Value="Import.Detachment" placeholder="Shield Host" maxlength="@ArmyList.DetachmentMaxLength" />
+        </label>
+        <ValidationMessage For="() => Import.Detachment" class="error" />
+
+        <label>
             Format
             <InputSelect @bind-Value="Import.Format">
                 @foreach (var format in GameFormats.Of(GameSystem.Warhammer40k))
@@ -58,7 +64,7 @@ else
     <div class="table-scroll">
         <table>
             <thead>
-                <tr><th>Nom</th><th>Faction</th><th>Format</th><th>Unités</th><th>Importée le</th></tr>
+                <tr><th>Nom</th><th>Faction</th><th>Détachement</th><th>Format</th><th>Unités</th><th>Importée le</th></tr>
             </thead>
             <tbody>
                 @foreach (var list in _lists)
@@ -66,6 +72,7 @@ else
                     <tr>
                         <td><a href="/lists/@list.Id"><Icon Name="eye" /> @list.Name</a></td>
                         <td>@(list.Faction ?? "Inconnue")</td>
+                        <td>@(list.Detachment ?? "–")</td>
                         <td>@list.Format.Name</td>
                         <td>@list.Roster.Units.Count</td>
                         <td>@list.ImportedAt.ToString("dd/MM/yyyy")</td>
@@ -102,7 +109,7 @@ else
         ArmyList list;
         try
         {
-            list = await Lists.ImportAsync(await CurrentPlayerAsync(), Import.Code, Import.Name, format);
+            list = await Lists.ImportAsync(await CurrentPlayerAsync(), Import.Code, Import.Name, format, Import.Detachment);
         }
         catch (RosterImportException e)
         {
@@ -124,6 +131,9 @@ else
 
         [MaxLength(ArmyList.NameMaxLength, ErrorMessage = "Le nom est limité à 60 caractères.")]
         public string? Name { get; set; }
+
+        [MaxLength(ArmyList.DetachmentMaxLength, ErrorMessage = "Le détachement est limité à 60 caractères.")]
+        public string? Detachment { get; set; }
 
         public string Format { get; set; } = GameFormats.StrikeForce.Name;
     }

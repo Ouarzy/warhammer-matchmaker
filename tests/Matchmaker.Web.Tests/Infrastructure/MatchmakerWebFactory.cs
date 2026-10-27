@@ -61,14 +61,14 @@ public sealed class MatchmakerWebFactory(PostgresFixture postgres) : WebApplicat
     /// Enregistre un match accepté par les deux joueurs (déjà créés), chacun jouant une liste Custodes
     /// importée pour l'occasion et nommée « Liste de match ».
     /// </summary>
-    public async Task<Guid> StartMatchAsync(PlayerId first, PlayerId second, bool ranked = true)
+    public async Task<Guid> StartMatchAsync(PlayerId first, PlayerId second, bool ranked = true, string? detachment = null)
     {
         using var scope = Services.CreateScope();
         var lists = scope.ServiceProvider.GetRequiredService<ArmyListService>();
         var now = DateTimeOffset.UtcNow;
         async Task<QueueTicket> Ticket(PlayerId player)
         {
-            var list = await lists.ImportAsync(player, Samples.CustodesCode, "Liste de match", GameFormats.StrikeForce);
+            var list = await lists.ImportAsync(player, Samples.CustodesCode, "Liste de match", GameFormats.StrikeForce, detachment);
             return new QueueTicket(player, list.Id, list.Format, ranked, EloRating.Initial, now);
         }
 

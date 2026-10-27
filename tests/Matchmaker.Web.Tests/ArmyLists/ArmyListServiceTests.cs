@@ -84,7 +84,7 @@ public class ArmyListServiceTests(PostgresFixture postgres)
         await using var db = postgres.CreateDbContext();
         var list = await Service(db).ImportAsync(owner, "0c6cfa93", "Custodes", GameFormats.StrikeForce);
 
-        Assert.True(await Service(db).RenameAsync(owner, list.Id, "Custodes tournoi"));
+        Assert.True(await Service(db).UpdateAsync(owner, list.Id, "Custodes tournoi", null));
 
         await using var reloaded = postgres.CreateDbContext();
         Assert.Equal("Custodes tournoi", (await Service(reloaded).FindAsync(list.Id))!.Name);
@@ -111,7 +111,7 @@ public class ArmyListServiceTests(PostgresFixture postgres)
         await using var db = postgres.CreateDbContext();
         var list = await Service(db).ImportAsync(owner, "0c6cfa93", "Custodes", GameFormats.StrikeForce);
 
-        Assert.False(await Service(db).RenameAsync(intruder, list.Id, "Volée"));
+        Assert.False(await Service(db).UpdateAsync(intruder, list.Id, "Volée", null));
         Assert.False(await Service(db).DeleteAsync(intruder, list.Id));
 
         await using var reloaded = postgres.CreateDbContext();

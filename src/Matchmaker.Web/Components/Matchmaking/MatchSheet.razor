@@ -56,7 +56,7 @@
                 @if (list is not null)
                 {
                     <a href="/archived-lists/@list.Id"><Icon Name="eye" /> @list.Name</a>
-                    <span class="hint">· @(list.Faction ?? "Faction inconnue")</span>
+                    <span class="hint">· @(list.Faction ?? "Faction inconnue")@(list.Detachment is { } detachment ? $" · {detachment}" : "")</span>
                 }
                 else
                 {

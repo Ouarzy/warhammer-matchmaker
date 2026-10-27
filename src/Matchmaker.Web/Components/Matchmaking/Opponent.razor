@@ -20,6 +20,10 @@
         <p>
             Elo @(Player?.Rating.Value ?? Ticket.Rating.Value)
             · @(List?.Faction ?? "Faction inconnue")
+            @if (List?.Detachment is { } detachment)
+            {
+                @($" · {detachment}")
+            }
             · @Ticket.Format.Name
             · @(Ticket.Ranked ? "classée" : "amicale")
         </p>

@@ -119,4 +119,36 @@ public class ArmyListTests
         Assert.True(list.IsOwnedBy(Owner));
         Assert.False(list.IsOwnedBy(new PlayerId("76561197960435531")));
     }
+
+    [Fact]
+    public void Without_detachment_given_the_list_has_none()
+    {
+        Assert.Null(Imported().Detachment);
+    }
+
+    [Fact]
+    public void The_detachment_is_given_by_the_player_at_import()
+    {
+        var list = ArmyList.Import(Owner, null, StrikeForce, Custodes(), Noon, "  Shield Host ");
+
+        Assert.Equal("Shield Host", list.Detachment);
+    }
+
+    [Fact]
+    public void The_detachment_can_be_changed_or_removed()
+    {
+        var list = ArmyList.Import(Owner, null, StrikeForce, Custodes(), Noon, "Shield Host");
+
+        list.ChangeDetachment("Talons of the Emperor");
+        Assert.Equal("Talons of the Emperor", list.Detachment);
+
+        list.ChangeDetachment("  ");
+        Assert.Null(list.Detachment);
+    }
+
+    [Fact]
+    public void A_detachment_name_is_limited_in_length()
+    {
+        Assert.Throws<ArgumentException>(() => Imported().ChangeDetachment(new string('x', ArmyList.DetachmentMaxLength + 1)));
+    }
 }

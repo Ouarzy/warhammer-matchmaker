@@ -16,6 +16,7 @@ public sealed class ArchivedArmyList
         OriginalListId = original.Id;
         Owner = original.Owner;
         Name = original.Name;
+        Detachment = original.Detachment;
         Format = original.Format;
         Roster = original.Roster;
         ArchivedAt = archivedAt;
@@ -34,6 +35,7 @@ public sealed class ArchivedArmyList
     public Guid OriginalListId { get; }
     public PlayerId Owner { get; }
     public string Name { get; }
+    public string? Detachment { get; }
     public GameFormat Format { get; }
     public Roster Roster { get; }
     public DateTimeOffset ArchivedAt { get; }

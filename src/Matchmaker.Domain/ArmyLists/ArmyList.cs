@@ -10,6 +10,7 @@ namespace Matchmaker.Domain.ArmyLists;
 public sealed class ArmyList
 {
     public const int NameMaxLength = 60;
+    public const int DetachmentMaxLength = 60;
 
     private ArmyList(Guid id, PlayerId owner, string name, GameFormat format, Roster roster, DateTimeOffset importedAt)
     {
@@ -32,6 +33,8 @@ public sealed class ArmyList
     public Guid Id { get; }
     public PlayerId Owner { get; }
     public string Name { get; private set; }
+    /// <summary>Saisi par le joueur : YellowScribe ne transmet pas le détachement.</summary>
+    public string? Detachment { get; private set; }
     public GameFormat Format { get; }
     public Roster Roster { get; }
     public DateTimeOffset ImportedAt { get; }
@@ -39,16 +42,19 @@ public sealed class ArmyList
 
     /// <param name="name">Facultatif : YellowScribe ne transmet pas le nom de la liste.
     /// Par défaut, la liste porte le nom de sa faction et de son format.</param>
-    public static ArmyList Import(PlayerId owner, string? name, GameFormat format, Roster roster, DateTimeOffset now)
+    public static ArmyList Import(PlayerId owner, string? name, GameFormat format, Roster roster, DateTimeOffset now, string? detachment = null)
     {
         if (roster.Units.Count == 0)
             throw new ArgumentException("La liste importée ne contient aucune unité.", nameof(roster));
 
         var chosenName = string.IsNullOrWhiteSpace(name) ? $"{roster.Faction ?? "Liste"} – {format.Name}" : name;
-        return new ArmyList(Guid.NewGuid(), owner, ValidName(chosenName), format, roster, now);
+        return new ArmyList(Guid.NewGuid(), owner, ValidName(chosenName), format, roster, now) { Detachment = ValidDetachment(detachment) };
     }
 
     public void Rename(string name) => Name = ValidName(name);
+
+    /// <param name="detachment">Vide pour retirer le détachement.</param>
+    public void ChangeDetachment(string? detachment) => Detachment = ValidDetachment(detachment);
 
     public bool IsCompatibleWith(GameFormat format) => Format == format;
 
@@ -56,6 +62,15 @@ public sealed class ArmyList
 
     /// <summary>Fige la liste telle qu'elle est jouée dans ce match.</summary>
     public ArchivedArmyList ArchiveFor(Guid matchId, DateTimeOffset now) => new(matchId, this, now);
+
+    private static string? ValidDetachment(string? detachment)
+    {
+        if (string.IsNullOrWhiteSpace(detachment)) return null;
+        var trimmed = detachment.Trim();
+        if (trimmed.Length > DetachmentMaxLength)
+            throw new ArgumentException($"Le nom d'un détachement est limité à {DetachmentMaxLength} caractères.", nameof(detachment));
+        return trimmed;
+    }
 
     private static string ValidName(string name)
     {

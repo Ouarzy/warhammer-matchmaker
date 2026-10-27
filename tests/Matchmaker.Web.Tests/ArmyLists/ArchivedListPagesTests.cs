@@ -37,6 +37,19 @@ public sealed class ArchivedListPagesTests(PostgresFixture postgres) : IDisposab
     }
 
     [Fact]
+    public async Task The_detachment_played_is_shown_on_the_archive_and_the_match_screen()
+    {
+        var (alice, bob) = (MatchmakerWebFactory.NewPlayerId(), MatchmakerWebFactory.NewPlayerId());
+        var client = await _factory.CreateClientAsAsync(alice, $"Alice{_suffix}");
+        await _factory.CreateClientAsAsync(bob, $"Bob{_suffix}");
+        var matchId = await _factory.StartMatchAsync(alice, bob, detachment: "Shield Host");
+        var archive = (await _factory.ArchivedListsOfAsync(matchId)).For(matchId, alice)!;
+
+        Assert.Contains("Détachement Shield Host", await Text(await client.GetAsync($"/archived-lists/{archive.Id}")));
+        Assert.Contains("Shield Host", await Text(await client.GetAsync($"/matches/{matchId}")));
+    }
+
+    [Fact]
     public async Task Units_do_not_repeat_their_weapons_below_the_tables()
     {
         var (client, alice, _, matchId) = await MatchBetweenAliceAndBob();

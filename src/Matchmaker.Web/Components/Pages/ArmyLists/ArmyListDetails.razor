@@ -13,20 +13,25 @@
 
     <header class="list-header">
         <h1>@_list.Name</h1>
-        <p>@(_list.Faction ?? "Faction inconnue") · @_list.Format.Name · @_list.Roster.Units.Count unités · édition @_list.Roster.Edition</p>
+        <p>@(_list.Faction ?? "Faction inconnue")@(_list.Detachment is { } detachment ? $" · Détachement {detachment}" : "") · @_list.Format.Name · @_list.Roster.Units.Count unités · édition @_list.Roster.Edition</p>
     </header>
 
     @if (_isOwner)
     {
         <section class="card owner-actions">
-            <EditForm Model="Rename" FormName="rename" OnValidSubmit="RenameAsync" Enhance class="inline-form">
+            <EditForm Model="Edit" FormName="edit" OnValidSubmit="UpdateAsync" Enhance class="inline-form">
                 <DataAnnotationsValidator />
                 <label>
                     Nom
-                    <InputText @bind-Value="Rename!.Name" maxlength="@ArmyList.NameMaxLength" />
+                    <InputText @bind-Value="Edit!.Name" maxlength="@ArmyList.NameMaxLength" />
                 </label>
-                <button type="submit" class="button secondary"><Icon Name="edit" /> Renommer</button>
-                <ValidationMessage For="() => Rename.Name" class="error" />
+                <label>
+                    Détachement
+                    <InputText @bind-Value="Edit!.Detachment" maxlength="@ArmyList.DetachmentMaxLength" placeholder="Facultatif" />
+                </label>
+                <button type="submit" class="button secondary"><Icon Name="edit" /> Enregistrer</button>
+                <ValidationMessage For="() => Edit.Name" class="error" />
+                <ValidationMessage For="() => Edit.Detachment" class="error" />
             </EditForm>
 
             <form method="post" @formname="delete" @onsubmit="DeleteAsync">
@@ -43,8 +48,8 @@
     [Parameter] public Guid Id { get; set; }
     [CascadingParameter] private Task<AuthenticationState> AuthenticationState { get; set; } = default!;
 
-    [SupplyParameterFromForm(FormName = "rename")]
-    private RenameModel? Rename { get; set; }
+    [SupplyParameterFromForm(FormName = "edit")]
+    private EditModel? Edit { get; set; }
 
     private ArmyList? _list;
     private bool _isOwner;
@@ -61,12 +66,12 @@
         }
 
         _isOwner = _list.IsOwnedBy(_me);
-        Rename ??= new RenameModel { Name = _list.Name };
+        Edit ??= new EditModel { Name = _list.Name, Detachment = _list.Detachment };
     }
 
-    private async Task RenameAsync()
+    private async Task UpdateAsync()
     {
-        if (await Lists.RenameAsync(_me, Id, Rename!.Name))
+        if (await Lists.UpdateAsync(_me, Id, Edit!.Name, Edit.Detachment))
             _list = await Lists.FindAsync(Id);
     }
 
@@ -75,10 +80,13 @@
         if (await Lists.DeleteAsync(_me, Id))
             Navigation.NavigateTo("/lists");
     }
-    private sealed class RenameModel
+    private sealed class EditModel
     {
         [Required(ErrorMessage = "Donnez un nom à votre liste.")]
         [MaxLength(ArmyList.NameMaxLength, ErrorMessage = "Le nom est limité à 60 caractères.")]
         public string Name { get; set; } = "";
+
+        [MaxLength(ArmyList.DetachmentMaxLength, ErrorMessage = "Le détachement est limité à 60 caractères.")]
+        public string? Detachment { get; set; }
     }
 }

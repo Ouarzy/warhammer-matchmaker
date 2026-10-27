@@ -9,10 +9,11 @@ namespace Matchmaker.Web.ArmyLists;
 public sealed class ArmyListService(MatchmakerDbContext db, IRosterProvider rosters, TimeProvider time)
 {
     /// <exception cref="RosterImportException">La liste n'a pas pu être récupérée.</exception>
-    public async Task<ArmyList> ImportAsync(PlayerId owner, string code, string? name, GameFormat format, CancellationToken cancellationToken = default)
+    public async Task<ArmyList> ImportAsync(PlayerId owner, string code, string? name, GameFormat format, string? detachment = null,
+        CancellationToken cancellationToken = default)
     {
         var roster = await rosters.FetchAsync(code, cancellationToken);
-        var list = ArmyList.Import(owner, name, format, roster, time.GetUtcNow());
+        var list = ArmyList.Import(owner, name, format, roster, time.GetUtcNow(), detachment);
 
         db.ArmyLists.Add(list);
         await db.SaveChangesAsync(cancellationToken);
@@ -29,12 +30,14 @@ public sealed class ArmyListService(MatchmakerDbContext db, IRosterProvider rost
             .ToListAsync(cancellationToken);
 
     /// <returns>false si la liste n'existe pas ou n'appartient pas à ce joueur.</returns>
-    public async Task<bool> RenameAsync(PlayerId owner, Guid id, string name, CancellationToken cancellationToken = default)
+    /// <param name="detachment">Vide pour retirer le détachement.</param>
+    public async Task<bool> UpdateAsync(PlayerId owner, Guid id, string name, string? detachment, CancellationToken cancellationToken = default)
     {
         var list = await FindOwnedAsync(owner, id, cancellationToken);
         if (list is null) return false;
 
         list.Rename(name);
+        list.ChangeDetachment(detachment);
         await db.SaveChangesAsync(cancellationToken);
         return true;
     }

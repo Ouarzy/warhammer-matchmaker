@@ -33,6 +33,11 @@ namespace Matchmaker.Web.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("archived_at");
 
+                    b.Property<string>("Detachment")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("detachment");
+
                     b.Property<Guid>("MatchId")
                         .HasColumnType("uuid")
                         .HasColumnName("match_id");
@@ -87,6 +92,11 @@ namespace Matchmaker.Web.Data.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<string>("Detachment")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("detachment");
 
                     b.Property<DateTimeOffset>("ImportedAt")
                         .HasColumnType("timestamp with time zone")

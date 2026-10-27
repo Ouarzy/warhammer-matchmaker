@@ -162,7 +162,7 @@ public class MatchServiceTests(PostgresFixture postgres)
         {
             await Service(db).StartAsync(match);
             var lists = new ArmyListService(db, new StubRosterProvider(), _time);
-            await lists.RenameAsync(alice, aliceList.Id, "Après");
+            await lists.UpdateAsync(alice, aliceList.Id, "Après", null);
             await lists.DeleteAsync(alice, aliceList.Id);
         }
 

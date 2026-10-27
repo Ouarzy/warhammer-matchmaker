@@ -19,8 +19,8 @@ public sealed class ArmyListPagesTests(PostgresFixture postgres) : IDisposable
         return (await lists.ImportAsync(owner, Samples.CustodesCode, name, GameFormats.StrikeForce)).Id;
     }
 
-    private static Dictionary<string, string> ImportForm(string code, string name = "Custodes 2000", string format = "Strike Force") =>
-        new() { ["Import.Code"] = code, ["Import.Name"] = name, ["Import.Format"] = format };
+    private static Dictionary<string, string> ImportForm(string code, string name = "Custodes 2000", string format = "Strike Force", string detachment = "") =>
+        new() { ["Import.Code"] = code, ["Import.Name"] = name, ["Import.Format"] = format, ["Import.Detachment"] = detachment };
 
     [Fact]
     public async Task My_lists_require_to_be_signed_in()
@@ -130,9 +130,35 @@ public sealed class ArmyListPagesTests(PostgresFixture postgres) : IDisposable
         var client = await _factory.CreateClientAsAsync(me);
         var listId = await ImportCustodes(me);
 
-        await client.SubmitAsync($"/lists/{listId}", "rename", new Dictionary<string, string> { ["Rename.Name"] = "Custodes tournoi" });
+        await client.SubmitAsync($"/lists/{listId}", "edit", new Dictionary<string, string> { ["Edit.Name"] = "Custodes tournoi" });
 
         Assert.Contains("Custodes tournoi", await client.GetStringAsync($"/lists/{listId}"));
+    }
+
+    [Fact]
+    public async Task The_detachment_given_at_import_is_shown_in_my_lists_and_on_the_list()
+    {
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+
+        var response = await client.SubmitAsync("/lists", "import", ImportForm(Samples.CustodesCode, "Avec détachement", detachment: "Shield Host"));
+
+        var listUrl = response.Headers.Location!.AbsolutePath;
+        Assert.Contains("Shield Host", WebUtility.HtmlDecode(await client.GetStringAsync("/lists")));
+        Assert.Contains("Détachement Shield Host", WebUtility.HtmlDecode(await client.GetStringAsync(listUrl)));
+    }
+
+    [Fact]
+    public async Task The_owner_can_set_the_detachment_of_a_list_imported_without_it()
+    {
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+        var listId = await ImportCustodes(me);
+
+        await client.SubmitAsync($"/lists/{listId}", "edit",
+            new Dictionary<string, string> { ["Edit.Name"] = "Custodes", ["Edit.Detachment"] = "Talons of the Emperor" });
+
+        Assert.Contains("Détachement Talons of the Emperor", WebUtility.HtmlDecode(await client.GetStringAsync($"/lists/{listId}")));
     }
 
     [Fact]

@@ -58,6 +58,7 @@ public sealed class MatchmakerDbContext(DbContextOptions<MatchmakerDbContext> op
             list.HasOne<Player>().WithMany().HasForeignKey(l => l.Owner).OnDelete(DeleteBehavior.Cascade);
             list.HasIndex(l => l.Owner);
             list.Property(l => l.Name).HasColumnName("name").HasMaxLength(ArmyList.NameMaxLength);
+            list.Property(l => l.Detachment).HasColumnName("detachment").HasMaxLength(ArmyList.DetachmentMaxLength);
             list.ComplexProperty(l => l.Format, MapFormat);
             MapRoster(list.Property(l => l.Roster));
             list.Property(l => l.ImportedAt).HasColumnName("imported_at");
@@ -83,6 +84,7 @@ public sealed class MatchmakerDbContext(DbContextOptions<MatchmakerDbContext> op
             archive.Property(a => a.OriginalListId).HasColumnName("original_list_id");
             archive.Property(a => a.Owner).HasColumnName("owner_steam_id").HasMaxLength(20).HasConversion(PlayerIdConverter);
             archive.Property(a => a.Name).HasColumnName("name").HasMaxLength(ArmyList.NameMaxLength);
+            archive.Property(a => a.Detachment).HasColumnName("detachment").HasMaxLength(ArmyList.DetachmentMaxLength);
             archive.ComplexProperty(a => a.Format, MapFormat);
             MapRoster(archive.Property(a => a.Roster));
             archive.Property(a => a.ArchivedAt).HasColumnName("archived_at");
