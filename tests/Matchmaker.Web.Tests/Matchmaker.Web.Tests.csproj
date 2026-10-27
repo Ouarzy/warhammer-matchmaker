@@ -24,4 +24,8 @@
     <ProjectReference Include="..\..\src\Matchmaker.Web\Matchmaker.Web.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\..\docs\samples\*.json" LinkBase="Samples" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
