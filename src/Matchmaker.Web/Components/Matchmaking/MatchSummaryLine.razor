@@ -1,14 +1,14 @@
 @using Matchmaker.Domain.Matches
 @using Matchmaker.Domain.Players
-@using Matchmaker.Web.Matches
 
 @{
     var opponent = Match.OpponentOf(Me);
     var opponentName = OpponentName ?? opponent.Player.SteamId;
 }
-<p class="match-line">
+@* Toute la ligne mène à l'écran de la partie (joueurs, listes, score). *@
+<a class="match-line" href="/matches/@Match.Id">
     <span>@Match.ProposedAt.ToString("dd/MM/yyyy") · @Match.First.Format.Name · @(Match.First.Ranked ? "classée" : "amicale")</span>
-    <span>contre <a href="/players/@opponent.Player.SteamId">@opponentName</a></span>
+    <span>contre @opponentName</span>
     @if (Match.Status is MatchStatus.Completed or MatchStatus.Abandoned)
     {
         var score = Match.ScoreOf(Me);
@@ -32,23 +32,10 @@
     {
         <span class="hint">@ResultLabels.Of(Match.Status) · sans effet sur l'Elo</span>
     }
-    @if (Archives.For(Match.Id, Me) is { } mine)
-    {
-        var theirs = Archives.For(Match.Id, opponent.Player);
-        <span class="lists">
-            Listes : <a href="/archived-lists/@mine.Id">@mine.Name</a>
-            @if (theirs is not null)
-            {
-                @(" contre ")<a href="/archived-lists/@theirs.Id">@theirs.Name</a>
-            }
-        </span>
-    }
-</p>
+</a>
 
 @code {
     [Parameter, EditorRequired] public Match Match { get; set; } = default!;
     [Parameter, EditorRequired] public PlayerId Me { get; set; }
     [Parameter] public string? OpponentName { get; set; }
-    /// <summary>Listes figées au début du match, pour les liens « Listes : … contre … ».</summary>
-    [Parameter] public ArchivedLists Archives { get; set; } = ArchivedLists.None;
 }

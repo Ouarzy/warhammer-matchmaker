@@ -148,7 +148,13 @@ dd { margin-left: 0; color: #c9c6c1; }
 .vp-inputs label { display: grid; gap: 0.25rem; }
 .vp-inputs input { width: 6rem; }
 .abandon { margin-top: 1rem; }
-.match-line { display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; margin: 0.4rem 0; }
+.match-line {
+    display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem;
+    margin: 0.4rem 0; padding: 0.6rem 0.75rem;
+    border: 1px solid #2c3038; border-radius: 0.5rem;
+    color: inherit; text-decoration: none;
+}
+.match-line:hover, .match-line:focus-visible { border-color: #d4a73c; background: #1d2026; }
 .gain { color: #5fd18a; font-weight: 600; }
 .loss { color: #ff7b7b; font-weight: 600; }
 
@@ -166,7 +172,6 @@ dd { margin-left: 0; color: #c9c6c1; }
 .plain-list li { margin-block: 0.25rem; }
 .pagination { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-block: 1rem; }
 
-.match-line .lists { flex-basis: 100%; font-size: 0.9rem; color: #a9a6a1; }
 .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 1rem; background: #3a3f49; font-size: 0.8rem; margin: 0; }
 
 .match-header h1 { margin: 0.5rem 0 0.25rem; }

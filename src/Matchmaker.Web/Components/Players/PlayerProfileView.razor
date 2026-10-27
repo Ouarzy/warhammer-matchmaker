@@ -60,7 +60,7 @@
             @foreach (var match in _history.Items)
             {
                 var opponent = match.OpponentOf(_player.Id).Player;
-                <MatchSummaryLine Match="match" Me="_player.Id" OpponentName="@(_opponents.GetValueOrDefault(opponent)?.DisplayName)" Archives="_archives" />
+                <MatchSummaryLine Match="match" Me="_player.Id" OpponentName="@(_opponents.GetValueOrDefault(opponent)?.DisplayName)" />
             }
 
             @if (_history.PageCount > 1)
@@ -91,7 +91,6 @@
     private IReadOnlyList<ArmyList> _lists = [];
     private Page<Match> _history = new([], 1, 20, 0);
     private IReadOnlyDictionary<PlayerId, Player> _opponents = new Dictionary<PlayerId, Player>();
-    private ArchivedLists _archives = ArchivedLists.None;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -105,7 +104,6 @@
         _lists = await Lists.ListOwnedByAsync(PlayerId);
         _history = await Matches.HistoryPageAsync(PlayerId, Page);
         _opponents = await Accounts.FindManyAsync(_history.Items.Select(m => m.OpponentOf(PlayerId).Player));
-        _archives = await Matches.ArchivedListsOfAsync(_history.Items.Select(m => m.Id));
     }
 
     private string PageUrl(int page) => $"{BaseUrl}?page={page}";

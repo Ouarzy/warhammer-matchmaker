@@ -117,7 +117,7 @@
 {
     <section>
         <h2>Dernière partie terminée</h2>
-        <MatchSummaryLine Match="_lastMatch" Me="_me" OpponentName="@_names.GetValueOrDefault(_lastMatch.OpponentOf(_me).Player)?.DisplayName" Archives="_lastArchives" />
+        <MatchSummaryLine Match="_lastMatch" Me="_me" OpponentName="@_names.GetValueOrDefault(_lastMatch.OpponentOf(_me).Player)?.DisplayName" />
         <p><a href="/profile">Voir mon historique</a></p>
     </section>
 }
@@ -129,7 +129,6 @@
     private PlayerStatus _status = PlayerStatus.Idle;
     private IReadOnlyList<Match> _activeMatches = [];
     private Match? _lastMatch;
-    private ArchivedLists _lastArchives = ArchivedLists.None;
     private IReadOnlyDictionary<PlayerId, Player> _names = new Dictionary<PlayerId, Player>();
     private IReadOnlyList<ArmyList> _lists = [];
     private Guid _selectedListId;
@@ -218,14 +217,13 @@
 
     private async Task RefreshAsync()
     {
-        (_activeMatches, _lastMatch, _lastArchives, _names) = await UsingServices(async services =>
+        (_activeMatches, _lastMatch, _names) = await UsingServices(async services =>
         {
             var matches = services.GetRequiredService<MatchService>();
             var active = await matches.ActiveMatchesOfAsync(_me);
             var last = (await matches.HistoryOfAsync(_me, limit: 1)).FirstOrDefault();
-            var archives = last is null ? ArchivedLists.None : await matches.ArchivedListsOfAsync([last.Id]);
             var opponents = active.Append(last).OfType<Match>().Select(m => m.OpponentOf(_me).Player);
-            return (active, last, archives, await services.GetRequiredService<PlayerAccounts>().FindManyAsync(opponents));
+            return (active, last, await services.GetRequiredService<PlayerAccounts>().FindManyAsync(opponents));
         });
         _status = Coordinator.StatusOf(_me);
 

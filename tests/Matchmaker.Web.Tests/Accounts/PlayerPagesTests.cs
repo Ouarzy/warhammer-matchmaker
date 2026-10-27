@@ -58,7 +58,8 @@ public sealed class PlayerPagesTests(PostgresFixture postgres) : IDisposable
         using (var scope = _factory.Services.CreateScope())
             await scope.ServiceProvider.GetRequiredService<ArmyListService>()
                 .ImportAsync(custodes, Samples.CustodesCode, $"Liste tournoi {_suffix}", GameFormats.StrikeForce);
-        await Abandoned(custodes, rival);
+        var matchId = await _factory.StartMatchAsync(custodes, rival);
+        await _factory.WithMatchesAsync(matches => matches.AbandonAsync(rival, matchId));
 
         var response = await _factory.CreateAnonymousClient().GetAsync($"/players/{custodes.SteamId}");
         var html = await Text(response);
@@ -68,7 +69,8 @@ public sealed class PlayerPagesTests(PostgresFixture postgres) : IDisposable
         Assert.Contains("Elo : <strong>1520</strong>", html);
         Assert.Contains($"Liste tournoi {_suffix}", html);
         Assert.Contains("Victoire écrasante", html);
-        Assert.Contains($"href=\"/players/{rival.SteamId}\"", html);
+        Assert.Contains($"contre Rival{_suffix}", html);
+        Assert.Contains($"href=\"/matches/{matchId}\"", html);
     }
 
     [Fact]

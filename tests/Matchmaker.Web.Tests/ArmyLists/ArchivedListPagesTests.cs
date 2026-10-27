@@ -37,13 +37,13 @@ public sealed class ArchivedListPagesTests(PostgresFixture postgres) : IDisposab
     }
 
     [Fact]
-    public async Task The_history_links_to_the_lists_played_by_both_players()
+    public async Task The_match_screen_links_to_the_lists_played_by_both_players()
     {
         var (client, alice, bob, matchId) = await MatchBetweenAliceAndBob();
         await _factory.WithMatchesAsync(matches => matches.AbandonAsync(bob, matchId));
         var archives = await _factory.ArchivedListsOfAsync(matchId);
 
-        var html = await Text(await client.GetAsync("/profile"));
+        var html = await Text(await client.GetAsync($"/matches/{matchId}"));
 
         Assert.Contains($"href=\"/archived-lists/{archives.For(matchId, alice)!.Id}\"", html);
         Assert.Contains($"href=\"/archived-lists/{archives.For(matchId, bob)!.Id}\"", html);
