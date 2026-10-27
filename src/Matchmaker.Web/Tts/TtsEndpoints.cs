@@ -12,6 +12,7 @@ public static class TtsEndpoints
     public static IServiceCollection AddTtsReporting(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<TtsReporting>();
+        services.AddSingleton<LiveScores>();
         var requestsPerMinute = configuration.GetValue("Tts:RequestsPerMinute", 10);
         return services.AddRateLimiter(options =>
         {
@@ -25,23 +26,29 @@ public static class TtsEndpoints
         });
     }
 
-    public static void MapTtsReporting(this IEndpointRouteBuilder app) =>
-        app.MapPost("/api/tts/results", async (TtsReport report, TtsReporting reporting, PlayerNotifier notifier, CancellationToken cancellationToken) =>
-        {
-            var outcome = await reporting.ReportAsync(report, cancellationToken);
-            if (outcome.Match is { } match)
-                notifier.Notify([match.First.Player, match.Second.Player]);
+    public static void MapTtsReporting(this IEndpointRouteBuilder app)
+    {
+        var api = app.MapGroup("/api/tts").RequireRateLimiting(RateLimitPolicy).DisableAntiforgery();
+        api.MapPost("/results", (TtsReport report, TtsReporting reporting, PlayerNotifier notifier, CancellationToken cancellationToken) =>
+            Answer(reporting.ReportAsync(report, cancellationToken), notifier));
+        api.MapPost("/live", (TtsReport report, TtsReporting reporting, PlayerNotifier notifier, CancellationToken cancellationToken) =>
+            Answer(reporting.ShareLiveAsync(report, cancellationToken), notifier));
+    }
 
-            var status = outcome.Status switch
-            {
-                TtsReportStatus.Accepted => StatusCodes.Status200OK,
-                TtsReportStatus.Invalid => StatusCodes.Status400BadRequest,
-                TtsReportStatus.UnknownCode => StatusCodes.Status404NotFound,
-                TtsReportStatus.NotTheirMatch => StatusCodes.Status403Forbidden,
-                _ => StatusCodes.Status409Conflict,
-            };
-            return Results.Json(new { message = outcome.Message }, statusCode: status);
-        })
-        .RequireRateLimiting(RateLimitPolicy)
-        .DisableAntiforgery();
+    private static async Task<IResult> Answer(Task<TtsReportOutcome> reporting, PlayerNotifier notifier)
+    {
+        var outcome = await reporting;
+        if (outcome.Match is { } match)
+            notifier.Notify([match.First.Player, match.Second.Player]);
+
+        var status = outcome.Status switch
+        {
+            TtsReportStatus.Accepted => StatusCodes.Status200OK,
+            TtsReportStatus.Invalid => StatusCodes.Status400BadRequest,
+            TtsReportStatus.UnknownCode => StatusCodes.Status404NotFound,
+            TtsReportStatus.NotTheirMatch => StatusCodes.Status403Forbidden,
+            _ => StatusCodes.Status409Conflict,
+        };
+        return Results.Json(new { message = outcome.Message }, statusCode: status);
+    }
 }

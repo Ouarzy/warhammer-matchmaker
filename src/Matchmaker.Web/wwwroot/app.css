@@ -303,6 +303,7 @@ body > .site-footer { max-width: 64rem; margin-inline: auto; }
 /* Code de partie pour l'objet TTS. */
 .tts-code { border: 1px dashed var(--accent); border-radius: var(--radius); padding: 0.75rem 1rem; margin-block: 1rem; }
 .tts-code p { margin: 0.3rem 0; }
+.live-score .live-value { font-size: 1.5rem; font-weight: 700; margin: 0.25rem 0; }
 .code-value code { font-size: 1.5rem; letter-spacing: 0.2em; padding: 0.2rem 0.6rem; }
 
 /* Menu burger : caché sur grand écran. */

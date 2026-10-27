@@ -13,12 +13,22 @@
 @inject NavigationManager Navigation
 @inject TimeProvider Time
 @inject IConfiguration Configuration
+@inject LiveScores LiveScores
 
 <PageTitle>Partie</PageTitle>
 
 @if (_match is not null)
 {
     <MatchSheet Match="_match" Players="_players" Archives="_archives" />
+
+    @if (_match.Status == MatchStatus.Accepted && LiveScores.Of(Id) is { } live)
+    {
+        <section class="card live-score" aria-live="polite">
+            <h2><Icon Name="swords" /> Score en direct</h2>
+            <p class="live-value">@NameOf(_match.First.Player) @live.FirstVictoryPoints – @live.SecondVictoryPoints @NameOf(_match.Second.Player)</p>
+            <p class="hint">Lu sur la feuille de score LCT, round @live.RoundsPlayed · mis à jour @Ago(live.At). Le résultat reste à déclarer en fin de partie.</p>
+        </section>
+    }
 
     @if (_error is not null)
     {
@@ -188,6 +198,8 @@
         });
     }
 
+    private string NameOf(PlayerId player) => _players.GetValueOrDefault(player)?.DisplayName ?? "Joueur";
+
     private async Task RefreshAsync() =>
         _match = await UsingServices(services => services.GetRequiredService<MatchService>().FindAsync(Id));
 
@@ -203,6 +215,12 @@
         var left = deadline - Time.GetUtcNow();
         if (left <= TimeSpan.Zero) return "quelques instants";
         return left.TotalHours >= 1 ? $"{(int)left.TotalHours} h {left.Minutes:00}" : $"{left.Minutes} min";
+    }
+
+    private string Ago(DateTimeOffset at)
+    {
+        var elapsed = Time.GetUtcNow() - at;
+        return elapsed.TotalMinutes < 1 ? "à l'instant" : elapsed.TotalHours >= 1 ? $"il y a {(int)elapsed.TotalHours} h" : $"il y a {(int)elapsed.TotalMinutes} min";
     }
 
     public void Dispose() => Notifier.PlayerChanged -= OnPlayerChanged;
