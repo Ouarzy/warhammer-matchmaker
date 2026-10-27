@@ -1,6 +1,7 @@
 using System.Net;
 using Matchmaker.Web.Tests.Infrastructure;
 using Matchmaker.Web.Tts;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Matchmaker.Web.Tests.Tts;
@@ -53,6 +54,23 @@ public sealed class ReportCodeTests(PostgresFixture postgres) : IDisposable
 
         Assert.Contains(code!, await alice.GetStringAsync($"/matches/{matchId}"));
         Assert.Contains(code!, await bob.GetStringAsync($"/matches/{matchId}"));
+    }
+
+    [Fact]
+    public async Task The_code_stays_hidden_until_sending_from_tts_is_opened()
+    {
+        var (alice, bob) = (MatchmakerWebFactory.NewPlayerId(), MatchmakerWebFactory.NewPlayerId());
+        using var closed = _factory.WithWebHostBuilder(builder => builder.UseSetting("Tts:Enabled", "false"));
+        await _factory.CreateClientAsAsync(alice);
+        await _factory.CreateClientAsAsync(bob);
+        var matchId = await _factory.StartMatchAsync(alice, bob);
+        var client = closed.CreateClient(new() { AllowAutoRedirect = false });
+        client.DefaultRequestHeaders.Add(TestAuthentication.Header, alice.SteamId);
+
+        var html = await client.GetStringAsync($"/matches/{matchId}");
+
+        Assert.DoesNotContain((await CodeOf(matchId))!, html);
+        Assert.DoesNotContain("Envoyer le score depuis TTS", html);
     }
 
     [Fact]

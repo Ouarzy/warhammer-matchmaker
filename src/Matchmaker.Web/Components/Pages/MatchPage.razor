@@ -12,6 +12,7 @@
 @inject IServiceScopeFactory ScopeFactory
 @inject NavigationManager Navigation
 @inject TimeProvider Time
+@inject IConfiguration Configuration
 
 <PageTitle>Partie</PageTitle>
 
@@ -141,7 +142,8 @@
                 _me = player;
         }
 
-        if (_me is not null)
+        // Envoi du score depuis TTS : affiché seulement une fois la fonction ouverte (Tts:Enabled).
+        if (_me is not null && Configuration.GetValue<bool>("Tts:Enabled"))
             _reportCode = await UsingServices(services => services.GetRequiredService<TtsReporting>().CodeOfAsync(Id));
 
         (_players, _archives) = await UsingServices(async services => (

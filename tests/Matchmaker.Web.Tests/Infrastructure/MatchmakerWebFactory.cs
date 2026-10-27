@@ -23,6 +23,7 @@ public sealed class MatchmakerWebFactory(PostgresFixture postgres) : WebApplicat
     {
         builder.UseSetting("ConnectionStrings:Matchmaker", postgres.ConnectionString);
         builder.UseSetting("Steam:ApplicationKey", "test-key");
+        builder.UseSetting("Tts:Enabled", "true");
 
         builder.ConfigureTestServices(services =>
         {
