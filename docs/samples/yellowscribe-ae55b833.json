@@ -1,0 +1,1393 @@
+{
+  "edition": "11e",
+  "order": [
+    "99be4df2",
+    "0a7ce6c7",
+    "551297ad",
+    "9614cc01",
+    "662ec581",
+    "c20290d0",
+    "adb2dd00",
+    "df74e305",
+    "a39286e1",
+    "a5a416fe"
+  ],
+  "armyData": {
+    "99be4df2": {
+      "name": "Custodian Guard Sodality",
+      "factionKeywords": [
+        "Adeptus Custodes"
+      ],
+      "keywords": [
+        "Infantry",
+        "Battleline",
+        "Imperium",
+        "Trusted Sentinel",
+        "Custodian Guard Sodality"
+      ],
+      "abilities": {
+        "Impenetrable Defence": {
+          "name": "Impenetrable Defence",
+          "desc": "While either of these is true, attacks made by this unit have [SUSTAINED HITS 1: non-MONSTER/VEHICLE]:\n• This unit is within range of an objective.\n• Their target is within range of an objective."
+        },
+        "Deep Strike": {
+          "name": "Deep Strike",
+          "desc": "This unit can be set up in Reserves rather than on the battlefield. From Reserves it can be set up anywhere on the battlefield more than 8\" horizontally from all enemy models."
+        },
+        "Invulnerable Save": {
+          "name": "Invulnerable Save",
+          "desc": "4+"
+        },
+        "Martial Ka'tah": {
+          "name": "Martial Ka'tah",
+          "desc": "Every friendly ADEPTUS CUSTODES unit with this ability is readied at the start of your Command phase. A readied unit can use one of the ka'tah abilities below, at the moment that ability names; using one ends the unit's readied state.\n\nCONSERVAI\nYour Command phase, on one readied friendly unit. Until the turn ends, that unit can start an action while it is engaged or battle-shocked, and starting an action does not stop it from shooting.\n\nCALISTUS\nYour Movement phase, as a readied friendly unit is picked to move. On a normal, advance or fall-back move, that unit can pass through models of any type.\n\nSALVUS\nYour Shooting phase, as a readied friendly unit is picked to shoot. That unit can ignore anything that modifies its BS, its hit rolls or its wound rolls.\n\nDACATARAI\nThe start of the Fight phase, on one readied friendly unit. Against any enemy unit other than a MONSTER/VEHICLE unit, that unit's melee attacks can re-roll a hit roll of 1.\n\nKAPTARIS\nThe start of the Fight phase, on one readied friendly unit. Any melee attack aimed at that unit has -1 to its hit roll.\n\nRENDAX\nThe Fight phase, as a readied friendly unit is picked to fight. That unit's melee attacks gain [LETHAL HITS: MONSTER/VEHICLE].\n\nFAVOURED KA'TAH\nA detachment tagged 'Unique: Shield Host' names one ka'tah ability as its favoured ability. If your army includes such a detachment, that ability also gives the extra effect the detachment describes.\nFor instance, if a detachment favours Rendax, a unit that uses Rendax gets both what Rendax does and the extra effect that detachment lists for it."
+        },
+        "Aegis of the Emperor": {
+          "name": "Aegis of the Emperor",
+          "desc": "Against mortal wounds, friendly ADEPTUS CUSTODES units that carry this ability have Feel No Pain 5+."
+        },
+        "Talon Sortie": {
+          "name": "Talon Sortie",
+          "desc": "A friendly ADEPTUS CUSTODES unit that makes a fall-back move stays eligible to charge afterwards."
+        },
+        "Favoured Ka'tah: Calistus": {
+          "name": "Favoured Ka'tah: Calistus",
+          "desc": "While your unit uses Calistus, it also has +2\" M."
+        },
+        "Companion's Watch": {
+          "name": "Companion's Watch",
+          "desc": "A friendly TRUSTED SENTINEL unit's attacks can re-roll wound rolls of 1 while that unit is within range of an objective."
+        },
+        "Vexilla": {
+          "name": "Vexilla",
+          "desc": "• +1 OC for this unit.\n• Modifiers to this unit's Ld can be ignored."
+        }
+      },
+      "models": {
+        "models": {
+          "040db0943cabd4c0": {
+            "name": "Custodian Guard",
+            "abilities": [
+              "Vexilla",
+              "Impenetrable Defence",
+              "Deep Strike",
+              "Invulnerable Save",
+              "Martial Ka'tah",
+              "Aegis of the Emperor",
+              "Talon Sortie",
+              "Favoured Ka'tah: Calistus",
+              "Companion's Watch"
+            ],
+            "weapons": [
+              {
+                "name": "Guardian Spear (ranged)",
+                "number": 1
+              },
+              {
+                "name": "Guardian Spear (melee)",
+                "number": 1
+              }
+            ],
+            "number": 1
+          },
+          "2792521aed652714": {
+            "name": "Custodian Guard",
+            "abilities": [
+              "Impenetrable Defence",
+              "Deep Strike",
+              "Invulnerable Save",
+              "Martial Ka'tah",
+              "Aegis of the Emperor",
+              "Talon Sortie",
+              "Favoured Ka'tah: Calistus",
+              "Companion's Watch",
+              "Vexilla"
+            ],
+            "weapons": [
+              {
+                "name": "Guardian Spear (ranged)",
+                "number": 1
+              },
+              {
+                "name": "Guardian Spear (melee)",
+                "number": 1
+              }
+            ],
+            "number": 2
+          }
+        },
+        "totalNumberOfModels": 3
+      },
+      "modelProfiles": {
+        "Custodian Guard Sodality": {
+          "name": "Custodian Guard Sodality",
+          "m": "8\"",
+          "t": "7",
+          "sv": "2+",
+          "w": "5",
+          "ld": "5+",
+          "oc": "4",
+          "insv": "4+"
+        },
+        "Custodian Guard": {
+          "name": "Custodian Guard",
+          "m": "8\"",
+          "t": "7",
+          "sv": "2+",
+          "w": "5",
+          "ld": "5+",
+          "oc": "4",
+          "insv": "4+"
+        }
+      },
+      "weapons": {
+        "Guardian Spear (ranged)": {
+          "name": "Guardian Spear (ranged)",
+          "range": "24\"",
+          "a": "2",
+          "bsws": "2+",
+          "s": "5",
+          "ap": "-1",
+          "d": "2",
+          "number": 1,
+          "abilities": "Assault, Rapid Fire 2",
+          "shortAbilities": "Assault, Rapid Fire 2"
+        },
+        "Guardian Spear (melee)": {
+          "name": "Guardian Spear (melee)",
+          "range": "Melee",
+          "a": "6",
+          "bsws": "2+",
+          "s": "8",
+          "ap": "-2",
+          "d": "2",
+          "number": 1,
+          "abilities": "-",
+          "shortAbilities": "-"
+        }
+      },
+      "isSingleModel": false,
+      "uuid": "99be4df2",
+      "rules": [],
+      "unassignedWeapons": []
+    },
+    "0a7ce6c7": {
+      "name": "Custodian Wardens",
+      "factionKeywords": [
+        "Adeptus Custodes"
+      ],
+      "keywords": [
+        "Infantry",
+        "Imperium",
+        "Trusted Sentinel",
+        "Custodian Wardens"
+      ],
+      "abilities": {
+        "Living Fortress": {
+          "name": "Living Fortress",
+          "desc": "Attacks targeting this unit have -1 AP."
+        },
+        "Deep Strike": {
+          "name": "Deep Strike",
+          "desc": "This unit can be set up in Reserves rather than on the battlefield. From Reserves it can be set up anywhere on the battlefield more than 8\" horizontally from all enemy models."
+        },
+        "Invulnerable Save": {
+          "name": "Invulnerable Save",
+          "desc": "4+"
+        },
+        "Martial Ka'tah": {
+          "name": "Martial Ka'tah",
+          "desc": "Every friendly ADEPTUS CUSTODES unit with this ability is readied at the start of your Command phase. A readied unit can use one of the ka'tah abilities below, at the moment that ability names; using one ends the unit's readied state.\n\nCONSERVAI\nYour Command phase, on one readied friendly unit. Until the turn ends, that unit can start an action while it is engaged or battle-shocked, and starting an action does not stop it from shooting.\n\nCALISTUS\nYour Movement phase, as a readied friendly unit is picked to move. On a normal, advance or fall-back move, that unit can pass through models of any type.\n\nSALVUS\nYour Shooting phase, as a readied friendly unit is picked to shoot. That unit can ignore anything that modifies its BS, its hit rolls or its wound rolls.\n\nDACATARAI\nThe start of the Fight phase, on one readied friendly unit. Against any enemy unit other than a MONSTER/VEHICLE unit, that unit's melee attacks can re-roll a hit roll of 1.\n\nKAPTARIS\nThe start of the Fight phase, on one readied friendly unit. Any melee attack aimed at that unit has -1 to its hit roll.\n\nRENDAX\nThe Fight phase, as a readied friendly unit is picked to fight. That unit's melee attacks gain [LETHAL HITS: MONSTER/VEHICLE].\n\nFAVOURED KA'TAH\nA detachment tagged 'Unique: Shield Host' names one ka'tah ability as its favoured ability. If your army includes such a detachment, that ability also gives the extra effect the detachment describes.\nFor instance, if a detachment favours Rendax, a unit that uses Rendax gets both what Rendax does and the extra effect that detachment lists for it."
+        },
+        "Aegis of the Emperor": {
+          "name": "Aegis of the Emperor",
+          "desc": "Against mortal wounds, friendly ADEPTUS CUSTODES units that carry this ability have Feel No Pain 5+."
+        },
+        "Talon Sortie": {
+          "name": "Talon Sortie",
+          "desc": "A friendly ADEPTUS CUSTODES unit that makes a fall-back move stays eligible to charge afterwards."
+        },
+        "Favoured Ka'tah: Calistus": {
+          "name": "Favoured Ka'tah: Calistus",
+          "desc": "While your unit uses Calistus, it also has +2\" M."
+        },
+        "Companion's Watch": {
+          "name": "Companion's Watch",
+          "desc": "A friendly TRUSTED SENTINEL unit's attacks can re-roll wound rolls of 1 while that unit is within range of an objective."
+        },
+        "Vexilla": {
+          "name": "Vexilla",
+          "desc": "• +1 OC for this unit.\n• Modifiers to this unit's Ld can be ignored."
+        }
+      },
+      "models": {
+        "models": {
+          "d5ef9c05d393776b": {
+            "name": "Custodian Warden",
+            "abilities": [
+              "Vexilla",
+              "Living Fortress",
+              "Deep Strike",
+              "Invulnerable Save",
+              "Martial Ka'tah",
+              "Aegis of the Emperor",
+              "Talon Sortie",
+              "Favoured Ka'tah: Calistus",
+              "Companion's Watch"
+            ],
+            "weapons": [
+              {
+                "name": "Guardian Spear (ranged)",
+                "number": 1
+              },
+              {
+                "name": "Guardian Spear (melee)",
+                "number": 1
+              }
+            ],
+            "number": 1
+          },
+          "38d9c31dd984edc2": {
+            "name": "Custodian Warden",
+            "abilities": [
+              "Living Fortress",
+              "Deep Strike",
+              "Invulnerable Save",
+              "Martial Ka'tah",
+              "Aegis of the Emperor",
+              "Talon Sortie",
+              "Favoured Ka'tah: Calistus",
+              "Companion's Watch",
+              "Vexilla"
+            ],
+            "weapons": [
+              {
+                "name": "Guardian Spear (ranged)",
+                "number": 1
+              },
+              {
+                "name": "Guardian Spear (melee)",
+                "number": 1
+              }
+            ],
+            "number": 1
+          }
+        },
+        "totalNumberOfModels": 2
+      },
+      "modelProfiles": {
+        "Custodian Wardens": {
+          "name": "Custodian Wardens",
+          "m": "8\"",
+          "t": "7",
+          "sv": "2+",
+          "w": "6",
+          "ld": "5+",
+          "oc": "3",
+          "insv": "4+"
+        },
+        "Custodian Warden": {
+          "name": "Custodian Warden",
+          "m": "8\"",
+          "t": "7",
+          "sv": "2+",
+          "w": "6",
+          "ld": "5+",
+          "oc": "3",
+          "insv": "4+"
+        }
+      },
+      "weapons": {
+        "Guardian Spear (ranged)": {
+          "name": "Guardian Spear (ranged)",
+          "range": "24\"",
+          "a": "2",
+          "bsws": "2+",
+          "s": "5",
+          "ap": "-1",
+          "d": "2",
+          "number": 1,
+          "abilities": "Assault, Rapid Fire 2",
+          "shortAbilities": "Assault, Rapid Fire 2"
+        },
+        "Guardian Spear (melee)": {
+          "name": "Guardian Spear (melee)",
+          "range": "Melee",
+          "a": "6",
+          "bsws": "2+",
+          "s": "8",
+          "ap": "-2",
+          "d": "2",
+          "number": 1,
+          "abilities": "-",
+          "shortAbilities": "-"
+        }
+      },
+      "isSingleModel": false,
+      "uuid": "0a7ce6c7",
+      "rules": [],
+      "unassignedWeapons": []
+    },
+    "551297ad": {
+      "name": "Sentinel Guard Sodality",
+      "factionKeywords": [
+        "Adeptus Custodes"
+      ],
+      "keywords": [
+        "Infantry",
+        "Battleline",
+        "Imperium",
+        "Trusted Sentinel",
+        "Sentinel Guard Sodality"
+      ],
+      "abilities": {
+        "Stand Vigil": {
+          "name": "Stand Vigil",
+          "desc": "While either of these is true, attacks made by this unit have [LETHAL HITS: non-MONSTER/VEHICLE]:\n• This unit is within range of an objective.\n• Their target is within range of an objective."
+        },
+        "Deep Strike": {
+          "name": "Deep Strike",
+          "desc": "This unit can be set up in Reserves rather than on the battlefield. From Reserves it can be set up anywhere on the battlefield more than 8\" horizontally from all enemy models."
+        },
+        "Invulnerable Save": {
+          "name": "Invulnerable Save",
+          "desc": "4+"
+        },
+        "Martial Ka'tah": {
+          "name": "Martial Ka'tah",
+          "desc": "Every friendly ADEPTUS CUSTODES unit with this ability is readied at the start of your Command phase. A readied unit can use one of the ka'tah abilities below, at the moment that ability names; using one ends the unit's readied state.\n\nCONSERVAI\nYour Command phase, on one readied friendly unit. Until the turn ends, that unit can start an action while it is engaged or battle-shocked, and starting an action does not stop it from shooting.\n\nCALISTUS\nYour Movement phase, as a readied friendly unit is picked to move. On a normal, advance or fall-back move, that unit can pass through models of any type.\n\nSALVUS\nYour Shooting phase, as a readied friendly unit is picked to shoot. That unit can ignore anything that modifies its BS, its hit rolls or its wound rolls.\n\nDACATARAI\nThe start of the Fight phase, on one readied friendly unit. Against any enemy unit other than a MONSTER/VEHICLE unit, that unit's melee attacks can re-roll a hit roll of 1.\n\nKAPTARIS\nThe start of the Fight phase, on one readied friendly unit. Any melee attack aimed at that unit has -1 to its hit roll.\n\nRENDAX\nThe Fight phase, as a readied friendly unit is picked to fight. That unit's melee attacks gain [LETHAL HITS: MONSTER/VEHICLE].\n\nFAVOURED KA'TAH\nA detachment tagged 'Unique: Shield Host' names one ka'tah ability as its favoured ability. If your army includes such a detachment, that ability also gives the extra effect the detachment describes.\nFor instance, if a detachment favours Rendax, a unit that uses Rendax gets both what Rendax does and the extra effect that detachment lists for it."
+        },
+        "Aegis of the Emperor": {
+          "name": "Aegis of the Emperor",
+          "desc": "Against mortal wounds, friendly ADEPTUS CUSTODES units that carry this ability have Feel No Pain 5+."
+        },
+        "Talon Sortie": {
+          "name": "Talon Sortie",
+          "desc": "A friendly ADEPTUS CUSTODES unit that makes a fall-back move stays eligible to charge afterwards."
+        },
+        "Favoured Ka'tah: Calistus": {
+          "name": "Favoured Ka'tah: Calistus",
+          "desc": "While your unit uses Calistus, it also has +2\" M."
+        },
+        "Companion's Watch": {
+          "name": "Companion's Watch",
+          "desc": "A friendly TRUSTED SENTINEL unit's attacks can re-roll wound rolls of 1 while that unit is within range of an objective."
+        },
+        "Vexilla": {
+          "name": "Vexilla",
+          "desc": "• +1 OC for this unit.\n• Modifiers to this unit's Ld can be ignored."
+        },
+        "Praesidium Shield": {
+          "name": "Praesidium Shield",
+          "desc": "Where an attack targeting this unit has a S greater than this unit's T, it has -1 to wound rolls."
+        }
+      },
+      "models": {
+        "models": {
+          "5df2ae98600a39cd": {
+            "name": "Sentinel Guard",
+            "abilities": [
+              "Praesidium Shield",
+              "Vexilla",
+              "Stand Vigil",
+              "Deep Strike",
+              "Invulnerable Save",
+              "Martial Ka'tah",
+              "Aegis of the Emperor",
+              "Talon Sortie",
+              "Favoured Ka'tah: Calistus",
+              "Companion's Watch"
+            ],
+            "weapons": [
+              {
+                "name": "Sentinel Blade (ranged)",
+                "number": 1
+              },
+              {
+                "name": "Sentinel Blade (melee)",
+                "number": 1
+              }
+            ],
+            "number": 1
+          },
+          "e219bdacdd9c3567": {
+            "name": "Sentinel Guard",
+            "abilities": [
+              "Praesidium Shield",
+              "Stand Vigil",
+              "Deep Strike",
+              "Invulnerable Save",
+              "Martial Ka'tah",
+              "Aegis of the Emperor",
+              "Talon Sortie",
+              "Favoured Ka'tah: Calistus",
+              "Companion's Watch",
+              "Vexilla"
+            ],
+            "weapons": [
+              {
+                "name": "Sentinel Blade (ranged)",
+                "number": 1
+              },
+              {
+                "name": "Sentinel Blade (melee)",
+                "number": 1
+              }
+            ],
+            "number": 2
+          }
+        },
+        "totalNumberOfModels": 3
+      },
+      "modelProfiles": {
+        "Sentinel Guard Sodality": {
+          "name": "Sentinel Guard Sodality",
+          "m": "8\"",
+          "t": "7",
+          "sv": "2+",
+          "w": "5",
+          "ld": "5+",
+          "oc": "4",
+          "insv": "4+"
+        },
+        "Sentinel Guard": {
+          "name": "Sentinel Guard",
+          "m": "8\"",
+          "t": "7",
+          "sv": "2+",
+          "w": "5",
+          "ld": "5+",
+          "oc": "4",
+          "insv": "4+"
+        }
+      },
+      "weapons": {
+        "Sentinel Blade (ranged)": {
+          "name": "Sentinel Blade (ranged)",
+          "range": "12\"",
+          "a": "4",
+          "bsws": "2+",
+          "s": "5",
+          "ap": "-1",
+          "d": "2",
+          "number": 1,
+          "abilities": "Assault, Close-quarters\nClose-quarters: ",
+          "shortAbilities": "Assault, Close-quarters"
+        },
+        "Sentinel Blade (melee)": {
+          "name": "Sentinel Blade (melee)",
+          "range": "Melee",
+          "a": "5",
+          "bsws": "2+",
+          "s": "6",
+          "ap": "-2",
+          "d": "2",
+          "number": 1,
+          "abilities": "-",
+          "shortAbilities": "-"
+        }
+      },
+      "isSingleModel": false,
+      "uuid": "551297ad",
+      "rules": [],
+      "unassignedWeapons": []
+    },
+    "9614cc01": {
+      "name": "Prosecutor Squad",
+      "factionKeywords": [
+        "Adeptus Custodes"
+      ],
+      "keywords": [
+        "Infantry",
+        "Anathema Psykana",
+        "Imperium",
+        "Prosecutor Squad"
+      ],
+      "abilities": {
+        "Purity of Execution": {
+          "name": "Purity of Execution",
+          "desc": "During your Shooting phase, pick 1 enemy unit that is visible and within 18\" of this unit; it becomes detected:\n• A detected unit has +3\" detection range."
+        },
+        "Daughters of the Abyss": {
+          "name": "Daughters of the Abyss",
+          "desc": "• Against psychic attacks, friendly ANATHEMA PSYKANA units that carry this ability have Feel No Pain 3+.\n• Friendly ANATHEMA PSYKANA units that carry this ability also have the ability below:\nPsychic Null (Aura): Feel No Pain 5+ against psychic attacks for friendly ADEPTUS CUSTODES units that are within 6\" of this unit."
+        },
+        "Anathema Psykana": {
+          "name": "Anathema Psykana",
+          "desc": "ANATHEMA PSYKANA units carry this ability: they can join your army although they lack the ADEPTUS CUSTODES faction keyword.\nUnless a rule says otherwise, while you muster your army:\n• ANATHEMA PSYKANA cannot be the army faction you select.\n• An ANATHEMA PSYKANA model cannot be selected as your WARLORD."
+        }
+      },
+      "models": {
+        "models": {
+          "79e8266e686df6ee": {
+            "name": "Prosecutor",
+            "abilities": [
+              "Purity of Execution",
+              "Daughters of the Abyss",
+              "Anathema Psykana"
+            ],
+            "weapons": [
+              {
+                "name": "Boltgun",
+                "number": 1
+              },
+              {
+                "name": "Gun Stock",
+                "number": 1
+              }
+            ],
+            "number": 5
+          }
+        },
+        "totalNumberOfModels": 5
+      },
+      "modelProfiles": {
+        "Prosecutor Squad": {
+          "name": "Prosecutor Squad",
+          "m": "7\"",
+          "t": "3",
+          "sv": "3+",
+          "w": "1",
+          "ld": "6+",
+          "oc": "2",
+          "insv": null
+        },
+        "Prosecutor": {
+          "name": "Prosecutor",
+          "m": "7\"",
+          "t": "3",
+          "sv": "3+",
+          "w": "1",
+          "ld": "6+",
+          "oc": "2",
+          "insv": null
+        }
+      },
+      "weapons": {
+        "Boltgun": {
+          "name": "Boltgun",
+          "range": "24\"",
+          "a": "1",
+          "bsws": "3+",
+          "s": "5",
+          "ap": "-1",
+          "d": "1",
+          "number": 1,
+          "abilities": "Anti-PSYKER 4+, Assault, Rapid Fire 1\nAnti-PSYKER 4+: ",
+          "shortAbilities": "Anti-PSYKER 4+, Assault, Rapid Fire 1"
+        },
+        "Gun Stock": {
+          "name": "Gun Stock",
+          "range": "Melee",
+          "a": "2",
+          "bsws": "3+",
+          "s": "3",
+          "ap": "0",
+          "d": "1",
+          "number": 1,
+          "abilities": "-",
+          "shortAbilities": "-"
+        }
+      },
+      "isSingleModel": false,
+      "uuid": "9614cc01",
+      "rules": [],
+      "unassignedWeapons": []
+    },
+    "662ec581": {
+      "name": "Telemon Heavy Dreadnought",
+      "factionKeywords": [
+        "Adeptus Custodes"
+      ],
+      "keywords": [
+        "Vehicle",
+        "Dreadnought",
+        "Imperium",
+        "Walker",
+        "Telemon Heavy Dreadnought"
+      ],
+      "abilities": {
+        "Guardian Eternal": {
+          "name": "Guardian Eternal",
+          "desc": "Ranged attacks targeting this unit have -1 D."
+        },
+        "Invulnerable Save": {
+          "name": "Invulnerable Save",
+          "desc": "4+"
+        },
+        "Feel No Pain 5+": {
+          "name": "Feel No Pain 5+",
+          "desc": "Each time this model would lose a wound, roll one D6; on a 5+ that wound is not lost."
+        },
+        "Martial Ka'tah": {
+          "name": "Martial Ka'tah",
+          "desc": "Every friendly ADEPTUS CUSTODES unit with this ability is readied at the start of your Command phase. A readied unit can use one of the ka'tah abilities below, at the moment that ability names; using one ends the unit's readied state.\n\nCONSERVAI\nYour Command phase, on one readied friendly unit. Until the turn ends, that unit can start an action while it is engaged or battle-shocked, and starting an action does not stop it from shooting.\n\nCALISTUS\nYour Movement phase, as a readied friendly unit is picked to move. On a normal, advance or fall-back move, that unit can pass through models of any type.\n\nSALVUS\nYour Shooting phase, as a readied friendly unit is picked to shoot. That unit can ignore anything that modifies its BS, its hit rolls or its wound rolls.\n\nDACATARAI\nThe start of the Fight phase, on one readied friendly unit. Against any enemy unit other than a MONSTER/VEHICLE unit, that unit's melee attacks can re-roll a hit roll of 1.\n\nKAPTARIS\nThe start of the Fight phase, on one readied friendly unit. Any melee attack aimed at that unit has -1 to its hit roll.\n\nRENDAX\nThe Fight phase, as a readied friendly unit is picked to fight. That unit's melee attacks gain [LETHAL HITS: MONSTER/VEHICLE].\n\nFAVOURED KA'TAH\nA detachment tagged 'Unique: Shield Host' names one ka'tah ability as its favoured ability. If your army includes such a detachment, that ability also gives the extra effect the detachment describes.\nFor instance, if a detachment favours Rendax, a unit that uses Rendax gets both what Rendax does and the extra effect that detachment lists for it."
+        },
+        "Aegis of the Emperor": {
+          "name": "Aegis of the Emperor",
+          "desc": "Against mortal wounds, friendly ADEPTUS CUSTODES units that carry this ability have Feel No Pain 5+."
+        },
+        "Talon Sortie": {
+          "name": "Talon Sortie",
+          "desc": "A friendly ADEPTUS CUSTODES unit that makes a fall-back move stays eligible to charge afterwards."
+        },
+        "Favoured Ka'tah: Calistus": {
+          "name": "Favoured Ka'tah: Calistus",
+          "desc": "While your unit uses Calistus, it also has +2\" M."
+        },
+        "Moritoi Ancients": {
+          "name": "Moritoi Ancients",
+          "desc": "• While it is at starting strength, a friendly ADEPTUS CUSTODES DREADNOUGHT unit has +2 OC.\n• While it is below starting strength, the attacks of a friendly ADEPTUS CUSTODES DREADNOUGHT unit can re-roll hit rolls of 1.\n• While it is below half-strength, the attacks of a friendly ADEPTUS CUSTODES DREADNOUGHT unit can:\n  ◦ Re-roll hit rolls of 1.\n  ◦ Re-roll wound rolls of 1."
+        },
+        "Damaged 5": {
+          "name": "Damaged 5",
+          "desc": "While this model has 1-5 wounds remaining, subtract 1 from the Hit roll each time it makes an attack."
+        },
+        "Deadly Demise D3": {
+          "name": "Deadly Demise D3",
+          "desc": "When this model is destroyed, before removing it from play roll one D6; on a 6, every unit within 6\" suffers D3 mortal wounds."
+        },
+        "Augury Uplink": {
+          "name": "Augury Uplink",
+          "desc": "ADEPTUS CUSTODES DREADNOUGHT model only. One per army. This model gains Feel No Pain 5+."
+        }
+      },
+      "models": {
+        "models": {
+          "40ac7a2a4a4d929e": {
+            "name": "Telemon Heavy Dreadnought",
+            "abilities": [
+              "Guardian Eternal",
+              "Invulnerable Save",
+              "Feel No Pain 5+",
+              "Martial Ka'tah",
+              "Aegis of the Emperor",
+              "Talon Sortie",
+              "Favoured Ka'tah: Calistus",
+              "Moritoi Ancients",
+              "Damaged 5",
+              "Deadly Demise D3",
+              "Augury Uplink"
+            ],
+            "weapons": [
+              {
+                "name": "Spiculus Bolt Launcher",
+                "number": 1
+              },
+              {
+                "name": "Dual Caestus Fists",
+                "number": 1
+              },
+              {
+                "name": "Twin Neutronium Cascade Projectors",
+                "number": 2
+              }
+            ],
+            "number": 1
+          }
+        },
+        "totalNumberOfModels": 1
+      },
+      "modelProfiles": {
+        "Telemon Heavy Dreadnought": {
+          "name": "Telemon Heavy Dreadnought",
+          "m": "10\"",
+          "t": "11",
+          "sv": "2+",
+          "w": "14",
+          "ld": "5+",
+          "oc": "4",
+          "insv": "4+"
+        }
+      },
+      "weapons": {
+        "Spiculus Bolt Launcher": {
+          "name": "Spiculus Bolt Launcher",
+          "range": "36\"",
+          "a": "6",
+          "bsws": "2+",
+          "s": "5",
+          "ap": "-1",
+          "d": "1",
+          "number": 1,
+          "abilities": "Blast 2",
+          "shortAbilities": "Blast 2"
+        },
+        "Dual Caestus Fists": {
+          "name": "Dual Caestus Fists",
+          "range": "Melee",
+          "a": "7",
+          "bsws": "2+",
+          "s": "14",
+          "ap": "-3",
+          "d": "4",
+          "number": 1,
+          "abilities": "Twin-linked",
+          "shortAbilities": "Twin-linked"
+        },
+        "Twin Neutronium Cascade Projectors": {
+          "name": "Twin Neutronium Cascade Projectors",
+          "range": "12\"",
+          "a": "3",
+          "bsws": "N/A",
+          "s": "7",
+          "ap": "-2",
+          "d": "1",
+          "number": 2,
+          "abilities": "Blast 1, Torrent, Twin-linked",
+          "shortAbilities": "Blast 1, Torrent, Twin-linked"
+        }
+      },
+      "isSingleModel": false,
+      "uuid": "662ec581",
+      "rules": [],
+      "unassignedWeapons": []
+    },
+    "c20290d0": {
+      "name": "Blade Champion",
+      "factionKeywords": [
+        "Adeptus Custodes"
+      ],
+      "keywords": [
+        "Infantry",
+        "Character",
+        "Imperium",
+        "Blade Champion"
+      ],
+      "abilities": {
+        "Swift Onslaught": {
+          "name": "Swift Onslaught",
+          "desc": "Advance rolls and charge rolls can both be re-rolled for this unit."
+        },
+        "Sword of the Throne": {
+          "name": "Sword of the Throne",
+          "desc": "At the start of the first battle round, pick one enemy unit as this model's mark:\n• Attacks this model makes against its mark have +1 to wound rolls.\n• Whenever the mark is destroyed, pick one enemy unit as the new mark."
+        },
+        "Deep Strike": {
+          "name": "Deep Strike",
+          "desc": "This unit can be set up in Reserves rather than on the battlefield. From Reserves it can be set up anywhere on the battlefield more than 8\" horizontally from all enemy models."
+        },
+        "Invulnerable Save": {
+          "name": "Invulnerable Save",
+          "desc": "4+"
+        },
+        "Martial Ka'tah": {
+          "name": "Martial Ka'tah",
+          "desc": "Every friendly ADEPTUS CUSTODES unit with this ability is readied at the start of your Command phase. A readied unit can use one of the ka'tah abilities below, at the moment that ability names; using one ends the unit's readied state.\n\nCONSERVAI\nYour Command phase, on one readied friendly unit. Until the turn ends, that unit can start an action while it is engaged or battle-shocked, and starting an action does not stop it from shooting.\n\nCALISTUS\nYour Movement phase, as a readied friendly unit is picked to move. On a normal, advance or fall-back move, that unit can pass through models of any type.\n\nSALVUS\nYour Shooting phase, as a readied friendly unit is picked to shoot. That unit can ignore anything that modifies its BS, its hit rolls or its wound rolls.\n\nDACATARAI\nThe start of the Fight phase, on one readied friendly unit. Against any enemy unit other than a MONSTER/VEHICLE unit, that unit's melee attacks can re-roll a hit roll of 1.\n\nKAPTARIS\nThe start of the Fight phase, on one readied friendly unit. Any melee attack aimed at that unit has -1 to its hit roll.\n\nRENDAX\nThe Fight phase, as a readied friendly unit is picked to fight. That unit's melee attacks gain [LETHAL HITS: MONSTER/VEHICLE].\n\nFAVOURED KA'TAH\nA detachment tagged 'Unique: Shield Host' names one ka'tah ability as its favoured ability. If your army includes such a detachment, that ability also gives the extra effect the detachment describes.\nFor instance, if a detachment favours Rendax, a unit that uses Rendax gets both what Rendax does and the extra effect that detachment lists for it."
+        },
+        "Aegis of the Emperor": {
+          "name": "Aegis of the Emperor",
+          "desc": "Against mortal wounds, friendly ADEPTUS CUSTODES units that carry this ability have Feel No Pain 5+."
+        },
+        "Talon Sortie": {
+          "name": "Talon Sortie",
+          "desc": "A friendly ADEPTUS CUSTODES unit that makes a fall-back move stays eligible to charge afterwards."
+        },
+        "Favoured Ka'tah: Calistus": {
+          "name": "Favoured Ka'tah: Calistus",
+          "desc": "While your unit uses Calistus, it also has +2\" M."
+        },
+        "Companion's Watch": {
+          "name": "Companion's Watch",
+          "desc": "A friendly TRUSTED SENTINEL unit's attacks can re-roll wound rolls of 1 while that unit is within range of an objective."
+        },
+        "Leader": {
+          "name": "Leader",
+          "desc": "This model can be attached to any one of these units:\n• Custodian Guard Sodality\n• Custodian Wardens\n• Sentinel Guard Sodality"
+        },
+        "Auric Eagle": {
+          "name": "Auric Eagle",
+          "desc": "ADEPTUS CUSTODES INFANTRY/MOUNTED unit only (excluding TERMINATOR units). Advance rolls and charge rolls made for this unit have +1."
+        }
+      },
+      "models": {
+        "models": {
+          "c6f97eedc8b3b9de": {
+            "name": "Blade Champion",
+            "abilities": [
+              "Swift Onslaught",
+              "Sword of the Throne",
+              "Deep Strike",
+              "Invulnerable Save",
+              "Martial Ka'tah",
+              "Aegis of the Emperor",
+              "Talon Sortie",
+              "Favoured Ka'tah: Calistus",
+              "Companion's Watch",
+              "Leader",
+              "Auric Eagle"
+            ],
+            "weapons": [
+              {
+                "name": "Vaultswords - Behemor",
+                "number": 1
+              },
+              {
+                "name": "Vaultswords - Hurricanis",
+                "number": 1
+              },
+              {
+                "name": "Vaultswords - Victus",
+                "number": 1
+              }
+            ],
+            "number": 1
+          }
+        },
+        "totalNumberOfModels": 1
+      },
+      "modelProfiles": {
+        "Blade Champion": {
+          "name": "Blade Champion",
+          "m": "8\"",
+          "t": "7",
+          "sv": "2+",
+          "w": "7",
+          "ld": "5+",
+          "oc": "3",
+          "insv": "4+"
+        }
+      },
+      "weapons": {
+        "Vaultswords - Behemor": {
+          "name": "Vaultswords - Behemor",
+          "range": "Melee",
+          "a": "5",
+          "bsws": "2+",
+          "s": "10",
+          "ap": "-3",
+          "d": "3",
+          "number": 1,
+          "abilities": "Devastating Wounds",
+          "shortAbilities": "Devastating Wounds"
+        },
+        "Vaultswords - Hurricanis": {
+          "name": "Vaultswords - Hurricanis",
+          "range": "Melee",
+          "a": "10",
+          "bsws": "2+",
+          "s": "6",
+          "ap": "-2",
+          "d": "1",
+          "number": 1,
+          "abilities": "Cleave 1, Sustained Hits 1",
+          "shortAbilities": "Cleave 1, Sustained Hits 1"
+        },
+        "Vaultswords - Victus": {
+          "name": "Vaultswords - Victus",
+          "range": "Melee",
+          "a": "8",
+          "bsws": "2+",
+          "s": "8",
+          "ap": "-3",
+          "d": "2",
+          "number": 1,
+          "abilities": "Precision",
+          "shortAbilities": "Precision"
+        }
+      },
+      "isSingleModel": false,
+      "uuid": "c20290d0",
+      "rules": [],
+      "unassignedWeapons": []
+    },
+    "adb2dd00": {
+      "name": "Shield-Captain",
+      "factionKeywords": [
+        "Adeptus Custodes"
+      ],
+      "keywords": [
+        "Infantry",
+        "Character",
+        "Imperium",
+        "Shield-Captain"
+      ],
+      "abilities": {
+        "Master of Ka'tahs (Once per battle round, per unit)": {
+          "name": "Master of Ka'tahs (Once per battle round, per unit)",
+          "desc": "You can use this ability while this unit is not readied; the unit then becomes readied."
+        },
+        "Vengeful Surge (Once per battle, per unit)": {
+          "name": "Vengeful Surge (Once per battle, per unit)",
+          "desc": "In your opponent's Shooting phase, once an enemy unit has shot and those attacks cost a model in this unit a wound, this unit can make a surge move (up to D6+2\")."
+        },
+        "Praesidium Shield": {
+          "name": "Praesidium Shield",
+          "desc": "Any attack allocated to this model has -1 D."
+        },
+        "Deep Strike": {
+          "name": "Deep Strike",
+          "desc": "This unit can be set up in Reserves rather than on the battlefield. From Reserves it can be set up anywhere on the battlefield more than 8\" horizontally from all enemy models."
+        },
+        "Invulnerable Save": {
+          "name": "Invulnerable Save",
+          "desc": "4+"
+        },
+        "Martial Ka'tah": {
+          "name": "Martial Ka'tah",
+          "desc": "Every friendly ADEPTUS CUSTODES unit with this ability is readied at the start of your Command phase. A readied unit can use one of the ka'tah abilities below, at the moment that ability names; using one ends the unit's readied state.\n\nCONSERVAI\nYour Command phase, on one readied friendly unit. Until the turn ends, that unit can start an action while it is engaged or battle-shocked, and starting an action does not stop it from shooting.\n\nCALISTUS\nYour Movement phase, as a readied friendly unit is picked to move. On a normal, advance or fall-back move, that unit can pass through models of any type.\n\nSALVUS\nYour Shooting phase, as a readied friendly unit is picked to shoot. That unit can ignore anything that modifies its BS, its hit rolls or its wound rolls.\n\nDACATARAI\nThe start of the Fight phase, on one readied friendly unit. Against any enemy unit other than a MONSTER/VEHICLE unit, that unit's melee attacks can re-roll a hit roll of 1.\n\nKAPTARIS\nThe start of the Fight phase, on one readied friendly unit. Any melee attack aimed at that unit has -1 to its hit roll.\n\nRENDAX\nThe Fight phase, as a readied friendly unit is picked to fight. That unit's melee attacks gain [LETHAL HITS: MONSTER/VEHICLE].\n\nFAVOURED KA'TAH\nA detachment tagged 'Unique: Shield Host' names one ka'tah ability as its favoured ability. If your army includes such a detachment, that ability also gives the extra effect the detachment describes.\nFor instance, if a detachment favours Rendax, a unit that uses Rendax gets both what Rendax does and the extra effect that detachment lists for it."
+        },
+        "Aegis of the Emperor": {
+          "name": "Aegis of the Emperor",
+          "desc": "Against mortal wounds, friendly ADEPTUS CUSTODES units that carry this ability have Feel No Pain 5+."
+        },
+        "Aquila Commander": {
+          "name": "Aquila Commander",
+          "desc": "Gain 1CP at the start of the battle round where a model carrying this ability is your WARLORD."
+        },
+        "Talon Sortie": {
+          "name": "Talon Sortie",
+          "desc": "A friendly ADEPTUS CUSTODES unit that makes a fall-back move stays eligible to charge afterwards."
+        },
+        "Favoured Ka'tah: Calistus": {
+          "name": "Favoured Ka'tah: Calistus",
+          "desc": "While your unit uses Calistus, it also has +2\" M."
+        },
+        "Companion's Watch": {
+          "name": "Companion's Watch",
+          "desc": "A friendly TRUSTED SENTINEL unit's attacks can re-roll wound rolls of 1 while that unit is within range of an objective."
+        },
+        "Leader": {
+          "name": "Leader",
+          "desc": "This model can be attached to any one of these units:\n• Custodian Guard Sodality\n• Custodian Guard Sodality with Adrasite Spears\n• Custodian Guard Sodality with Pyrithite Spears\n• Custodian Wardens\n• Sagittarum Custodians Sodality\n• Sentinel Guard Sodality"
+        },
+        "Sally Forth": {
+          "name": "Sally Forth",
+          "desc": "ADEPTUS CUSTODES SHIELD-CAPTAIN model only. At the start of your Charge phase, pick one friendly ADEPTUS CUSTODES INFANTRY unit that is within 6\" of this model. Should that unit have made an advance move this turn, it stays eligible to declare a charge."
+        }
+      },
+      "models": {
+        "models": {
+          "211de4fe96c9656a": {
+            "name": "Shield-Captain",
+            "abilities": [
+              "Praesidium Shield",
+              "Master of Ka'tahs (Once per battle round, per unit)",
+              "Vengeful Surge (Once per battle, per unit)",
+              "Deep Strike",
+              "Invulnerable Save",
+              "Martial Ka'tah",
+              "Aegis of the Emperor",
+              "Aquila Commander",
+              "Talon Sortie",
+              "Favoured Ka'tah: Calistus",
+              "Companion's Watch",
+              "Leader",
+              "Sally Forth"
+            ],
+            "weapons": [
+              {
+                "name": "Eternity-pattern Paragon Blade",
+                "number": 1
+              }
+            ],
+            "number": 1
+          }
+        },
+        "totalNumberOfModels": 1
+      },
+      "modelProfiles": {
+        "Shield-Captain": {
+          "name": "Shield-Captain",
+          "m": "8\"",
+          "t": "7",
+          "sv": "2+",
+          "w": "8",
+          "ld": "5+",
+          "oc": "3",
+          "insv": "4+"
+        }
+      },
+      "weapons": {
+        "Eternity-pattern Paragon Blade": {
+          "name": "Eternity-pattern Paragon Blade",
+          "range": "Melee",
+          "a": "6",
+          "bsws": "2+",
+          "s": "10",
+          "ap": "-3",
+          "d": "3",
+          "number": 1,
+          "abilities": "Precision",
+          "shortAbilities": "Precision"
+        }
+      },
+      "isSingleModel": false,
+      "uuid": "adb2dd00",
+      "rules": [],
+      "unassignedWeapons": []
+    },
+    "df74e305": {
+      "name": "Prosecutor Squad",
+      "factionKeywords": [
+        "Adeptus Custodes"
+      ],
+      "keywords": [
+        "Infantry",
+        "Anathema Psykana",
+        "Imperium",
+        "Prosecutor Squad"
+      ],
+      "abilities": {
+        "Purity of Execution": {
+          "name": "Purity of Execution",
+          "desc": "During your Shooting phase, pick 1 enemy unit that is visible and within 18\" of this unit; it becomes detected:\n• A detected unit has +3\" detection range."
+        },
+        "Daughters of the Abyss": {
+          "name": "Daughters of the Abyss",
+          "desc": "• Against psychic attacks, friendly ANATHEMA PSYKANA units that carry this ability have Feel No Pain 3+.\n• Friendly ANATHEMA PSYKANA units that carry this ability also have the ability below:\nPsychic Null (Aura): Feel No Pain 5+ against psychic attacks for friendly ADEPTUS CUSTODES units that are within 6\" of this unit."
+        },
+        "Anathema Psykana": {
+          "name": "Anathema Psykana",
+          "desc": "ANATHEMA PSYKANA units carry this ability: they can join your army although they lack the ADEPTUS CUSTODES faction keyword.\nUnless a rule says otherwise, while you muster your army:\n• ANATHEMA PSYKANA cannot be the army faction you select.\n• An ANATHEMA PSYKANA model cannot be selected as your WARLORD."
+        }
+      },
+      "models": {
+        "models": {
+          "e1e79de9dfe03d72": {
+            "name": "Prosecutor",
+            "abilities": [
+              "Purity of Execution",
+              "Daughters of the Abyss",
+              "Anathema Psykana"
+            ],
+            "weapons": [
+              {
+                "name": "Boltgun",
+                "number": 1
+              },
+              {
+                "name": "Gun Stock",
+                "number": 1
+              }
+            ],
+            "number": 5
+          }
+        },
+        "totalNumberOfModels": 5
+      },
+      "modelProfiles": {
+        "Prosecutor Squad": {
+          "name": "Prosecutor Squad",
+          "m": "7\"",
+          "t": "3",
+          "sv": "3+",
+          "w": "1",
+          "ld": "6+",
+          "oc": "2",
+          "insv": null
+        },
+        "Prosecutor": {
+          "name": "Prosecutor",
+          "m": "7\"",
+          "t": "3",
+          "sv": "3+",
+          "w": "1",
+          "ld": "6+",
+          "oc": "2",
+          "insv": null
+        }
+      },
+      "weapons": {
+        "Boltgun": {
+          "name": "Boltgun",
+          "range": "24\"",
+          "a": "1",
+          "bsws": "3+",
+          "s": "5",
+          "ap": "-1",
+          "d": "1",
+          "number": 1,
+          "abilities": "Anti-PSYKER 4+, Assault, Rapid Fire 1\nAnti-PSYKER 4+: ",
+          "shortAbilities": "Anti-PSYKER 4+, Assault, Rapid Fire 1"
+        },
+        "Gun Stock": {
+          "name": "Gun Stock",
+          "range": "Melee",
+          "a": "2",
+          "bsws": "3+",
+          "s": "3",
+          "ap": "0",
+          "d": "1",
+          "number": 1,
+          "abilities": "-",
+          "shortAbilities": "-"
+        }
+      },
+      "isSingleModel": false,
+      "uuid": "df74e305",
+      "rules": [],
+      "unassignedWeapons": []
+    },
+    "a39286e1": {
+      "name": "Contemptor-Galatus Dreadnought",
+      "factionKeywords": [
+        "Adeptus Custodes"
+      ],
+      "keywords": [
+        "Vehicle",
+        "Dreadnought",
+        "Imperium",
+        "Walker",
+        "Contemptor-Galatus Dreadnought"
+      ],
+      "abilities": {
+        "Unyielding Ancient": {
+          "name": "Unyielding Ancient",
+          "desc": "Where an attack targeting this unit has a S greater than this unit's T, it has -1 to wound rolls."
+        },
+        "Invulnerable Save": {
+          "name": "Invulnerable Save",
+          "desc": "4+"
+        },
+        "Martial Ka'tah": {
+          "name": "Martial Ka'tah",
+          "desc": "Every friendly ADEPTUS CUSTODES unit with this ability is readied at the start of your Command phase. A readied unit can use one of the ka'tah abilities below, at the moment that ability names; using one ends the unit's readied state.\n\nCONSERVAI\nYour Command phase, on one readied friendly unit. Until the turn ends, that unit can start an action while it is engaged or battle-shocked, and starting an action does not stop it from shooting.\n\nCALISTUS\nYour Movement phase, as a readied friendly unit is picked to move. On a normal, advance or fall-back move, that unit can pass through models of any type.\n\nSALVUS\nYour Shooting phase, as a readied friendly unit is picked to shoot. That unit can ignore anything that modifies its BS, its hit rolls or its wound rolls.\n\nDACATARAI\nThe start of the Fight phase, on one readied friendly unit. Against any enemy unit other than a MONSTER/VEHICLE unit, that unit's melee attacks can re-roll a hit roll of 1.\n\nKAPTARIS\nThe start of the Fight phase, on one readied friendly unit. Any melee attack aimed at that unit has -1 to its hit roll.\n\nRENDAX\nThe Fight phase, as a readied friendly unit is picked to fight. That unit's melee attacks gain [LETHAL HITS: MONSTER/VEHICLE].\n\nFAVOURED KA'TAH\nA detachment tagged 'Unique: Shield Host' names one ka'tah ability as its favoured ability. If your army includes such a detachment, that ability also gives the extra effect the detachment describes.\nFor instance, if a detachment favours Rendax, a unit that uses Rendax gets both what Rendax does and the extra effect that detachment lists for it."
+        },
+        "Aegis of the Emperor": {
+          "name": "Aegis of the Emperor",
+          "desc": "Against mortal wounds, friendly ADEPTUS CUSTODES units that carry this ability have Feel No Pain 5+."
+        },
+        "Talon Sortie": {
+          "name": "Talon Sortie",
+          "desc": "A friendly ADEPTUS CUSTODES unit that makes a fall-back move stays eligible to charge afterwards."
+        },
+        "Favoured Ka'tah: Calistus": {
+          "name": "Favoured Ka'tah: Calistus",
+          "desc": "While your unit uses Calistus, it also has +2\" M."
+        },
+        "Moritoi Ancients": {
+          "name": "Moritoi Ancients",
+          "desc": "• While it is at starting strength, a friendly ADEPTUS CUSTODES DREADNOUGHT unit has +2 OC.\n• While it is below starting strength, the attacks of a friendly ADEPTUS CUSTODES DREADNOUGHT unit can re-roll hit rolls of 1.\n• While it is below half-strength, the attacks of a friendly ADEPTUS CUSTODES DREADNOUGHT unit can:\n  ◦ Re-roll hit rolls of 1.\n  ◦ Re-roll wound rolls of 1."
+        },
+        "Damaged 4": {
+          "name": "Damaged 4",
+          "desc": "While this model has 1-4 wounds remaining, subtract 1 from the Hit roll each time it makes an attack."
+        },
+        "Deadly Demise D3": {
+          "name": "Deadly Demise D3",
+          "desc": "When this model is destroyed, before removing it from play roll one D6; on a 6, every unit within 6\" suffers D3 mortal wounds."
+        }
+      },
+      "models": {
+        "models": {
+          "ecb8111ff12b24ca": {
+            "name": "Contemptor-Galatus Dreadnought",
+            "abilities": [
+              "Unyielding Ancient",
+              "Invulnerable Save",
+              "Martial Ka'tah",
+              "Aegis of the Emperor",
+              "Talon Sortie",
+              "Favoured Ka'tah: Calistus",
+              "Moritoi Ancients",
+              "Damaged 4",
+              "Deadly Demise D3"
+            ],
+            "weapons": [
+              {
+                "name": "Warblade (ranged)",
+                "number": 1
+              },
+              {
+                "name": "Warblade (melee)",
+                "number": 1
+              }
+            ],
+            "number": 1
+          }
+        },
+        "totalNumberOfModels": 1
+      },
+      "modelProfiles": {
+        "Contemptor-Galatus Dreadnought": {
+          "name": "Contemptor-Galatus Dreadnought",
+          "m": "9\"",
+          "t": "10",
+          "sv": "2+",
+          "w": "12",
+          "ld": "5+",
+          "oc": "3",
+          "insv": "4+"
+        }
+      },
+      "weapons": {
+        "Warblade (ranged)": {
+          "name": "Warblade (ranged)",
+          "range": "12\"",
+          "a": "4",
+          "bsws": "N/A",
+          "s": "6",
+          "ap": "-1",
+          "d": "2",
+          "number": 1,
+          "abilities": "Blast 2, Torrent, Twin-linked",
+          "shortAbilities": "Blast 2, Torrent, Twin-linked"
+        },
+        "Warblade (melee)": {
+          "name": "Warblade (melee)",
+          "range": "Melee",
+          "a": "8",
+          "bsws": "2+",
+          "s": "10",
+          "ap": "-2",
+          "d": "3",
+          "number": 1,
+          "abilities": "Cleave 1, Sustained Hits 1: non-MONSTER/VEHICLE\nSustained Hits 1: non-MONSTER/VEHICLE: ",
+          "shortAbilities": "Cleave 1, Sustained Hits 1: non-MONSTER/VEHICLE"
+        }
+      },
+      "isSingleModel": false,
+      "uuid": "a39286e1",
+      "rules": [],
+      "unassignedWeapons": []
+    },
+    "a5a416fe": {
+      "name": "Trajann Valoris",
+      "factionKeywords": [
+        "Adeptus Custodes"
+      ],
+      "keywords": [
+        "Infantry",
+        "Character",
+        "Epic Hero",
+        "Imperium",
+        "Trajann Valoris"
+      ],
+      "abilities": {
+        "Captain-General (Aura)": {
+          "name": "Captain-General (Aura)",
+          "desc": "Friendly ADEPTUS CUSTODES units within 6\" of this model, other than MONSTER/VEHICLE units, can:\n• Re-roll hit rolls of 1.\n• Re-roll wound rolls of 1."
+        },
+        "Moment Shackle (Once per battle, per army)": {
+          "name": "Moment Shackle (Once per battle, per army)",
+          "desc": "At the start of any phase, select one of these if you wish; it applies until that phase ends:\n• This model's Watcher's Axe weapon has +3 A.\n• This model has a 3+ InSv."
+        },
+        "Supreme Commander": {
+          "name": "Supreme Commander",
+          "desc": "This model must be your WARLORD whenever it is in your army."
+        },
+        "Deep Strike": {
+          "name": "Deep Strike",
+          "desc": "This unit can be set up in Reserves rather than on the battlefield. From Reserves it can be set up anywhere on the battlefield more than 8\" horizontally from all enemy models."
+        },
+        "Invulnerable Save": {
+          "name": "Invulnerable Save",
+          "desc": "4+"
+        },
+        "Feel No Pain 5+": {
+          "name": "Feel No Pain 5+",
+          "desc": "Each time this model would lose a wound, roll one D6; on a 5+ that wound is not lost."
+        },
+        "Martial Ka'tah": {
+          "name": "Martial Ka'tah",
+          "desc": "Every friendly ADEPTUS CUSTODES unit with this ability is readied at the start of your Command phase. A readied unit can use one of the ka'tah abilities below, at the moment that ability names; using one ends the unit's readied state.\n\nCONSERVAI\nYour Command phase, on one readied friendly unit. Until the turn ends, that unit can start an action while it is engaged or battle-shocked, and starting an action does not stop it from shooting.\n\nCALISTUS\nYour Movement phase, as a readied friendly unit is picked to move. On a normal, advance or fall-back move, that unit can pass through models of any type.\n\nSALVUS\nYour Shooting phase, as a readied friendly unit is picked to shoot. That unit can ignore anything that modifies its BS, its hit rolls or its wound rolls.\n\nDACATARAI\nThe start of the Fight phase, on one readied friendly unit. Against any enemy unit other than a MONSTER/VEHICLE unit, that unit's melee attacks can re-roll a hit roll of 1.\n\nKAPTARIS\nThe start of the Fight phase, on one readied friendly unit. Any melee attack aimed at that unit has -1 to its hit roll.\n\nRENDAX\nThe Fight phase, as a readied friendly unit is picked to fight. That unit's melee attacks gain [LETHAL HITS: MONSTER/VEHICLE].\n\nFAVOURED KA'TAH\nA detachment tagged 'Unique: Shield Host' names one ka'tah ability as its favoured ability. If your army includes such a detachment, that ability also gives the extra effect the detachment describes.\nFor instance, if a detachment favours Rendax, a unit that uses Rendax gets both what Rendax does and the extra effect that detachment lists for it."
+        },
+        "Aegis of the Emperor": {
+          "name": "Aegis of the Emperor",
+          "desc": "Against mortal wounds, friendly ADEPTUS CUSTODES units that carry this ability have Feel No Pain 5+."
+        },
+        "Aquila Commander": {
+          "name": "Aquila Commander",
+          "desc": "Gain 1CP at the start of the battle round where a model carrying this ability is your WARLORD."
+        },
+        "Talon Sortie": {
+          "name": "Talon Sortie",
+          "desc": "A friendly ADEPTUS CUSTODES unit that makes a fall-back move stays eligible to charge afterwards."
+        },
+        "Favoured Ka'tah: Calistus": {
+          "name": "Favoured Ka'tah: Calistus",
+          "desc": "While your unit uses Calistus, it also has +2\" M."
+        },
+        "Companion's Watch": {
+          "name": "Companion's Watch",
+          "desc": "A friendly TRUSTED SENTINEL unit's attacks can re-roll wound rolls of 1 while that unit is within range of an objective."
+        },
+        "Leader": {
+          "name": "Leader",
+          "desc": "This model can be attached to any one of these units:\n• Allarus Custodians\n• Aquilon Terminators with Solarite Power Gauntlets\n• Aquilon Terminators with Solarite Power Talons\n• Custodian Guard Sodality\n• Custodian Guard Sodality with Adrasite Spears\n• Custodian Guard Sodality with Pyrithite Spears\n• Custodian Wardens\n• Sagittarum Custodians Sodality\n• Sentinel Guard Sodality"
+        }
+      },
+      "models": {
+        "models": {
+          "490cd804c3af1cbd": {
+            "name": "Trajann Valoris",
+            "abilities": [
+              "Captain-General (Aura)",
+              "Moment Shackle (Once per battle, per army)",
+              "Supreme Commander",
+              "Deep Strike",
+              "Invulnerable Save",
+              "Feel No Pain 5+",
+              "Martial Ka'tah",
+              "Aegis of the Emperor",
+              "Aquila Commander",
+              "Talon Sortie",
+              "Favoured Ka'tah: Calistus",
+              "Companion's Watch",
+              "Leader"
+            ],
+            "weapons": [
+              {
+                "name": "Eagle's Scream",
+                "number": 1
+              },
+              {
+                "name": "Watcher's Axe",
+                "number": 1
+              }
+            ],
+            "number": 1
+          }
+        },
+        "totalNumberOfModels": 1
+      },
+      "modelProfiles": {
+        "Trajann Valoris": {
+          "name": "Trajann Valoris",
+          "m": "8\"",
+          "t": "7",
+          "sv": "2+",
+          "w": "10",
+          "ld": "5+",
+          "oc": "3",
+          "insv": "4+"
+        }
+      },
+      "weapons": {
+        "Eagle's Scream": {
+          "name": "Eagle's Scream",
+          "range": "24\"",
+          "a": "2",
+          "bsws": "2+",
+          "s": "6",
+          "ap": "-2",
+          "d": "2",
+          "number": 1,
+          "abilities": "Assault, Rapid Fire 2",
+          "shortAbilities": "Assault, Rapid Fire 2"
+        },
+        "Watcher's Axe": {
+          "name": "Watcher's Axe",
+          "range": "Melee",
+          "a": "6",
+          "bsws": "2+",
+          "s": "12",
+          "ap": "-3",
+          "d": "4",
+          "number": 1,
+          "abilities": "Cleave 1",
+          "shortAbilities": "Cleave 1"
+        }
+      },
+      "isSingleModel": false,
+      "uuid": "a5a416fe",
+      "rules": [],
+      "unassignedWeapons": []
+    }
+  },
+  "uiHeight": "700",
+  "uiWidth": "1200",
+  "decorativeNames": "",
+  "baseScript": "\n\n\n\n\nlocal scriptingFunctions\n\n\n\n\nlocal measuringCircles = {}\nlocal isCurrentlyCheckingCoherency = false\nlocal hasBuiltUI = false\nlocal previousHighlightColor = nil\nlocal MM_TO_INCH = 0.0393701\nlocal MEASURING_RING_Y_OFFSET = 0.17\nlocal VALID_BASE_SIZES_IN_MM = {\n    {x = 25, z = 25},\n    {x = 28, z = 28},\n    {x = 30, z = 30},\n    {x = 32, z = 32},\n    {x = 40, z = 40},\n    {x = 50, z = 50},\n    {x = 55, z = 55},\n    {x = 60, z = 60},\n    {x = 65, z = 65},\n    {x = 80, z = 80},\n    {x = 90, z = 90},\n    {x = 100, z = 100},\n    {x = 130, z = 130},\n    {x = 160, z = 160},\n    {x = 25, z = 75},\n    {x = 75, z = 25},\n    {x = 35.5, z = 60},\n    {x = 60, z = 35.5},\n    {x = 40, z = 95},\n    {x = 95, z = 40},\n    {x = 52, z = 90},\n    {x = 90, z = 52},\n    {x = 70, z = 105},\n    {x = 105, z = 70},\n    {x = 92, z = 120},\n    {x = 120, z = 92},\n    {x = 95, z = 150},\n    {x = 150, z = 95},\n    {x = 109, z = 170},\n    {x = 170, z = 109}\n}\nlocal WOUND_COLOR_CUTOFFS = {\n    {g=0}, -- 1\n    {g=1}, -- 2\n    {g=2, o=1}, -- 3\n    {g=2, o=1}, -- 4\n    {g=3, o=1}, -- 5\n    {g=4, o=2}, -- 6\n    {g=5, o=2}, -- 7\n    {g=6, o=3}, -- 8\n    {g=6, o=3}, -- 9\n    {g=7, o=4}, -- 10\n    {g=7, o=4}, -- 11\n    {g=8, o=4}, -- 12\n    {g=8, o=4}, -- 13\n    {g=8, o=5}, -- 14\n    {g=9, o=5}, -- 15\n    {g=9, o=5}, -- 16\n    {g=9, o=5}, -- 17\n    {g=10, o=5} -- 18\n}\nlocal WOUND_TRACK_COLORS = {\n    { \"[00ff16]\" },\n    { \"[00ff16]\", \"[ff0000]\" },\n    { \"[00ff16]\", \"[ffca00]\", \"[ff0000]\" },\n    { \"[00ff16]\", \"[ffca00]\", \"[ff7900]\", \"[ff0000]\" },\n    { \"[00ff16]\", \"[8bff00]\", \"[ffca00]\", \"[ff7900]\", \"[ff0000]\" }\n}\nlocal BRACKET_VALUE_COLORS = {\n    { \"[98ffa7]\" },\n    { \"[98ffa7]\", \"[e9a2a2]\" },\n    { \"[98ffa7]\", \"[ffe298]\", \"[e9a2a2]\" },\n    { \"[98ffa7]\", \"[ffe298]\", \"[feb17e]\", \"[e9a2a2]\" },\n    { \"[98ffa7]\", \"[c8ff98]\", \"[ffe298]\", \"[feb17e]\", \"[e9a2a2]\" }\n}\nlocal BRACKET_VALUE = \"${color}${val}[-]\"\nlocal dataCardHeight = 300\n-- starting to calculate height of the dataCard: keywords and each section is\n-- 40px by default (will add row heights later), spacing adds 30 between each,\n-- and I want 10 extra pixels at the bottom for a total of 60+30+40+30+40+30+40+10 = 260 (+10 for unknown reason) (70 for keywords)\nlocal uiTemplates = {\n    abilities = [[<Row color=\"${rowParity}\" dontUseTableRowBackground=\"true\" preferredHeight=\"80\">\n                    <Cell><Text color=\"White\" fontSize=\"16\" preferredHeight=\"20\" fontStyle=\"Bold\" alignment=\"MiddleCenter\">${name}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleLeft\">${desc}</Text></Cell>\n                </Row>]],\n    models9e = [[ <Row color=\"${rowParity}\" dontUseTableRowBackground=\"true\" preferredHeight=\"32\">\n                    <Cell><Text color=\"White\" fontSize=\"16\" preferredHeight=\"20\" fontStyle=\"Bold\" alignment=\"MiddleCenter\">${name}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${m}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${ws}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${bs}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${s}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${t}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${w}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${a}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${ld}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${sv}</Text></Cell>\n                </Row>]],\n    models10e = [[ <Row color=\"${rowParity}\" dontUseTableRowBackground=\"true\" preferredHeight=\"32\">\n                    <Cell><Text color=\"White\" fontSize=\"16\" preferredHeight=\"20\" fontStyle=\"Bold\" alignment=\"MiddleCenter\">${name}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${m}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${t}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${sv}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${w}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${ld}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${oc}</Text></Cell>\n                </Row>]],\n    models11e = [[ <Row color=\"${rowParity}\" dontUseTableRowBackground=\"true\" preferredHeight=\"32\">\n                    <Cell><Text color=\"White\" fontSize=\"16\" preferredHeight=\"20\" fontStyle=\"Bold\" alignment=\"MiddleCenter\">${name}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${m}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${t}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${sv}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${insv}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${w}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${ld}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${oc}</Text></Cell>\n                </Row>]],\n    weapons9e = [[ <Row color=\"${rowParity}\" dontUseTableRowBackground=\"true\" preferredHeight=\"32\">\n                    <Cell><Text color=\"White\" fontSize=\"16\" preferredHeight=\"20\" fontStyle=\"Bold\" alignment=\"MiddleCenter\">${name}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" resizeTextForBestFit=\"true\" resizeTextMinSize=\"6\" resizeTextMaxSize=\"16\" alignment=\"MiddleCenter\">${range}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" resizeTextForBestFit=\"true\" resizeTextMinSize=\"6\" resizeTextMaxSize=\"16\" alignment=\"MiddleCenter\">${type}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${s}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${ap}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${d}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" resizeTextForBestFit=\"true\" resizeTextMinSize=\"6\" resizeTextMaxSize=\"16\" alignment=\"MiddleCenter\">${abilities}</Text></Cell>\n                </Row>]],\n    weapons10e11e = [[ <Row color=\"${rowParity}\" dontUseTableRowBackground=\"true\" preferredHeight=\"32\">\n                    <Cell><Text color=\"White\" fontSize=\"16\" preferredHeight=\"20\" fontStyle=\"Bold\" alignment=\"MiddleCenter\">${name}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" resizeTextForBestFit=\"true\" resizeTextMinSize=\"6\" resizeTextMaxSize=\"16\" alignment=\"MiddleCenter\">${range}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${a}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${bsws}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${s}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${ap}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${d}</Text></Cell>\n                    <Cell><Text color=\"White\" fontStyle=\"Normal\" resizeTextForBestFit=\"true\" resizeTextMinSize=\"6\" resizeTextMaxSize=\"16\" alignment=\"MiddleCenter\">${abilities}</Text></Cell>\n                </Row>]],\n    powersKnown = [[<Row color=\"${rowParity}\" dontUseTableRowBackground=\"true\" preferredHeight=\"100\">\n                        <Cell><Text color=\"White\" fontSize=\"16\" preferredHeight=\"20\" fontStyle=\"Bold\" alignment=\"MiddleCenter\">${name}</Text></Cell>\n                        <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${warpCharge}</Text></Cell>\n                        <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${range}</Text></Cell>\n                        <Cell><Text color=\"White\" fontStyle=\"Normal\" resizeTextForBestFit=\"true\" resizeTextMinSize=\"6\" resizeTextMaxSize=\"16\" alignment=\"MiddleCenter\">${details}</Text></Cell>\n                    </Row>]],\n    psykerProfiles = [[ <Row color=\"${rowParity}\" dontUseTableRowBackground=\"true\" alignment=\"MiddleCenter\" preferredHeight=\"100\">\n                            <Cell><Text color=\"White\" fontSize=\"16\" preferredHeight=\"20\" fontStyle=\"Bold\" alignment=\"MiddleCenter\">${name}</Text></Cell>\n                            <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${cast}</Text></Cell>\n                            <Cell><Text color=\"White\" fontStyle=\"Normal\" fontSize=\"16\" alignment=\"MiddleCenter\">${deny}</Text></Cell>\n                            <Cell><Text color=\"White\" fontStyle=\"Normal\" resizeTextForBestFit=\"true\" resizeTextMinSize=\"6\" resizeTextMaxSize=\"16\" alignment=\"MiddleCenter\">${known}</Text></Cell>\n                        </Row>]],\n    agenda = [[ <HorizontalLayout childForceExpandWidth=\"false\" childForceExpandHeight=\"false\" childAlignment=\"MiddleLeft\">\n                    <Text color=\"White\" fontStyle=\"Normal\" fontSize=\"24\" alignment=\"MiddleCenter\" flexibleWidth=\"1\">${counterName}</Text>\n                    <HorizontalLayout childForceExpandWidth=\"false\" childForceExpandHeight=\"false\" childAlignment=\"MiddleLeft\" spacing=\"5\">\n                        <Button transition=\"None\" preferredHeight=\"24\" preferredWidth=\"24\" padding=\"3 3 3 3\" resizeTextForBestFit=\"true\" textAlignment=\"MiddleCenter\" onClick=\"${guid}/decrementTallyCounter(${counterName})\">-</Button>\n                        <Text fontStyle=\"Bold\" fontSize=\"26\" color=\"#000000\" id=\"${counterID}\">${counterValue}</Text>\n                        <Button transition=\"None\" preferredHeight=\"24\" preferredWidth=\"24\" padding=\"3 3 3 3\" resizeTextForBestFit=\"true\" textAlignment=\"MiddleCenter\" onClick=\"${guid}/incrementTallyCounter(${counterName})\">+</Button>\n                    </HorizontalLayout>\n                </HorizontalLayout>]],\n    -- this is here and not in xml because we have to provide the guid, otherwise it will try and run on Global\n    buttons = [[<Button padding=\"3 3 3 3\" preferredHeight=\"20\" preferredWidth=\"${width}\" color=\"#BB2222\" onClick=\"${guid}/highlightUnit(Red)\"></Button>\n    <Button padding=\"3 3 3 3\" preferredHeight=\"20\" preferredWidth=\"${width}\" color=\"#22BB22\" onClick=\"${guid}/highlightUnit(Green)\"></Button>\n    <Button padding=\"3 3 3 3\" preferredHeight=\"20\" preferredWidth=\"${width}\" color=\"#2222BB\" onClick=\"${guid}/highlightUnit(Blue)\"></Button>\n    <Button padding=\"3 3 3 3\" preferredHeight=\"20\" preferredWidth=\"${width}\" color=\"#BB22BB\" onClick=\"${guid}/highlightUnit(Purple)\"></Button>\n    <Button padding=\"3 3 3 3\" preferredHeight=\"20\" preferredWidth=\"${width}\" color=\"#DDDD22\" onClick=\"${guid}/highlightUnit(Yellow)\"></Button>\n    <Button padding=\"3 3 3 3\" preferredHeight=\"20\" preferredWidth=\"${width}\" color=\"#FFFFFF\" onClick=\"${guid}/highlightUnit(White)\"></Button>\n    <Button padding=\"3 3 3 3\" preferredHeight=\"20\" preferredWidth=\"${width}\" color=\"#DD6633\" onClick=\"${guid}/highlightUnit(Orange)\"></Button>\n    <Button padding=\"3 3 3 3\" preferredHeight=\"20\" preferredWidth=\"${width}\" color=\"#29D9D9\" onClick=\"${guid}/highlightUnit(Teal)\"></Button>\n    <Button padding=\"3 3 3 3\" preferredHeight=\"20\" preferredWidth=\"${width}\" color=\"#DD77CC\" onClick=\"${guid}/highlightUnit(Pink)\"></Button>\n    <Button padding=\"3 3 3 3\" preferredHeight=\"20\" preferredWidth=\"${width}\" color=\"#BBBBBB\" onClick=\"${guid}/unhighlightUnit\"></Button>]]\n}\n\n\n\n\n--[[ SCRIPTING FUNCTION DEFINITIONS ]]--\n\n\nfunction none() end\n\n\nfunction changeModelWoundCount(mod, target)\n    local name = target.getName()\n    local _,_, current, total = name:find(\"([0-9]+)/([0-9]+)\")\n    local colors,newName,currentBracket,updatedName,currentColor\n\n    if current == nil then return end\n\n    current = math.max(tonumber(current) + mod, 0)\n    total = tonumber(total)\n    newName = string.gsub(name, \"([0-9]+)/([0-9]+)\", current..\"/\"..total, 1)\n\n    if current == 0 then\n        currentColor = \"[ff0000]\"\n    else\n        local bracketData,bracketName,bracketProfileName\n\n        if unitData.woundTrack ~= nil then\n            if len(unitData.woundTrack) == 1 then\n                for key,bracket in pairs(unitData.woundTrack) do\n                    bracketData = bracket\n                    bracketName = key\n                end\n            else\n                -- not using hasTag because we don't know what tag to look for, only prefix\n                for _,tag in pairs(target.getTags()) do\n                    if tag:find(\"^wt:\") ~= nil then\n                        _,_,bracketName = tag:find(\"^wt:(.+)\")\n                        bracketData = unitData.woundTrack[bracketName]\n                    end\n                end\n            end\n        end\n\n        local damagedCutoff = nil\n        if unitData.edition == \"10e\" or unitData.edition == \"11e\" then\n            for _,ability in ipairs(unitData.abilities) do\n                if ability.name == \"Core\" then\n                    -- Rosterizer version\n                    damagedCutoff = string.match(ability.desc, \"Damaged: %d+-(%d+)\")\n                    break\n                elseif ability.name:find(\"^Damaged\") ~= nil then\n                    -- Battlescribe version\n                    damagedCutoff = string.match(ability.name, \"Damaged: %d+-(%d+)\")\n                    break\n                end\n            end\n        end\n\n        if damagedCutoff ~= nil then\n            currentColor = current > tonumber(damagedCutoff) and \"[00ff16]\" or \"[ff0000]\"\n        elseif bracketData == nil then\n            colors = WOUND_COLOR_CUTOFFS[total]\n            currentColor =  current > colors.g and \"[00ff16]\"\n                            or (colors.o ~= nil and current > colors.o) and \"[ffca00]\" or \"[ff0000]\"\n        else\n            currentBracket = 1\n\n            for key,_ in pairs(bracketData) do\n                local cutoff,_ = key:gsub(\"(%d+)%-%d+%+?\", \"%1\")\n                if current >= tonumber(cutoff) then\n                    bracketProfileName = bracketName..\" (\"..key..\")\"\n                    break\n                end\n\n                currentBracket = currentBracket + 1\n            end\n\n            updateBracketCharacteristics(currentBracket, bracketData, bracketName, bracketProfileName, target)\n            currentColor = WOUND_TRACK_COLORS[len(bracketData)][currentBracket]\n        end\n    end\n\n    updatedName = string.gsub(newName, \"^%[%w+]\", currentColor, 1)\n\n    target.setName(updatedName)\nend\n\nfunction updateBracketCharacteristics(bracket, bracketData, bracketName, bracketProfileName, target)\n    local desc = target.getDescription()\n    local updatedBracketCharacteristics,updatedHeadings = \"\",\"[56f442]\"\n    local bracketProfile,changingCharacteristics\n\n    for _,profile in pairs(unitData.models) do\n        if profile.name == bracketProfileName then bracketProfile = profile end\n    end\n\n    for heading,value in pairs(bracketProfile) do\n        if heading ~= \"name\" and heading ~= \"rowParity\" then\n            updatedBracketCharacteristics = updatedBracketCharacteristics..(isInList(heading, unitData.changingCharacteristics[bracketName])\n                                and interpolate(BRACKET_VALUE, {\n                                    color = BRACKET_VALUE_COLORS[len(bracketData)][bracket],\n                                    val = value\n                                })\n                                or value)..\"   \"\n\n            updatedHeadings = updatedHeadings..formatHeading(heading, value)\n        end\n    end\n\n    updatedBracketCharacteristics = updatedHeadings..\"[-]\\n\"..updatedBracketCharacteristics..\"[-][-]\"\n\n    target.setDescription(desc:gsub(\"%[56f442].-%[%-%]%[%-%]\",updatedBracketCharacteristics))\nend\n\n-- formats the heading line for the characteristics section in a model's description\n-- the spacing is based on the values given so that they line up properly\nfunction formatHeading(heading, value)\n    local spacing = value:gsub(\"\\\\\",\"\"):len()-heading:len()\n\n    if heading == \"ws\" or heading == \"m\" or heading ==\"a\" then\n        spacing = spacing + 2\n    else\n        spacing = spacing + 3\n    end\n\n    if (heading == \"m\" and value:len() > 2) or ((heading == \"a\" or heading == \"s\" or heading == \"t\" or heading == \"w\") and value:len() > 1) then\n        if heading == \"m\" and value ~= \"-\" and value:find('%-') ~= nil then\n            heading = heading..\"   \"\n        end\n\n        heading = \" \"..heading\n    end\n\n    return capitalize(heading)..string.rep(\" \", spacing)\nend\n\n-- decides whether to fully capitalize or (in the case of ld and sv) titlecase a string\nfunction capitalize(heading)\n    if heading == \"ld\" or heading == \"sv\" then return titlecase(heading) end\n    return heading:upper()\nend\n\n-- only use this for changing ld and sv to Ld and Sv\nfunction titlecase(s)\n    return s:gsub(\"^(%w)\", function (a) return a:upper() end)\nend\n\n\nfunction showCrusadeCard(playerColor)\n    loadCrusadeCard()\n    -- delay to wait for update\n    Wait.frames(function () showCard(\"crusadeCard\", playerColor) end, 2)\nend\n\n\nfunction toggleRectangularMeasuring(playerColor, target)\n    local isRectangular = target.hasTag(\"rectangularMeasuring\")\n\n    if not isRectangular then\n        target.addTag(\"rectangularMeasuring\")\n        broadcastToAll(\"Model set to rectangular measuring\")\n    else\n        target.removeTag(\"rectangularMeasuring\")\n        broadcastToAll(\"Model set to round measuring\")\n    end\n\n    changeMeasurementCircle(0, target)\nend\n\n\n\n\n\n\n\n\n--[[ EVENT HANDLERS ]]--\n\n\nfunction onLoad(savedState)\n    if not self.hasTag(\"leaderModel\") then return end -- prevents firing on objects we don't want firing\n\n    local hasLoaded = self.getVar(\"hasLoaded\")\n    if hasLoaded == nil or not hasLoaded then\n        local decodedState = savedState == nil and nil or JSON.decode(savedState)\n\n        if decodedState ~= nil and loadDecodedState ~= nil then\n            loadDecodedState(decodedState)\n        elseif loadDefaultValues ~= nil then\n            loadDefaultValues()\n        end\n\n        setContextMenuItemsForUnit()\n\n        --Wait.frames(function () buildUI() end, 2)\n\n        for _,model in ipairs(getObjectsWithTag(\"uuid:\"..unitData.uuid)) do\n            model.setVar(\"hasLoaded\", true)\n        end\n    end\nend\n\n\nfunction onSave()\n    if not self.hasTag(\"leaderModel\") then return end -- prevents firing on objects we don't want firing\n    if getCrusadeCardSaveData ~= nil then\n        return JSON.encode(getCrusadeCardSaveData())\n    end\nend\n\n\nfunction onScriptingButtonDown(index, playerColor)\n    if not self.hasTag(\"leaderModel\") then return end -- prevents firing on objects we don't want firing\n\n    local player = Player[playerColor]\n    local hoveredObject = player.getHoverObject()\n\n    -- if the hovered object has a matching unitID, then it is part of this model's unit and thus is a valid target\n    local isHoveringValidTarget = hoveredObject ~= nil and hoveredObject.hasTag(\"uuid:\"..unitData.uuid)\n\n    if isHoveringValidTarget then scriptingFunctions[index](playerColor, hoveredObject, player) end\nend\n\n\nfunction onObjectDrop(playerColor, droppedObject)\n    if not self.hasTag(\"leaderModel\") then return end -- prevents firing on objects we don't want firing\n    if isCurrentlyCheckingCoherency and\n        droppedObject ~= nil and\n        unitData ~= nil and\n        droppedObject.hasTag(\"uuid:\"..unitData.uuid) then\n            droppedObject.setLock(true)\n            -- wait a frame for locking to cancel momentum\n            Wait.frames(function ()\n                droppedObject.setLock(false)\n                highlightCoherency()\n            end, 1)\n    end\nend\n\n\nfunction onObjectRotate(object, spin, flip, playerColor, oldSpin, oldFlip)\n    if not self.hasTag(\"leaderModel\") then return end -- prevents firing on objects we don't want firing\n    if isCurrentlyCheckingCoherency and\n        flip ~= oldFlip and  -- update on model flip\n        object.hasTag(\"uuid:\"..unitData.uuid) then\n        -- wait for a bit, otherwise the model will still be considered face down when its flipped face up and vice versa\n        Wait.time(|| highlightCoherency(), 0.3)\n    end\nend\n\n\nfunction onPlayerAction(player, action, targets)\n    if not self.hasTag(\"leaderModel\") then return end -- prevents firing on objects we don't want firing\n    if action == Player.Action.Paste then\n        local unitTag = \"uuid:\"..unitData.uuid\n        for _,object in ipairs(targets) do\n            if object.hasTag(unitTag) and object.hasTag(\"leaderModel\") then\n                object.setLuaScript(\"\")\n                object.removeTag(\"leaderModel\")\n            end\n        end\n    elseif action == Player.Action.Delete then\n        local unitTag = \"uuid:\"..unitData.uuid\n        for _,object in ipairs(targets) do\n            if object == self then\n                local modelsInUnit = getObjectsWithTag(unitTag)\n                local modelsInUnitNotBeingDeleted = filter(modelsInUnit, |model| not includes(targets, model))\n                if #modelsInUnitNotBeingDeleted > 1 then\n                    local newLeader = modelsInUnitNotBeingDeleted[1]\n\n                    updateEventHandlers(newLeader.getGUID())\n\n                    Wait.frames(function ()\n                        newLeader.setLuaScript(self.getLuaScript())\n                        newLeader.UI.setXml(self.UI.getXml())\n                        newLeader.addTag(\"leaderModel\")\n                    end, 2)\n\n                    if loadCrusadeCard ~= nil then\n                        Wait.frames(|| newLeader.call(\"loadCrusadeCard\", crusadeCardData), 2)\n                    end\n\n                    self.removeTag(\"leaderModel\")\n                    --[[ local found = true\n\n                    for _,model in ipairs(modelsInUnit) do\n                        if model ~= self and not isInList(model, targets) then\n                            found = false\n                            break\n                        end\n                    end\n                    -- if there are going to be any models left in the unit that arent this one,\n                    -- prevent deletion\n                    if not found then\n                        broadcastToColor(\"Please don't delete me, I'm needed for scripting!\", player.color, \"Red\")\n                        return false\n                    end --]]\n                end\n            end\n        end\n    end\nend\n\nfunction onObjectSpawn(object)\n    if not self.hasTag(\"leaderModel\") then return end -- prevents firing on objects we don't want firing\n\n    if object ~= self and object.hasTag(\"leaderModel\") and object.hasTag(\"uuid:\"..unitData.uuid) then\n        object.removeTag(\"leaderModel\")\n        object.setLuaScript(\"\")\n        --[[ local unitModels = getObjectsWithTag(\"uuid:\"..unitData.uuid)\n\n        for _,model in ipairs(unitModels) do\n            if model ~= object and model.hasTag(\"leaderModel\") then\n                object.removeTag(\"leaderModel\")\n                object.setLuaScript(\"\")\n                break\n            end\n        end --]]\n    end\nend\n\n\n\n\n\n\n\n\n--[[ UI UTILITY FUNCTIONS ]]--\n\n\nfunction showCard(cardName, playerColor, doBeforeShowing, doAfterShowing)\n    local timeToWait = 0\n\n    if not hasBuiltUI then\n        buildUI()\n        hasBuiltUI = true\n        timeToWait = 2\n    end\n\n    -- wait in case ui needs to update\n    Wait.frames(function ()\n        local globalUI = Global.UI.getXmlTable() or {}\n        local selfUI = self.UI.getXmlTable() or {}\n        local formattedCardName = \"ymc-\"..cardName..\"-\"..unitData.uuid..\"-\"..playerColor\n        local shownYet = false\n\n        -- yes, I know we go through the table twice, I don't like it\n        for _,element in ipairs(globalUI) do\n            if element ~= nil then\n                recursivelyCleanElement(element)\n\n                local attrs = element.attributes\n                if attrs ~= nil and attrs.id == formattedCardName then\n                    shownYet = true\n\n                    if attrs.visibility ~= playerColor or not attrs.active then\n                        attrs.visibility = playerColor\n                        attrs.active = true\n                    end\n                end\n            end\n        end\n\n        if not shownYet then\n            local cardToShow = nil\n\n            for _,root in ipairs(selfUI) do\n                if root ~= nil and root.children ~= nil then\n                    for _,child in ipairs(root.children) do\n                        if child ~= nil and child.attributes ~= nil and child.attributes.id == cardName then\n                            cardToShow = child\n                            break\n                        end\n                    end\n                end\n\n                if cardToShow ~= nil then break end\n            end\n\n            if cardToShow == nil or cardToShow.attributes == nil then\n                print(\"showCard: couldn't find UI card '\"..tostring(cardName)..\"' for unit \"..tostring(unitData.uuid))\n                return\n            end\n\n            cardToShow.attributes.id = formattedCardName\n            cardToShow.attributes.visibility = playerColor\n            cardToShow.attributes.active = true\n\n            recursivelyCleanElement(cardToShow)\n            table.insert(globalUI, cardToShow)\n        end\n\n        Global.UI.setXmlTable(globalUI)\n    end, timeToWait)\nend\n\n\nfunction hideCard(player, card)\n    local playerColor = player.color\n\n    if (player.color:find(\"^%w+$\")) == nil then playerColor = \"Grey\" end\n\n    local formattedCardName = \"ymc-\"..card..\"-\"..unitData.uuid..\"-\"..playerColor\n\n    Global.UI.setAttribute(formattedCardName, \"visibility\", \"None\")\n    Global.UI.setAttribute(formattedCardName, \"active\", false)\n\n    Wait.time(function()\n        local currentUI = UI.getXmlTable()\n        local foundVisibleCard = false\n\n        for _,element in ipairs(currentUI) do\n            if element.attributes ~= nil and\n                element.attributes.id ~= nil and\n                (element.attributes.id:find(\"^ymc-\")) ~= nil and -- if we find a card\n                element.attributes.visibility ~= nil and\n                element.attributes.visibility ~= \"\" and\n                element.attributes.visibility ~= \"None\" then\n                    foundVisibleCard = true\n                    break\n            end\n\n            recursivelyCleanElement(element)\n        end\n\n        if not foundVisibleCard then return end\n\n        currentUI = filter(currentUI, |element| element.attributes.id == nil or (element.attributes.id:find(\"^ymc-\")) == nil)\n\n        Global.UI.setXmlTable(currentUI)\n    end, 0.11)\nend\n\n-- builds the XML string for the given section based on data defined in unitData (see top of file)\n-- note: this is just for dataCard, although theoretically it can be used for any section\n\nlocal function estimateRowHeight(desc, maxWidth, fontSize)\n    desc = desc or \"\"\n\n    -- slightly narrower average char width for proportional fonts\n    local charWidth = fontSize * 0.50\n    local charsPerLine = math.floor(maxWidth / charWidth)\n\n    local lineHeight = fontSize * 1.2\n    local baseHeight = fontSize * 2\n\n    local totalLines = 0\n\n    -- normalize line endings\n    desc = desc:gsub(\"\\r\\n\", \"\\n\"):gsub(\"\\r\", \"\\n\")\n\n    -- split into lines\n    local segments = {}\n    for line in desc:gmatch(\"([^\\n]*)\\n?\") do\n        table.insert(segments, line)\n    end\n\n    -- remove trailing empty lines\n    while #segments > 0 and segments[#segments] == \"\" do\n        table.remove(segments)\n    end\n\n    for _, segment in ipairs(segments) do\n        if segment == \"\" then\n            -- blank line: treat as half a line\n            totalLines = totalLines + 0.5\n        else\n            local segLength = #segment\n            local wrapped = math.ceil(segLength / charsPerLine)\n            totalLines = totalLines + wrapped\n        end\n    end\n\n    return baseHeight + (totalLines * lineHeight)\nend\n\nlocal function normalizeAbilities(str)\n    if not str or str == \"-\" then\n        return \"\"\n    end\n\n    -- Force to string\n    str = tostring(str)\n\n    -- Replace newlines with commas (safe)\n    str = str:gsub(\"[\\r\\n]+\", \",\")\n\n    -- Remove ASCII control characters\n    str = str:gsub(\"[%z\\1-\\31]\", \"\")\n\n    -- Remove high bytes (128–255)\n    str = str:gsub(\"[\\128-\\255]\", \"\")\n\n    local list = {}\n    local seen = {}\n\n    -- ***************\n    -- PATTERN‑FREE SPLIT\n    -- ***************\n    local start = 1\n    local len = #str\n\n    for i = 1, len + 1 do\n        local c = str:sub(i, i)\n\n        if c == \",\" or i == len + 1 then\n            local ability = str:sub(start, i - 1)\n\n            -- Trim whitespace (pattern‑free)\n            ability = ability:gsub(\"^%s+\", \"\"):gsub(\"%s+$\", \"\")\n\n            if ability ~= \"\" then\n                local normalized = ability:gsub(\"%W\", \"\"):upper()\n\n                if normalized ~= \"\" and not seen[normalized] then\n                    seen[normalized] = true\n                    table.insert(list, ability)\n                end\n            end\n\n            start = i + 1\n        end\n    end\n\n    return \"[\" .. table.concat(list, \",\") .. \"]\"\nend\n\nfunction buildXMLForSection(uiSection, dataSection)\n    local uiString = \"\"     -- old: uiTemplates[section..\"Header\"]\n    local rowParity = \"#333333\"\n    for _,entry in pairs(unitData[dataSection]) do\n\n        local rowHeight\n        local template = uiTemplates[uiSection]\n\n        if dataSection == \"weapons\" then\n            entry.abilities = normalizeAbilities(entry.abilities)\n        end\n\n        -- Only calculate dynamic height for abilities\n        if dataSection == \"abilities\" then\n            rowHeight = estimateRowHeight(entry.desc, 800, 16)\n            template = template:gsub('preferredHeight=\"%d+\"', 'preferredHeight=\"' .. rowHeight .. '\"')\n            -- preserve newlines \\n\\n didn't work, this is ugly but its better than a wall of text.\n            entry.desc = entry.desc:gsub(\"\\r?\\n%s*\\r?\\n\", \"<textcolor color='#00000000'>\\n-\\n</textcolor>\")\n            local success, result = pcall(function()\n                entry.desc = entry.desc:gsub(\"%^%^(.-)%^%^\", function(inner)\n                    return inner:upper()\n                end)\n                entry.desc = entry.desc:gsub(\"%*%*(.-)%*%*\", \"<b>%1</b>\")\n            end)\n            if not success then\n                -- Best-effort: if pattern fails, leave desc as-is\n            end\n        else\n            -- fallback: read height from template\n            _,_,rowHeight = template.find(uiTemplates[uiSection], 'Row.-preferredHeight=\"(%d+)\"')\n        end\n\n        entry[\"rowParity\"] = rowParity\n        uiString = uiString..interpolate(template, entry)\n        dataCardHeight = dataCardHeight + tonumber(rowHeight)\n        rowParity = rowParity == \"#333333\" and \"#212121\" or \"#333333\"\n    end\n    self.UI.setValue(uiSection, uiString)\nend\n\nfunction buildUI()\n    self.UI.setAttribute(\"ym-container\", \"unit-id\", unitData.uuid)\n\n    self.UI.setAttribute(\"dataCard\", \"height\", unitData.uiHeight)\n    self.UI.setAttribute(\"dataCard\", \"width\", unitData.uiWidth)\n\n    self.UI.setValue(\"data-unitName\", unitData.unitName)\n    self.UI.setValue(\"factionKeywords\", unitData.factionKeywords)\n    self.UI.setValue(\"keywords\", unitData.keywords)\n\n    if unitData.edition == \"11e\" then\n        self.UI.setAttribute(\"modelsTable9e\", \"active\", false)\n        self.UI.setAttribute(\"modelsTable10e\", \"active\", false)\n        self.UI.setAttribute(\"modelsTable11e\", \"active\", true)\n        buildXMLForSection(\"models11e\", \"models\")\n\n        self.UI.setAttribute(\"weaponsTable9e\", \"active\", false)\n        self.UI.setAttribute(\"weaponsTable10e11e\", \"active\", true)\n        buildXMLForSection(\"weapons10e11e\", \"weapons\")\n    elseif unitData.edition == \"10e\" then\n        self.UI.setAttribute(\"modelsTable9e\", \"active\", false)\n        self.UI.setAttribute(\"modelsTable10e\", \"active\", true)\n        self.UI.setAttribute(\"modelsTable11e\", \"active\", false)\n        buildXMLForSection(\"models10e\", \"models\")\n\n        self.UI.setAttribute(\"weaponsTable9e\", \"active\", false)\n        self.UI.setAttribute(\"weaponsTable10e11e\", \"active\", true)\n        buildXMLForSection(\"weapons10e11e\", \"weapons\")\n    else\n        self.UI.setAttribute(\"modelsTable9e\", \"active\", true)\n        self.UI.setAttribute(\"modelsTable10e\", \"active\", false)\n        self.UI.setAttribute(\"modelsTable11e\", \"active\", false)\n        buildXMLForSection(\"models9e\", \"models\")\n\n        self.UI.setAttribute(\"weaponsTable9e\", \"active\", true)\n        self.UI.setAttribute(\"weaponsTable10e11e\", \"active\", false)\n        buildXMLForSection(\"weapons9e\", \"weapons\")\n    end\n\n    buildXMLForSection(\"abilities\", \"abilities\")\n\n    if unitData.psykerProfiles ~= nil then\n        buildXMLForSection(\"powersKnown\", \"powersKnown\")\n        buildXMLForSection(\"psykerProfiles\", \"psykerProfiles\")\n\n        self.UI.setAttribute(\"powersKnownContainer\", \"active\", true)\n        self.UI.setAttribute(\"psykerProfilesContainer\", \"active\", true)\n\n        dataCardHeight = dataCardHeight + 140 -- add space for two headers (40px each) and two spaces (30px each)\n    end\n\n    local guid = self.getGUID()\n\n    self.UI.setAttribute(\"dataCardCloseButton\", \"onClick\", guid..\"/hideCard(dataCard)\")\n    self.UI.setValue(\"highlightButtonsContainer\", interpolate(uiTemplates.buttons, { guid=guid, width=(unitData.uiWidth/10)-4 }))\n\n    self.UI.setAttribute(\"dataCardContentContainer\", \"height\", dataCardHeight)\n\n    if buildCrusadeUI ~= nil then buildCrusadeUI(guid) end\nend\n\nfunction setContextMenuItemsForUnit()\n    local hasLoaded = self.getVar(\"hasLoaded\")\n    if hasLoaded == nil or not hasLoaded then\n        local unit = getObjectsWithTag(\"uuid:\"..unitData.uuid)\n\n        if not unitData.isSingleModel and #unit > 1 then\n            for _,model in ipairs(unit) do\n                model.addContextMenuItem(\"Toggle Coherency ✓\", toggleCoherencyChecking)\n            end\n        end\n    end\nend\n\nfunction updateEventHandlers(guid)\n    self.UI.setAttribute(\"dataCardCloseButton\", \"onClick\", guid..\"/hideCard(dataCard)\")\n    Global.UI.setAttribute(\"dataCardCloseButton\", \"onClick\", guid..\"/hideCard(dataCard)\")\n    self.UI.setValue(\"highlightButtonsContainer\", interpolate(uiTemplates.buttons, { guid=guid, width=(unitData.uiWidth/10)-4 }))\nend\n\n\n\n\n\n\n\n\n\n\n\n--[[ HIGHLIGHTING FUNCTIONS ]]--\n\n\nfunction highlightUnit(player, color)\n    for _,model in pairs(getObjectsWithTag(\"uuid:\"..unitData.uuid)) do\n        model.highlightOn(color)\n        model.setVar(\"currentHighlightColor\", color)\n    end\nend\n\nfunction unhighlightUnit()\n    for _,model in pairs(getObjectsWithTag(\"uuid:\"..unitData.uuid)) do\n        model.highlightOff()\n        model.setVar(\"currentHighlightColor\", nil)\n    end\nend\n\n\n\n\n\n\n--[[ UNIT COHERENCY FUNCTIONS ]]--\n\nfunction toggleCoherencyChecking(playerColor)\n    isCurrentlyCheckingCoherency = not isCurrentlyCheckingCoherency\n\n    if isCurrentlyCheckingCoherency then\n        highlightCoherency()\n        broadcastToColor(\"Checking coherency for \"..unitData.unitDecorativeName, playerColor, playerColor)\n    else\n        local oldHighlight = self.getVar(\"currentHighlightColor\")\n\n        if oldHighlight == nil then\n            unhighlightUnit()\n        else\n            highlightUnit(nil, oldHighlight)\n        end\n\n        broadcastToColor(\"No longer checking coherency for \"..unitData.unitDecorativeName, playerColor, playerColor)\n    end\nend\n\nfunction highlightCoherency()\n    local modelsInUnit = getObjectsWithTag(\"uuid:\"..unitData.uuid)\n    local filteredUnits = {}\n\n    for _,model in ipairs(modelsInUnit) do\n        if model.is_face_down then -- ignore face-down models\n            model.highlightOff()\n        else\n            table.insert(filteredUnits, model)\n        end\n    end\n\n    local coherencyCheckNum = (#filteredUnits > 5) and 2 or 1\n    local coherencyGroups = getCoherencyGroups(filteredUnits, coherencyCheckNum)\n    local numberOfBlobs = len(coherencyGroups)\n\n    if numberOfBlobs == 0 then return\n    elseif numberOfBlobs > 1 then\n        for _,blob in ipairs(coherencyGroups) do\n            for modelIdx,_ in pairs(blob) do\n                filteredUnits[modelIdx].highlightOff()\n                filteredUnits[modelIdx].highlightOn(\"Yellow\")\n            end\n        end\n    else\n        -- don't just highlight all the models in the unit, there might be other models\n        -- that were purely outside of coherency (and thus not in a blob)\n        for modelIdx,_ in pairs(coherencyGroups[1]) do\n            filteredUnits[modelIdx].highlightOff()\n            filteredUnits[modelIdx].highlightOn(\"Green\")\n        end\n    end\nend\n\nfunction getCoherencyGroups(modelsToSearch, numberToLookFor)\n    local edges = getCoherencyGraph(modelsToSearch)\n    local blobs = {}\n    local modelsToIgnore = {}\n\n    for idx,model in ipairs(modelsToSearch) do\n        if edges[idx] == nil or #edges[idx] < numberToLookFor then -- the model is out of coherency\n            model.highlightOff()\n            model.highlightOn(\"Red\")\n\n            modelsToIgnore[idx] = true\n            -- remove from any blobs the model is already in\n            for _,blob in ipairs(blobs) do\n                blob[idx] = nil\n            end\n        else\n            local found = false\n            -- see if this index exists in a blob, if it does, ignore it\n            for _,blob in ipairs(blobs) do\n                if blob[idx] == true then\n                    found = true\n                    break\n                end\n            end\n\n            if not found then\n                local newBlob = {}\n\n                table.insert(blobs, newBlob)\n                addModelsToBlobRecursive(idx, newBlob, edges, modelsToIgnore)\n            end\n        end\n    end\n\n    return blobs\nend\n\nfunction getCoherencyGraph(modelsToSearch)\n    local edges = {}\n\n    for idx=1,#modelsToSearch do\n        for otherIdx=idx+1,#modelsToSearch do\n            local firstPosition = modelsToSearch[idx].getPosition()\n            local firstSize = determineBaseInInches(modelsToSearch[idx])\n            local secondPosition = modelsToSearch[otherIdx].getPosition()\n            local secondSize = determineBaseInInches(modelsToSearch[otherIdx])\n            local verticalDisplacement = distanceBetweenVertical(firstPosition, secondPosition)\n\n            -- handle circular bases\n            if firstSize.x == firstSize.z and secondSize.x == secondSize.z then\n                if distanceBetween2D(firstPosition, firstSize.x, secondPosition, secondSize.x) <= 2 and\n                    verticalDisplacement <= 5 then\n                    -- store all edges of a graph where models are nodes and edges represent coherency\n                    storeEdges(edges, idx, otherIdx)\n                end\n            else -- handle non-circular bases\n                if firstSize.x ~= firstSize.z and secondSize.x ~= secondSize.z then -- handle two ovals\n                    -- if the bases were circles with radiuses = minor axes and they are in coherency,\n                    -- the ovals must be in coherency\n                    if distanceBetween2D(firstPosition, math.min(firstSize.x, firstSize.z), secondPosition, math.min(secondSize.x, secondSize.z)) <= 2 and\n                        verticalDisplacement <= 5 then\n                        -- store edges in graph\n                        storeEdges(edges, idx, otherIdx)\n\n                    -- if the bases were circles with radiuses = major axes and they are out of coherency,\n                    -- there is no way for the ovals to be in coherency\n                    elseif not (distanceBetween2D(firstPosition, math.max(firstSize.x, firstSize.z), secondPosition, math.max(secondSize.x, secondSize.z)) > 2 or\n                                verticalDisplacement > 5) then\n                        -- only way to get here is if coherency is uncertain, so now check a little more precisely (only a little)\n                        if distanceBetween2D(firstPosition, (firstSize.x+firstSize.z)/2, secondPosition, (secondSize.x+secondSize.z)/2) <= 2 and\n                            verticalDisplacement <= 5 then\n                            storeEdges(edges, idx, otherIdx)\n                        end\n                    end\n                else -- handle one circle and one oval\n                    local oval,ovalPosition,circle,circlePosition\n\n                    if firstSize.x ~= firstSize.z then\n                        oval = firstSize\n                        ovalPosition = firstPosition\n                        circle = secondSize\n                        circlePosition = secondPosition\n                    else\n                        oval = secondSize\n                        ovalPosition = secondPosition\n                        circle = firstSize\n                        circlePosition = firstPosition\n                    end\n\n                    -- if the oval base was a circle with radius = minor axis and they are in coherency,\n                    -- the models must be in coherency\n                    if distanceBetween2D(circlePosition, circle.x, ovalPosition, math.min(oval.x, oval.z)) <= 2 and\n                        verticalDisplacement <= 5 then\n                        storeEdges(edges, idx, otherIdx)\n\n                    -- if the oval base was a circle with radius = major axis and they are out of coherency,\n                    -- there is no way for the models to be in coherency\n                    elseif not (distanceBetween2D(circlePosition, circle.x, ovalPosition, math.max(oval.x, oval.z)) > 2 or\n                                verticalDisplacement > 5) then\n                        -- only way to get here is if coherency is uncertain, so now check a little more precisely (only a little)\n                        if distanceBetween2D(circlePosition, circle.x, ovalPosition, (oval.x+oval.z)/2) <= 2 and\n                            verticalDisplacement <= 5 then\n                            storeEdges(edges, idx, otherIdx)\n                        end\n                    end\n                end\n            end\n        end\n    end\n\n    return edges\nend\n\nfunction storeEdges(edges, idx, otherIdx)\n    if edges[idx] == nil then edges[idx] = { otherIdx }\n    else table.insert(edges[idx], otherIdx) end\n\n    if edges[otherIdx] == nil then edges[otherIdx] = { idx }\n    else table.insert(edges[otherIdx], idx) end\nend\n\nfunction addModelsToBlobRecursive(idx, blob, edges, modelsToIgnore)\n    -- at this point, idx should not exist in any blobs\n    if modelsToIgnore[idx] ~= nil then return end\n    if blob[idx] ~= nil then return end\n\n    blob[idx] = true\n\n    for _,edge in ipairs(edges[idx]) do\n        addModelsToBlobRecursive(edge, blob, edges, modelsToIgnore)\n    end\nend\n\n\n\n\n\n\n\n\n--[[ UTILITY FUNCTIONS ]]--\n\n-- Replacement for previous gsub-based version due to suspected\n-- MoonSharp regression.\nfunction interpolate(templateString, replacementValues)\n    if templateString == nil then return \"\" end\n    if replacementValues == nil then return templateString end\n\n    local out = {}\n    local idx = 1\n    local templateLen = #templateString\n\n    while idx <= templateLen do\n        local startIdx = templateString:find(\"${\", idx, true)\n\n        if startIdx == nil then\n            table.insert(out, templateString:sub(idx))\n            break\n        end\n\n        if startIdx > idx then\n            table.insert(out, templateString:sub(idx, startIdx - 1))\n        end\n\n        local endIdx = templateString:find(\"}\", startIdx + 2, true)\n\n        if endIdx == nil then\n            table.insert(out, templateString:sub(startIdx))\n            break\n        end\n\n        local key = templateString:sub(startIdx + 2, endIdx - 1)\n        local replacement = replacementValues[key]\n\n        -- Preserve old behavior: false/nil leave the token untouched.\n        if replacement == nil or replacement == false then\n            table.insert(out, templateString:sub(startIdx, endIdx))\n        else\n            table.insert(out, tostring(replacement))\n        end\n\n        idx = endIdx + 1\n    end\n\n    return table.concat(out)\nend\n\n\nfunction isInList(key, list)\n    for _,k in pairs(list) do\n        if k == key then return true end\n    end\n    return false\nend\n\nfunction len(t)\n    local count = 0\n\n    for _,_ in pairs(t) do\n        count = count + 1\n    end\n\n    return count\nend\n\nfunction distanceBetween2D(firstModelPosition, firstModelRadius, secondModelPosition, secondModelRadius)\n    -- generally should only be checking coherency with circular bases?\n    return getRawDistance(firstModelPosition.x, firstModelPosition.z,\n                secondModelPosition.x, secondModelPosition.z) - firstModelRadius - secondModelRadius\nend\n\nfunction distanceBetweenVertical(firstModelPosition, secondModelPosition)\n    -- vertical measuring assumes the model has a base because generally vehicles (or models without bases)\n    -- dont need to check coherency, and the ones that do probably wont be out of vertical coherency\n    -- because they cant end up on upper floors of buildings or walls\n    return math.abs(firstModelPosition.y - secondModelPosition.y) - 0.2 -- this is assuming the model has a base\nend\n\nfunction getRawDistance(firstA, firstB, secondA, secondB)\n    return math.sqrt(\n        math.pow(firstA - secondA, 2) +\n        math.pow(firstB - secondB, 2)\n    )\nend\n\nfunction includes(tab, val)\n    return find(tab, val) > 0\nend\n\nfunction find(tab, val)\n    for index, value in ipairs(tab) do\n        if value == val then\n            return index\n        end\n    end\n\n    return -1\nend\n\nfunction filter(t, filterFunc)\n    local out = {}\n\n    for k, v in pairs(t) do\n      if filterFunc(v, k, t) then table.insert(out,v) end\n    end\n\n    return out\nend\n\nfunction clone(orig)\n    local orig_type = type(orig)\n    local copy\n    if orig_type == 'table' then\n        copy = {}\n        for orig_key, orig_value in next, orig, nil do\n            copy[clone(orig_key)] = clone(orig_value)\n        end\n        setmetatable(copy, clone(getmetatable(orig)))\n    else -- number, string, boolean, etc\n        copy = orig\n    end\n    return copy\nend\n\nfunction map(t, mapFunc)\n    local out = {}\n\n    for k,v in pairs(clone(t)) do\n        table.insert(out, mapFunc(v,k))\n    end\n\n    return out\nend\n\nfunction recursivelyCleanElement(element)\n    if element.value ~= nil then\n        element.value = element.value:gsub(\"[ ]+\",\" \") -- remove extraneous spaces\n    end\n\n    if element.children ~= nil and #element.children > 0 then\n        for _,child in ipairs(element.children) do\n            recursivelyCleanElement(child)\n        end\n    end\nend\n\n\nfunction getUnitData() -- allow external TTS mods to access yellowscribe information\n    return unitData\nend\n\n\n\n\n\n\n--[[ MEASURING CIRCLE FUNCTIONS ]]--\n\n\nfunction assignBase(inc, target)\n    local savedBase = target.getTable(\"chosenBase\")\n\n    if savedBase == nil then\n        changeMeasurementCircle(0, target, determineBaseInInches(target))\n    else\n        local newIdx = savedBase.baseIdx + inc\n\n        if newIdx < 1 then newIdx = #VALID_BASE_SIZES_IN_MM end\n        if newIdx > #VALID_BASE_SIZES_IN_MM then newIdx = 1 end\n\n        local newBase = {\n            baseIdx = newIdx,\n            base = {\n                x = (VALID_BASE_SIZES_IN_MM[newIdx].x * MM_TO_INCH)/2,\n                z = (VALID_BASE_SIZES_IN_MM[newIdx].z * MM_TO_INCH)/2\n            }\n        }\n\n        target.setTable(\"chosenBase\", newBase)\n\n        changeMeasurementCircle(0, target, newBase.base)\n    end\nend\n\n\nfunction determineBaseInInches(model)\n    local savedBase = model.getTable(\"chosenBase\")\n\n    if savedBase ~= nil then\n        return savedBase.base\n    else\n        local chosenBase =  VALID_BASE_SIZES_IN_MM[1]\n        local modelSize = model.getBoundsNormalized().size\n        local modelSizeX = modelSize.x\n        local modelSizeZ = modelSize.z\n        local closestSum = 10000000000\n        local chosenBaseIdx = 1\n\n        for k, base in pairs(VALID_BASE_SIZES_IN_MM) do\n            local baseInchX = (MM_TO_INCH - 0.001) * base.x\n            local baseInchZ = (MM_TO_INCH - 0.001) * base.z\n            if modelSizeX > baseInchX and modelSizeZ > baseInchZ then\n                local distSum = (modelSizeX - baseInchX) + (modelSizeZ - baseInchZ)\n                if distSum < closestSum then\n                    closestSum = distSum\n                    chosenBase = base\n                    chosenBaseIdx = k\n                end\n            end\n        end\n\n        if chosenBase == nil then\n            chosenBase = { x=modelSizeX/2, z=modelSizeZ/2}\n        else\n            chosenBase = {\n                x = (chosenBase.x * MM_TO_INCH)/2,\n                z = (chosenBase.z * MM_TO_INCH)/2\n            }\n        end\n\n        model.setTable(\"chosenBase\", { baseIdx=chosenBaseIdx, base=chosenBase })\n\n        return chosenBase\n    end\nend\n\n\nfunction changeMeasurementCircle(change, target, presetBase)\n    local measuringRings = target.getTable(\"ym-measuring-circles\")\n    local currentColor = target.getVar(\"currentHighlightColor\")\n    local currentColorRadius\n\n    if measuringRings == nil then\n        measuringRings = {}\n        currentColorRadius = 0\n    else\n        for idx=#measuringRings,1,-1 do\n            if (measuringRings[idx].name == currentColor) or (measuringRings[idx].name == nil and currentColor == nil) then\n                currentColorRadius = measuringRings[idx].radius\n                table.remove(measuringRings, idx)\n            elseif measuringRings[idx].name == \"base\" then\n                table.remove(measuringRings, idx)\n            end\n        end\n\n        if currentColorRadius == nil then currentColorRadius = 0 end\n    end\n\n    local newRadius = math.max(currentColorRadius + change, 0)\n\n    if newRadius == 0 then\n\n    else\n\n        local isRectangular = target.hasTag(\"rectangularMeasuring\")\n        local measuring = {\n            name = currentColor,\n            color = currentColor == nil and {1,0,1} or Color.fromString(currentColor),\n            radius = newRadius,\n            thickness = 0.1 * 1/(target.getScale().x),\n            rotation  = {270,0,0}--isRectangular and {0,0,0} or {270,0,0}\n        }\n        local base = {\n            name=\"base\",\n            color = currentColor == nil and {1,0,1} or Color.fromString(currentColor),\n            thickness = 0.1 * 1/(target.getScale().x),\n            rotation  = {270,0,0}--isRectangular and {0,0,0} or {270,0,0}\n        }\n        local measuringPoints,basePoints\n\n        if isRectangular then\n            local modelBounds = target.getBoundsNormalized()\n\n            if newRadius > 0 then\n                measuringPoints = getRectangleVectorPoints(newRadius, modelBounds.size.x/2, modelBounds.size.z/2, target)\n                basePoints = getRectangleVectorPoints(0, modelBounds.size.x/2, modelBounds.size.z/2, target)\n            end\n        else\n            local baseRadiuses = (presetBase == nil) and determineBaseInInches(target) or presetBase\n\n            if newRadius > 0 then\n                measuringPoints = getCircleVectorPoints(newRadius, baseRadiuses.x, baseRadiuses.z, target)\n                basePoints = getCircleVectorPoints(0, baseRadiuses.x, baseRadiuses.z, target)\n            end\n        end\n\n        measuring.points = measuringPoints\n        base.points = basePoints\n\n        table.insert(measuringRings, measuring)\n        table.insert(measuringRings, base)\n\n        broadcastToAll(\"Measuring \"..tostring(newRadius)..\"\\\"\")\n    end\n\n    target.setVectorLines(measuringRings)\n\n    target.setTable(\"ym-measuring-circles\", measuringRings)\nend\n\n\nfunction getCircleVectorPoints(radius, baseX, baseZ, obj)\n    local result = {}\n    local scaleFactor = 1/obj.getScale().x\n    local rotationDegrees =  obj.getRotation().y\n    local steps = 64\n    local degrees,sin,cos,toRads = 360/steps, math.sin, math.cos, math.rad\n\n    for i = 0,steps do\n        table.insert(result,{\n            x = cos(toRads(degrees*i))*((radius+baseX)*scaleFactor),\n            z = MEASURING_RING_Y_OFFSET,\n            y = sin(toRads(degrees*i))*((radius+baseZ)*scaleFactor)\n        })\n    end\n\n    return result\nend\n\n\nfunction getRectangleVectorPoints(radius, sizeX, sizeZ, obj)\n    local result = {}\n    local scaleFactor = 1/obj.getScale().x\n\n    sizeX = sizeX*scaleFactor\n    sizeZ = sizeZ*scaleFactor\n    radius = radius*scaleFactor\n\n    local steps = 65\n    local degrees,sin,cos,toRads = 360/(steps-1), math.sin, math.cos, math.rad\n    local xOffset,zOffset = sizeX,sizeZ\n    -- compensate for ignoring vertical line\n    table.insert(result,{\n        x = (cos(toRads(degrees*0))*radius)+sizeX-0.001,\n        y = (sin(toRads(degrees*0))*radius)+sizeZ,\n        z = MEASURING_RING_Y_OFFSET\n    })\n\n    for i = 1,steps-1 do\n        if i == 16 then\n            table.insert(result,{ x= sizeX, y=(radius+sizeZ), z=MEASURING_RING_Y_OFFSET })\n            table.insert(result,{ x=-sizeX, y=(radius+sizeZ), z=MEASURING_RING_Y_OFFSET })\n            xOffset = -sizeX\n        elseif i == 33 then\n            table.insert(result,{ x=-radius-sizeX,       y= sizeZ, z=MEASURING_RING_Y_OFFSET })\n            table.insert(result,{ x=-radius-sizeX-0.001, y=-sizeZ, z=MEASURING_RING_Y_OFFSET })\n            table.insert(result,{ x=-radius-sizeX,       y=-sizeZ, z=MEASURING_RING_Y_OFFSET })\n            zOffset = -sizeZ\n        elseif i == 49 then\n            table.insert(result,{ x=-sizeX, y=-radius-sizeZ, z=MEASURING_RING_Y_OFFSET })\n            table.insert(result,{ x= sizeX, y=-radius-sizeZ, z=MEASURING_RING_Y_OFFSET })\n            xOffset = sizeX\n        elseif i == 65 then\n            table.insert(result,{ x=radius+sizeX,       y=-sizeZ, z=MEASURING_RING_Y_OFFSET })\n            table.insert(result,{ x=radius+sizeX-0.001, y= sizeZ, z=MEASURING_RING_Y_OFFSET })\n        else\n            table.insert(result,{\n                x = (cos(toRads(degrees*i))*radius)+xOffset,\n                y = (sin(toRads(degrees*i))*radius)+zOffset,\n                z = MEASURING_RING_Y_OFFSET\n            })\n        end\n    end\n    -- compensate for ignoring vertical line\n    table.insert(result,{\n        x = (cos(toRads(degrees*0))*radius)+sizeX-0.001,\n        y = (sin(toRads(degrees*0))*radius)+sizeZ,\n        z = MEASURING_RING_Y_OFFSET\n    })\n\n    return result\nend\n\n\n\n\n\n-- this needs to be defined after all scripting functions\nscriptingFunctions = {\n\t--[[1]]  function (playerColor) showCard('dataCard', playerColor) end,\n\t--[[2]]  function (playerColor, target) changeModelWoundCount(-1, target) end,\n\t--[[3]]  function (playerColor, target) changeModelWoundCount(1, target) end,\n\t--[[4]]  function (playerColor, target) changeMeasurementCircle(1, target) end,\n\t--[[5]]  function (playerColor, target) changeMeasurementCircle(-1, target) end,\n\t--[[6]]  function (playerColor, target) assignBase(-1, target) end,\n\t--[[7]]  function (playerColor, target) assignBase(1, target) end,\n\t--[[8]]  toggleRectangularMeasuring,\n\tnone,\n\tnone\n}"
+}

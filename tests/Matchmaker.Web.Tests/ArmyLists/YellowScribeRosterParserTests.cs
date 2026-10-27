@@ -65,6 +65,18 @@ public class YellowScribeRosterParserTests
         Assert.Contains(new Ability("Living Fortress", "Attacks targeting this unit have -1 AP."), Custodes.Units[0].Abilities);
     }
 
+    [Fact]
+    public void Each_unit_shows_one_line_per_distinct_profile()
+    {
+        // Liste réelle (Custodes, 2026-10-27) où les profils apparaissaient en double.
+        var roster = YellowScribeRosterParser.Parse(File.ReadAllText(Path.Combine("Samples", "yellowscribe-ae55b833.json")));
+
+        var wardens = roster.Units.Single(u => u.Name == "Custodian Wardens");
+        Assert.Equal(["Custodian Warden"], wardens.DistinctProfiles.Select(p => p.Name));
+        Assert.All(roster.Units.Where(u => u.Name == "Prosecutor Squad"),
+            prosecutors => Assert.Equal(["Prosecutor"], prosecutors.DistinctProfiles.Select(p => p.Name)));
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("not json")]

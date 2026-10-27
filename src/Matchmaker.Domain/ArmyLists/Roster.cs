@@ -20,7 +20,19 @@ public sealed record RosterUnit(
     IReadOnlyList<ModelProfile> Profiles,
     IReadOnlyList<ModelGroup> Models,
     IReadOnlyList<Weapon> Weapons,
-    IReadOnlyList<Ability> Abilities);
+    IReadOnlyList<Ability> Abilities)
+{
+    /// <summary>
+    /// Un profil par jeu de caractéristiques. YellowScribe envoie souvent un profil au nom de l'unité en plus de
+    /// celui de la figurine, avec les mêmes caractéristiques : on garde le nom de la figurine.
+    /// </summary>
+    public IReadOnlyList<ModelProfile> DistinctProfiles =>
+    [
+        .. Profiles
+            .GroupBy(p => (p.M, p.T, p.Sv, p.W, p.Ld, p.Oc, p.InvulnerableSave))
+            .Select(same => same.FirstOrDefault(p => Models.Any(m => m.Name == p.Name)) ?? same.First()),
+    ];
+}
 
 public sealed record ModelProfile(string Name, string M, string T, string Sv, string W, string Ld, string Oc, string? InvulnerableSave);
 

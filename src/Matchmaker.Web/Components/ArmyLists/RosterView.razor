@@ -9,7 +9,7 @@
             <table>
                 <thead><tr><th>Profil</th><th>M</th><th>E</th><th>Sv</th><th>PV</th><th>Cd</th><th>CO</th><th>Invu</th></tr></thead>
                 <tbody>
-                    @foreach (var profile in unit.Profiles)
+                    @foreach (var profile in unit.DistinctProfiles)
                     {
                         <tr>
                             <td>@profile.Name</td><td>@profile.M</td><td>@profile.T</td><td>@profile.Sv</td>
