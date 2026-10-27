@@ -54,6 +54,9 @@ public sealed class ArmyList
 
     public bool IsOwnedBy(PlayerId player) => Owner == player;
 
+    /// <summary>Fige la liste telle qu'elle est jouée dans ce match.</summary>
+    public ArchivedArmyList ArchiveFor(Guid matchId, DateTimeOffset now) => new(matchId, this, now);
+
     private static string ValidName(string name)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
