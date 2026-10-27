@@ -202,6 +202,34 @@ public class MatchTests
         }
 
         [Fact]
+        public void The_declared_result_is_visible_to_the_opponent_before_confirmation()
+        {
+            var match = Declared(aliceVp: 85, bobVp: 70);
+
+            Assert.Equal(Alice.Player, match.Declarer);
+            Assert.Equal(85, match.VictoryPointsOf(Alice.Player));
+            Assert.Equal(70, match.VictoryPointsOf(Bob.Player));
+        }
+
+        [Fact]
+        public void A_disputed_result_stays_readable()
+        {
+            var match = Declared(aliceVp: 85, bobVp: 70);
+            match.DisputeResult(Bob.Player);
+
+            Assert.Equal(70, match.VictoryPointsOf(Bob.Player));
+        }
+
+        [Fact]
+        public void Victory_points_are_unknown_before_the_declaration()
+        {
+            var match = Accepted();
+
+            Assert.Null(match.Declarer);
+            Assert.Throws<InvalidOperationException>(() => match.VictoryPointsOf(Alice.Player));
+        }
+
+        [Fact]
         public void The_score_is_unknown_until_the_result_is_confirmed()
         {
             Assert.Throws<InvalidOperationException>(() => Declared().ScoreOf(Alice.Player));

@@ -12,9 +12,13 @@ public sealed class Match
 {
     public static readonly TimeSpan AcceptanceDelay = TimeSpan.FromMinutes(5);
 
-    private readonly HashSet<PlayerId> _accepted = [];
-    private readonly Dictionary<PlayerId, int> _victoryPoints = [];
-    private PlayerId? _declarer;
+    // Un champ par camp (First / Second) : état simple à enregistrer en base.
+    private bool _firstAccepted;
+    private bool _secondAccepted;
+    private int? _firstVictoryPoints;
+    private int? _secondVictoryPoints;
+    private int? _firstRatingChange;
+    private int? _secondRatingChange;
 
     private Match(QueueTicket first, QueueTicket second, DateTimeOffset proposedAt)
     {
@@ -23,30 +27,39 @@ public sealed class Match
         ProposedAt = proposedAt;
     }
 
+    // Pour EF Core, qui renseigne les propriétés lui-même.
+    private Match()
+    {
+        First = null!;
+        Second = null!;
+    }
+
     public Guid Id { get; } = Guid.NewGuid();
     public QueueTicket First { get; }
     public QueueTicket Second { get; }
     public DateTimeOffset ProposedAt { get; }
     public MatchStatus Status { get; private set; } = MatchStatus.Proposed;
+    public PlayerId? Declarer { get; private set; }
 
     public DateTimeOffset AcceptanceDeadline => ProposedAt + AcceptanceDelay;
     public bool AffectsRating => First.Ranked && Status == MatchStatus.Completed;
 
     public static Match Propose(QueueTicket first, QueueTicket second, DateTimeOffset now) => new(first, second, now);
 
-    public QueueTicket OpponentOf(PlayerId player) => TicketOf(player) == First ? Second : First;
+    public QueueTicket OpponentOf(PlayerId player) => IsFirst(player) ? Second : First;
 
-    public bool HasAccepted(PlayerId player) => _accepted.Contains(player);
+    public bool HasAccepted(PlayerId player) => IsFirst(player) ? _firstAccepted : _secondAccepted;
 
     public void Accept(PlayerId player, DateTimeOffset now)
     {
-        EnsureParticipant(player);
         EnsureStatus(MatchStatus.Proposed);
         if (now > AcceptanceDeadline)
             throw new InvalidOperationException("Le délai d'acceptation est dépassé.");
 
-        _accepted.Add(player);
-        if (_accepted.Count == 2)
+        if (IsFirst(player)) _firstAccepted = true;
+        else _secondAccepted = true;
+
+        if (_firstAccepted && _secondAccepted)
             Status = MatchStatus.Accepted;
     }
 
@@ -78,9 +91,10 @@ public sealed class Match
         ArgumentOutOfRangeException.ThrowIfNegative(declarerVp);
         ArgumentOutOfRangeException.ThrowIfNegative(opponentVp);
 
-        _declarer = declarer;
-        _victoryPoints[declarer] = declarerVp;
-        _victoryPoints[OpponentOf(declarer).Player] = opponentVp;
+        Declarer = declarer;
+        (_firstVictoryPoints, _secondVictoryPoints) = IsFirst(declarer)
+            ? (declarerVp, opponentVp)
+            : (opponentVp, declarerVp);
         Status = MatchStatus.ResultDeclared;
     }
 
@@ -96,32 +110,50 @@ public sealed class Match
         Status = MatchStatus.Abandoned;
     }
 
+    /// <summary>Points de victoire déclarés pour ce joueur (résultat déclaré, confirmé ou contesté).</summary>
     public int VictoryPointsOf(PlayerId player)
+    {
+        var victoryPoints = IsFirst(player) ? _firstVictoryPoints : _secondVictoryPoints;
+        return victoryPoints ?? throw new InvalidOperationException("Aucun résultat n'a encore été déclaré.");
+    }
+
+    /// <summary>Score WTC du joueur, une fois le résultat confirmé.</summary>
+    public WtcScore ScoreOf(PlayerId player)
     {
         EnsureParticipant(player);
         EnsureStatus(MatchStatus.Completed);
-        return _victoryPoints[player];
+        return WtcScore.FromVictoryPoints(VictoryPointsOf(player), VictoryPointsOf(OpponentOf(player).Player));
     }
 
-    public WtcScore ScoreOf(PlayerId player) =>
-        WtcScore.FromVictoryPoints(VictoryPointsOf(player), VictoryPointsOf(OpponentOf(player).Player));
+    /// <summary>Variation d'Elo du joueur, une fois appliquée (null sinon).</summary>
+    public int? RatingChangeOf(PlayerId player) => IsFirst(player) ? _firstRatingChange : _secondRatingChange;
+
+    public bool RatingApplied => _firstRatingChange is not null;
+
+    internal void RecordRatingChange(PlayerId player, int change)
+    {
+        if (IsFirst(player)) _firstRatingChange = change;
+        else _secondRatingChange = change;
+    }
 
     private void RespondToResult(PlayerId player, MatchStatus outcome)
     {
         EnsureParticipant(player);
         EnsureStatus(MatchStatus.ResultDeclared);
-        if (player == _declarer)
+        if (player == Declarer)
             throw new InvalidOperationException("Seul l'adversaire du déclarant peut répondre au résultat.");
 
         Status = outcome;
     }
 
-    private QueueTicket TicketOf(PlayerId player) =>
-        player == First.Player ? First
-        : player == Second.Player ? Second
-        : throw new InvalidOperationException($"Le joueur {player.SteamId} ne participe pas à ce match.");
+    private bool IsFirst(PlayerId player)
+    {
+        if (player == First.Player) return true;
+        if (player == Second.Player) return false;
+        throw new InvalidOperationException($"Le joueur {player.SteamId} ne participe pas à ce match.");
+    }
 
-    private void EnsureParticipant(PlayerId player) => TicketOf(player);
+    private void EnsureParticipant(PlayerId player) => IsFirst(player);
 
     private void EnsureStatus(params MatchStatus[] allowed)
     {

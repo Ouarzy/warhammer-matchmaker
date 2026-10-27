@@ -52,6 +52,38 @@ public class MatchRatingTests
     }
 
     [Fact]
+    public void The_match_keeps_the_rating_change_of_each_player()
+    {
+        var match = Played(aliceVp: 100, bobVp: 40);
+        Assert.Null(match.RatingChangeOf(_alice.Id));
+
+        MatchRating.Apply(match, _alice, _bob);
+
+        Assert.Equal(20, match.RatingChangeOf(_alice.Id));
+        Assert.Equal(-20, match.RatingChangeOf(_bob.Id));
+    }
+
+    [Fact]
+    public void A_match_cannot_change_ratings_twice()
+    {
+        var match = Played(aliceVp: 100, bobVp: 40);
+        MatchRating.Apply(match, _alice, _bob);
+
+        Assert.Throws<InvalidOperationException>(() => MatchRating.Apply(match, _alice, _bob));
+        Assert.Equal(1520, _alice.Rating.Value);
+    }
+
+    [Fact]
+    public void An_unranked_match_records_no_rating_change()
+    {
+        var match = Played(100, 40, ranked: false);
+
+        MatchRating.Apply(match, _alice, _bob);
+
+        Assert.Null(match.RatingChangeOf(_alice.Id));
+    }
+
+    [Fact]
     public void An_unranked_match_changes_nothing()
     {
         var applied = MatchRating.Apply(Played(100, 40, ranked: false), _alice, _bob);
