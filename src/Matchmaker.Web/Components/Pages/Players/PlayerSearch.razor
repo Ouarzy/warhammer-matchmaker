@@ -5,14 +5,14 @@
 
 <PageTitle>Joueurs</PageTitle>
 
-<h1>Joueurs</h1>
+<h1><Icon Name="players" /> Joueurs</h1>
 
 <form method="get" action="/players" class="inline-form" role="search">
     <label>
         Nom du joueur
         <input type="search" name="q" value="@Q" minlength="@PlayerAccounts.SearchMinLength" placeholder="Rechercher un joueur…" />
     </label>
-    <button type="submit" class="button">Rechercher</button>
+    <button type="submit" class="button"><Icon Name="search" /> Rechercher</button>
 </form>
 
 @if (!string.IsNullOrWhiteSpace(Q))

@@ -48,26 +48,22 @@ public sealed class PlayPageTests(PostgresFixture postgres) : IDisposable
     }
 
     [Fact]
-    public async Task The_matches_in_progress_are_listed_and_the_player_can_still_search()
+    public async Task With_games_in_progress_the_player_can_still_search_and_reach_them()
     {
         var me = MatchmakerWebFactory.NewPlayerId();
         var client = await _factory.CreateClientAsAsync(me);
-        foreach (var name in new[] { "Bob", "Carol" })
+        for (var i = 0; i < 2; i++)
         {
             var opponent = MatchmakerWebFactory.NewPlayerId();
-            await _factory.CreateClientAsAsync(opponent, name);
+            await _factory.CreateClientAsAsync(opponent);
             await _factory.StartMatchAsync(me, opponent);
         }
-        using (var scope = _factory.Services.CreateScope())
-            await scope.ServiceProvider.GetRequiredService<ArmyListService>()
-                .ImportAsync(me, Samples.CustodesCode, null, GameFormats.StrikeForce);
 
         var html = await client.GetStringAsync("/play");
 
-        Assert.Contains("Mes parties en cours (2/5)", html);
-        Assert.Contains("Bob", html);
-        Assert.Contains("Carol", html);
         Assert.Contains("Rechercher un adversaire", html);
+        Assert.Contains("2 parties en cours", html);
+        Assert.Contains("href=\"/matches\"", html);
     }
 
     [Fact]
@@ -84,7 +80,6 @@ public sealed class PlayPageTests(PostgresFixture postgres) : IDisposable
 
         var html = await client.GetStringAsync("/play");
 
-        Assert.Contains("Mes parties en cours (5/5)", html);
         Assert.DoesNotContain("Rechercher un adversaire", html);
         Assert.Contains("Terminez une partie", html);
     }

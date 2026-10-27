@@ -16,9 +16,17 @@
 @inject IJSRuntime JS
 @inject TimeProvider Time
 
-<PageTitle>Jouer</PageTitle>
+<PageTitle>Rechercher une partie</PageTitle>
 
-<h1>Jouer</h1>
+<h1><Icon Name="search" /> Rechercher une partie</h1>
+
+@if (_activeMatches.Count > 0)
+{
+    <p class="hint">
+        Vous avez @_activeMatches.Count @(_activeMatches.Count > 1 ? "parties" : "partie") en cours ·
+        <a href="/matches"><Icon Name="matches" /> Mes parties</a>
+    </p>
+}
 
 @if (_error is not null)
 {
@@ -33,7 +41,7 @@
 
     case PlayerActivity.Idle when _lists.Count == 0:
         <p>Importez d'abord une liste d'armée pour pouvoir chercher un adversaire.</p>
-        <p><a href="/lists" class="button">Importer une liste</a></p>
+        <p><a href="/lists" class="button"><Icon Name="import" /> Importer une liste</a></p>
         break;
 
     case PlayerActivity.Idle:
@@ -52,7 +60,7 @@
                 <input type="checkbox" @bind="_ranked" />
                 Partie classée <span class="hint">(compte pour l'Elo ; décochez pour une partie amicale)</span>
             </label>
-            <button class="button" @onclick="SearchAsync" disabled="@(!RendererInfo.IsInteractive)">Rechercher un adversaire</button>
+            <button class="button call-to-action" @onclick="SearchAsync" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="search" /> Rechercher un adversaire</button>
         </section>
         break;
 
@@ -61,7 +69,7 @@
             <h2>Recherche d'un adversaire…</h2>
             <p>@_status.Search!.Format.Name · @(_status.Search.Ranked ? "classée" : "amicale") · depuis @Elapsed(_status.Search.EnqueuedAt)</p>
             <p class="hint">Gardez cet onglet ouvert : vous serez prévenu dès qu'un adversaire est trouvé.</p>
-            <button class="button secondary" @onclick="CancelSearch">Annuler la recherche</button>
+            <button class="button secondary" @onclick="CancelSearch"><Icon Name="close" /> Annuler la recherche</button>
         </section>
         break;
 
@@ -77,8 +85,8 @@
             else
             {
                 <div class="actions">
-                    <button class="button" @onclick="Accept">Accepter</button>
-                    <button class="button secondary" @onclick="Decline">Refuser</button>
+                    <button class="button" @onclick="Accept"><Icon Name="check" /> Accepter</button>
+                    <button class="button secondary" @onclick="Decline"><Icon Name="close" /> Refuser</button>
                 </div>
             }
         </section>
@@ -91,36 +99,6 @@
         break;
 }
 
-@if (_activeMatches.Count > 0)
-{
-    <section>
-        <h2>Mes parties en cours (@_activeMatches.Count/@MatchService.MaxActiveMatches)</h2>
-        <ul class="active-matches">
-            @foreach (var match in _activeMatches)
-            {
-                var opponent = match.OpponentOf(_me);
-                var (label, highlight) = StateOf(match);
-                <li class="card @(highlight ? "to-do" : null)">
-                    <div>
-                        <strong>@(_names.GetValueOrDefault(opponent.Player)?.DisplayName ?? opponent.Player.SteamId)</strong>
-                        <span class="hint">· @opponent.Format.Name · @(opponent.Ranked ? "classée" : "amicale") · depuis le @match.ProposedAt.ToString("dd/MM")</span>
-                        <p>@label</p>
-                    </div>
-                    <a class="button @(highlight ? null : "secondary")" href="/matches/@match.Id">Ouvrir</a>
-                </li>
-            }
-        </ul>
-    </section>
-}
-
-@if (_lastMatch is not null)
-{
-    <section>
-        <h2>Dernière partie terminée</h2>
-        <MatchSummaryLine Match="_lastMatch" Me="_me" OpponentName="@_names.GetValueOrDefault(_lastMatch.OpponentOf(_me).Player)?.DisplayName" />
-        <p><a href="/profile">Voir mon historique</a></p>
-    </section>
-}
 
 @code {
     [CascadingParameter] private Task<AuthenticationState> AuthenticationState { get; set; } = default!;
@@ -128,8 +106,6 @@
     private PlayerId _me;
     private PlayerStatus _status = PlayerStatus.Idle;
     private IReadOnlyList<Match> _activeMatches = [];
-    private Match? _lastMatch;
-    private IReadOnlyDictionary<PlayerId, Player> _names = new Dictionary<PlayerId, Player>();
     private IReadOnlyList<ArmyList> _lists = [];
     private Guid _selectedListId;
     private bool _ranked = true;
@@ -217,14 +193,7 @@
 
     private async Task RefreshAsync()
     {
-        (_activeMatches, _lastMatch, _names) = await UsingServices(async services =>
-        {
-            var matches = services.GetRequiredService<MatchService>();
-            var active = await matches.ActiveMatchesOfAsync(_me);
-            var last = (await matches.HistoryOfAsync(_me, limit: 1)).FirstOrDefault();
-            var opponents = active.Append(last).OfType<Match>().Select(m => m.OpponentOf(_me).Player);
-            return (active, last, await services.GetRequiredService<PlayerAccounts>().FindManyAsync(opponents));
-        });
+        _activeMatches = await UsingServices(services => services.GetRequiredService<MatchService>().ActiveMatchesOfAsync(_me));
         _status = Coordinator.StatusOf(_me);
 
         var proposal = _status.Match;
@@ -235,13 +204,6 @@
             await services.GetRequiredService<ArmyListService>().FindAsync(proposal.Opponent.ArmyListId)));
         _proposalLoadedFor = proposal.Id;
     }
-
-    private (string Label, bool Highlight) StateOf(Match match) => match.Status switch
-    {
-        MatchStatus.ResultDeclared when match.Declarer == _me => ("Résultat déclaré, en attente de confirmation", false),
-        MatchStatus.ResultDeclared => ("Votre adversaire a déclaré le résultat : à confirmer", true),
-        _ => ("En cours", false),
-    };
 
     private async Task RequestNotificationPermissionAsync()
     {

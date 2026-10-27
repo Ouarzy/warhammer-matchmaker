@@ -10,10 +10,10 @@
 
 <PageTitle>Mes listes</PageTitle>
 
-<h1>Mes listes</h1>
+<h1><Icon Name="lists" /> Mes listes</h1>
 
 <section class="card">
-    <h2>Importer une liste</h2>
+    <h2><Icon Name="import" /> Importer une liste</h2>
     <p class="hint">
         Dans ForceOrg ou New Recruit, exportez votre liste vers YellowScribe puis collez le code obtenu.
         Un code n'est valable que 10 minutes : la liste est copiée ici au moment de l'import.
@@ -49,7 +49,7 @@
             <p class="error" role="alert">@_importError</p>
         }
 
-        <button type="submit" class="button">Importer</button>
+        <button type="submit" class="button"><Icon Name="import" /> Importer</button>
     </EditForm>
 </section>
 
@@ -68,7 +68,7 @@ else
                 @foreach (var list in _lists)
                 {
                     <tr>
-                        <td><a href="/lists/@list.Id">@list.Name</a></td>
+                        <td><a href="/lists/@list.Id"><Icon Name="eye" /> @list.Name</a></td>
                         <td>@(list.Faction ?? "Inconnue")</td>
                         <td>@list.Format.Name</td>
                         <td>@list.Roster.Units.Count</td>

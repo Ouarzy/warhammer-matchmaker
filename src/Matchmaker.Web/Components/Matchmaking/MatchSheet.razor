@@ -47,7 +47,7 @@
                 Liste :
                 @if (list is not null)
                 {
-                    <a href="/archived-lists/@list.Id">@list.Name</a>
+                    <a href="/archived-lists/@list.Id"><Icon Name="eye" /> @list.Name</a>
                     <span class="hint">· @(list.Faction ?? "Faction inconnue")</span>
                 }
                 else

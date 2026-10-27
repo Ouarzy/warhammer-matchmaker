@@ -25,13 +25,13 @@
                     Nom
                     <InputText @bind-Value="Rename!.Name" maxlength="@ArmyList.NameMaxLength" />
                 </label>
-                <button type="submit" class="button">Renommer</button>
+                <button type="submit" class="button secondary"><Icon Name="edit" /> Renommer</button>
                 <ValidationMessage For="() => Rename.Name" class="error" />
             </EditForm>
 
             <form method="post" @formname="delete" @onsubmit="DeleteAsync">
                 <AntiforgeryToken />
-                <button type="submit" class="button danger" onclick="return confirm('Supprimer définitivement cette liste ?')">Supprimer</button>
+                <button type="submit" class="button danger" onclick="return confirm('Supprimer définitivement cette liste ?')"><Icon Name="trash" /> Supprimer</button>
             </form>
         </section>
     }

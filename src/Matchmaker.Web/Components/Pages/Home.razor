@@ -1,16 +1,35 @@
 ﻿@page "/"
+@inject NavigationManager Navigation
 
 <PageTitle>Warhammer Matchmaker</PageTitle>
 
-<h1>Trouvez un adversaire à votre niveau</h1>
+<section class="hero">
+    <h1>Trouvez un adversaire à votre niveau</h1>
+    <p>Matchmaking automatique pour Warhammer 40 000 sur Tabletop Simulator, avec classement Elo.</p>
+    <p><a href="/login" class="button call-to-action"><Icon Name="login" /> Se connecter avec Steam</a></p>
+</section>
 
-<p>Matchmaking automatique pour Warhammer 40 000 sur Tabletop Simulator, avec classement Elo.</p>
+<section class="features">
+    <div class="card">
+        <h2><Icon Name="import" /> Importez vos listes</h2>
+        <p>Collez le code YellowScribe de votre liste ForceOrg : elle est copiée sur le site.</p>
+    </div>
+    <div class="card">
+        <h2><Icon Name="search" /> Trouvez un adversaire</h2>
+        <p>Partie classée ou amicale, au format de votre choix : vous êtes prévenu dès qu'un adversaire est trouvé.</p>
+    </div>
+    <div class="card">
+        <h2><Icon Name="trophy" /> Grimpez au classement</h2>
+        <p>Score WTC sur 20 et Elo inspiré des échecs. <a href="/ranking">Voir le classement</a></p>
+    </div>
+</section>
 
-<AuthorizeView>
-    <Authorized>
-        <p><a href="/play" class="button">Trouver un adversaire</a></p>
-    </Authorized>
-    <NotAuthorized>
-        <p><a href="/login" class="button">Se connecter avec Steam</a></p>
-    </NotAuthorized>
-</AuthorizeView>
+@code {
+    [CascadingParameter] private Task<AuthenticationState> AuthenticationState { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if ((await AuthenticationState).User.Identity?.IsAuthenticated == true)
+            Navigation.NavigateTo("/profile");
+    }
+}

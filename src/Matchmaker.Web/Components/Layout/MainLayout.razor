@@ -1,30 +1,43 @@
 ﻿@inherits LayoutComponentBase
 
 <header class="topbar">
-    <a href="/" class="brand">Warhammer Matchmaker</a>
-    <a href="/ranking">Classement</a>
-    <a href="/players">Joueurs</a>
+    <a href="/" class="brand"><Icon Name="swords" /> Warhammer Matchmaker</a>
     <AuthorizeView>
-        <Authorized>
-            <nav>
-                <a href="/play">Jouer</a>
-                <a href="/lists">Mes listes</a>
-                <a href="/profile">@context.User.Identity?.Name</a>
-                <form method="post" action="/logout">
-                    <AntiforgeryToken />
-                    <button type="submit" class="link">Se déconnecter</button>
-                </form>
-            </nav>
-        </Authorized>
         <NotAuthorized>
-            <a href="/login" class="button">Se connecter avec Steam</a>
+            <nav class="public-links">
+                <NavLink href="/ranking"><Icon Name="trophy" /> Classement</NavLink>
+                <NavLink href="/players"><Icon Name="players" /> Joueurs</NavLink>
+                <a href="/login" class="button"><Icon Name="login" /> Se connecter avec Steam</a>
+            </nav>
         </NotAuthorized>
     </AuthorizeView>
 </header>
 
-<main>
-    @Body
-</main>
+<AuthorizeView>
+    <Authorized>
+        <div class="shell">
+            <nav class="sidebar" aria-label="Menu principal">
+                <p class="sidebar-user"><Icon Name="account" /> @context.User.Identity?.Name</p>
+                <NavLink href="/profile"><Icon Name="account" /> Mon compte</NavLink>
+                <NavLink href="/play" class="primary"><Icon Name="search" /> Rechercher une partie</NavLink>
+                <NavLink href="/matches" Match="NavLinkMatch.All"><Icon Name="matches" /> Mes parties</NavLink>
+                <NavLink href="/lists" Match="NavLinkMatch.All"><Icon Name="lists" /> Mes listes</NavLink>
+                <hr />
+                <NavLink href="/ranking"><Icon Name="trophy" /> Classement</NavLink>
+                <NavLink href="/players" Match="NavLinkMatch.All"><Icon Name="players" /> Joueurs</NavLink>
+                <hr />
+                <form method="post" action="/logout">
+                    <AntiforgeryToken />
+                    <button type="submit" class="sidebar-link"><Icon Name="logout" /> Se déconnecter</button>
+                </form>
+            </nav>
+            <main>@Body</main>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <main>@Body</main>
+    </NotAuthorized>
+</AuthorizeView>
 
 <div id="blazor-error-ui" data-nosnippet>
     Une erreur inattendue est survenue.

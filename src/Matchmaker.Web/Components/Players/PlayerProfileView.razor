@@ -13,24 +13,30 @@
 {
     <PageTitle>@_player.DisplayName</PageTitle>
 
-    <section class="profile">
+    <section class="profile card">
         @if (_player.AvatarUrl is not null)
         {
             <img src="@_player.AvatarUrl" alt="" width="96" height="96" />
         }
-        <div>
+        <div class="profile-identity">
             <h1>@_player.DisplayName</h1>
-            <p>Elo : <strong>@_player.Rating.Value</strong></p>
-            <p>Parties classées : @_player.RankedGamesPlayed</p>
-            <p>
+            <div class="stats">
+                <p class="stat"><span class="stat-label">Elo</span> <strong>@_player.Rating.Value</strong></p>
+                <p class="stat"><span class="stat-label">Parties classées</span> <strong>@_player.RankedGamesPlayed</strong></p>
+            </div>
+            <p class="hint">
                 Steam ID : <code>@_player.Id.SteamId</code>
-                · <a href="https://steamcommunity.com/profiles/@_player.Id.SteamId" target="_blank" rel="noopener">Profil Steam</a>
+                · <a href="https://steamcommunity.com/profiles/@_player.Id.SteamId" target="_blank" rel="noopener"><Icon Name="external" /> Profil Steam</a>
             </p>
         </div>
+        @if (Actions is not null)
+        {
+            <div class="profile-actions">@Actions</div>
+        }
     </section>
 
     <section>
-        <h2>Listes</h2>
+        <h2><Icon Name="lists" /> Listes</h2>
         @if (_lists.Count == 0)
         {
             <p class="hint">Aucune liste importée.</p>
@@ -41,7 +47,7 @@
                 @foreach (var list in _lists)
                 {
                     <li>
-                        <a href="/lists/@list.Id">@list.Name</a>
+                        <a href="/lists/@list.Id"><Icon Name="eye" /> @list.Name</a>
                         <span class="hint">· @(list.Faction ?? "Faction inconnue") · @list.Format.Name</span>
                     </li>
                 }
@@ -50,7 +56,7 @@
     </section>
 
     <section>
-        <h2>Historique <span class="hint">(@_history.Total @(_history.Total > 1 ? "parties" : "partie"))</span></h2>
+        <h2><Icon Name="matches" /> Historique <span class="hint">(@_history.Total @(_history.Total > 1 ? "parties" : "partie"))</span></h2>
         @if (_history.Total == 0)
         {
             <p>Aucun match terminé pour l'instant.</p>
@@ -68,12 +74,12 @@
                 <nav class="pagination" aria-label="Pages de l'historique">
                     @if (_history.Number > 1)
                     {
-                        <a href="@PageUrl(_history.Number - 1)">← Plus récentes</a>
+                        <a href="@PageUrl(_history.Number - 1)"><Icon Name="back" /> Plus récentes</a>
                     }
                     <span>Page @_history.Number / @_history.PageCount</span>
                     @if (_history.Number < _history.PageCount)
                     {
-                        <a href="@PageUrl(_history.Number + 1)">Plus anciennes →</a>
+                        <a href="@PageUrl(_history.Number + 1)">Plus anciennes <Icon Name="chevron" /></a>
                     }
                 </nav>
             }
@@ -86,6 +92,8 @@
     [Parameter] public int Page { get; set; } = 1;
     /// <summary>Adresse de la page, à laquelle on ajoute ?page=N.</summary>
     [Parameter, EditorRequired] public string BaseUrl { get; set; } = "";
+    /// <summary>Boutons affichés dans l'en-tête du profil (ex. « Rechercher une partie » sur son propre compte).</summary>
+    [Parameter] public RenderFragment? Actions { get; set; }
 
     private Player? _player;
     private IReadOnlyList<ArmyList> _lists = [];

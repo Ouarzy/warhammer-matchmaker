@@ -5,7 +5,11 @@
 
 @if (_me is { } me)
 {
-    <PlayerProfileView PlayerId="me" Page="Page ?? 1" BaseUrl="/profile" />
+    <PlayerProfileView PlayerId="me" Page="Page ?? 1" BaseUrl="/profile">
+        <Actions>
+            <a href="/play" class="button call-to-action"><Icon Name="search" /> Rechercher une partie</a>
+        </Actions>
+    </PlayerProfileView>
 }
 
 @code {

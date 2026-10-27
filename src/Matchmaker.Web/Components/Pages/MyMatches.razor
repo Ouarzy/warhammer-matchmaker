@@ -1,0 +1,98 @@
+@page "/matches"
+@attribute [Authorize]
+@using Matchmaker.Domain.Matches
+@using Matchmaker.Domain.Players
+@using Matchmaker.Web.Accounts
+@using Matchmaker.Web.Matches
+@inject MatchService Matches
+@inject PlayerAccounts Accounts
+
+<PageTitle>Mes parties</PageTitle>
+
+<h1><Icon Name="matches" /> Mes parties</h1>
+
+<section>
+    <h2>Parties en cours (@_inProgress.Count/@MatchService.MaxActiveMatches)</h2>
+    @if (_inProgress.Count == 0)
+    {
+        <div class="empty card">
+            <p>Aucune partie en cours.</p>
+            <a href="/play" class="button"><Icon Name="search" /> Rechercher une partie</a>
+        </div>
+    }
+    else
+    {
+        <ul class="active-matches">
+            @foreach (var match in _inProgress)
+            {
+                var opponent = match.OpponentOf(_me);
+                var (label, toDo) = StateOf(match);
+                <li>
+                    <a class="card @(toDo ? "to-do" : null)" href="/matches/@match.Id">
+                        <span class="active-match-info">
+                            <strong>@(_names.GetValueOrDefault(opponent.Player)?.DisplayName ?? opponent.Player.SteamId)</strong>
+                            <span class="hint">@opponent.Format.Name · @(opponent.Ranked ? "classée" : "amicale") · depuis le @match.ProposedAt.ToString("dd/MM")</span>
+                            <span class="state"><Icon Name="@(toDo ? "flag" : "clock")" /> @label</span>
+                        </span>
+                        <Icon Name="chevron" Class="trailing" />
+                    </a>
+                </li>
+            }
+        </ul>
+    }
+</section>
+
+<section>
+    <h2>Parties terminées <span class="hint">(@_finished.Total)</span></h2>
+    @if (_finished.Total == 0)
+    {
+        <p class="hint">Aucune partie terminée pour l'instant.</p>
+    }
+    else
+    {
+        @foreach (var match in _finished.Items)
+        {
+            <MatchSummaryLine Match="match" Me="_me" OpponentName="@_names.GetValueOrDefault(match.OpponentOf(_me).Player)?.DisplayName" />
+        }
+
+        @if (_finished.PageCount > 1)
+        {
+            <nav class="pagination" aria-label="Pages des parties terminées">
+                @if (_finished.Number > 1)
+                {
+                    <a href="/matches?page=@(_finished.Number - 1)"><Icon Name="back" /> Plus récentes</a>
+                }
+                <span>Page @_finished.Number / @_finished.PageCount</span>
+                @if (_finished.Number < _finished.PageCount)
+                {
+                    <a href="/matches?page=@(_finished.Number + 1)">Plus anciennes <Icon Name="chevron" /></a>
+                }
+            </nav>
+        }
+    }
+</section>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> AuthenticationState { get; set; } = default!;
+    [SupplyParameterFromQuery] public int? Page { get; set; }
+
+    private PlayerId _me;
+    private IReadOnlyList<Match> _inProgress = [];
+    private Page<Match> _finished = new([], 1, 20, 0);
+    private IReadOnlyDictionary<PlayerId, Player> _names = new Dictionary<PlayerId, Player>();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _me = SteamAuthentication.PlayerIdOf((await AuthenticationState).User);
+        _inProgress = await Matches.ActiveMatchesOfAsync(_me);
+        _finished = await Matches.HistoryPageAsync(_me, Page ?? 1);
+        _names = await Accounts.FindManyAsync(_inProgress.Concat(_finished.Items).Select(m => m.OpponentOf(_me).Player));
+    }
+
+    private (string Label, bool ToDo) StateOf(Match match) => match.Status switch
+    {
+        MatchStatus.ResultDeclared when match.Declarer == _me => ("Résultat déclaré, en attente de confirmation", false),
+        MatchStatus.ResultDeclared => ("Votre adversaire a déclaré le résultat : à confirmer", true),
+        _ => ("En cours", false),
+    };
+}

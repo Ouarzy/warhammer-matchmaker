@@ -66,7 +66,7 @@ public sealed class PlayerPagesTests(PostgresFixture postgres) : IDisposable
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains($"Custodes{_suffix}", html);
-        Assert.Contains("Elo : <strong>1520</strong>", html);
+        Assert.Contains("<span class=\"stat-label\">Elo</span> <strong>1520</strong>", html);
         Assert.Contains($"Liste tournoi {_suffix}", html);
         Assert.Contains("Victoire écrasante", html);
         Assert.Contains($"contre Rival{_suffix}", html);
