@@ -15,6 +15,11 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
   </ItemGroup>
 
+  <!-- Script de l'objet TTS, maintenu et testé dans tts/ : le site le sert dans un fichier « Saved Object ». -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\tts\WarhammerMatchmaker.lua" LogicalName="WarhammerMatchmaker.lua" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>

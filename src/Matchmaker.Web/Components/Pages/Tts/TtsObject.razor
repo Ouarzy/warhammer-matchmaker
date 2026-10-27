@@ -1,0 +1,41 @@
+@page "/tts"
+
+<PageTitle>Objet TTS</PageTitle>
+
+<article class="legal">
+    <h1><Icon Name="send" /> Envoyer le score depuis Tabletop Simulator</h1>
+    <p>
+        L'objet « Warhammer Matchmaker » se pose sur votre table LCT. Il lit la feuille de score et l'envoie au site :
+        plus de points de victoire à recopier, et vos parties en cours sont suivies en direct sur leur page.
+        <strong>Fonction en bêta</strong> : la saisie du score sur le site reste disponible.
+    </p>
+    <p><a class="button" href="/tts/WarhammerMatchmaker.json" download><Icon Name="import" /> Télécharger l'objet</a></p>
+
+    <h2>Installation (une seule fois)</h2>
+    <ol>
+        <li>
+            Copiez le fichier téléchargé dans le dossier des objets sauvegardés de TTS :
+            <ul>
+                <li>Windows : <code>Documents\My Games\Tabletop Simulator\Saves\Saved Objects</code></li>
+                <li>macOS : <code>~/Library/Tabletop Simulator/Saves/Saved Objects</code></li>
+                <li>Linux : <code>~/.local/share/Tabletop Simulator/Saves/Saved Objects</code></li>
+            </ul>
+        </li>
+        <li>Dans TTS, chargez votre table LCT, puis <strong>Objects → Saved Objects</strong> et posez « Warhammer Matchmaker » sur la table.</li>
+    </ol>
+
+    <h2>À chaque partie</h2>
+    <ol>
+        <li>Asseyez-vous en <strong>Rouge</strong> et en <strong>Bleu</strong> : l'objet reconnaît les joueurs par leur compte Steam.</li>
+        <li>Collez dans l'objet le <strong>code de la partie</strong>, affiché aux deux joueurs sur la page de la partie.</li>
+        <li>Jouez : toutes les 30 secondes, si le score a changé, il est mis à jour en direct sur la page de la partie (rien n'est déclaré).</li>
+        <li>À la fin, cliquez sur <strong>Envoyer le score final</strong> : le score est déclaré au nom de l'hôte de la partie, et votre adversaire le confirme sur le site, comme pour une saisie à la main.</li>
+    </ol>
+
+    <h2>Bon à savoir</h2>
+    <ul>
+        <li>L'envoi part de l'ordinateur de l'hôte de la partie TTS, qui doit être l'un des deux joueurs.</li>
+        <li>Le code est secret : il empêche quiconque d'envoyer un faux score à votre place. Ne le donnez qu'à votre adversaire.</li>
+        <li>L'objet a besoin de la feuille de score du mod LCT. Si LCT change, la saisie à la main reste possible.</li>
+    </ul>
+</article>

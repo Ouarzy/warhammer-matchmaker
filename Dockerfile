@@ -9,6 +9,7 @@ COPY src/Matchmaker.Web/Matchmaker.Web.csproj src/Matchmaker.Web/
 RUN dotnet restore src/Matchmaker.Web/Matchmaker.Web.csproj
 
 COPY src/ src/
+COPY tts/WarhammerMatchmaker.lua tts/
 # Sans --no-restore : la publication ajoute ses propres paquets (dont les scripts Blazor de _framework),
 # absents d'une restauration faite seule.
 RUN dotnet publish src/Matchmaker.Web/Matchmaker.Web.csproj -c Release -o /app

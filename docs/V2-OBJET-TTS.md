@@ -128,9 +128,23 @@ end
 | 4 | Objet TTS (Saved Object), page d'aide « Envoyer le score depuis TTS » sur le site | ~1 h |
 | 5 | Essai réel dans TTS avec une partie LCT (toi + un second joueur), puis publication Workshop | à faire ensemble |
 
-## Questions ouvertes
+## Décisions (27 octobre 2026)
 
-1. Code de partie collé dans l'objet (recommandé) ou recherche de la partie par les deux Steam ID (plus simple pour les joueurs, mais falsifiable) ?
-2. Bouton manuel (recommandé) ou envoi automatique au clic « Game Over » de LCT ?
-3. Un score envoyé depuis TTS doit-il toujours être confirmé par l'adversaire (comme aujourd'hui), ou être confirmé d'office puisqu'il vient de la feuille de score ?
-4. Veux-tu contacter le mainteneur de LCT (Las0mbra) pour officialiser `getMatchSummary` ou intégrer le bouton dans le mod ?
+1. **Code de partie collé dans l'objet**, gardé avec la sauvegarde de la table.
+2. **Les deux envois** : LCT n'affiche plus de bouton « Game Over » (défini dans son code mais jamais créé), il n'y a donc pas de fin de partie à détecter. À la place :
+   - **score en direct** : toutes les 30 s, si le score a changé, `POST /api/tts/live` ; la page de la partie l'affiche à tous, sans rien déclarer (gardé en mémoire seulement) ;
+   - **bouton « Envoyer le score final »** : `POST /api/tts/results`, déclaration au nom de l'hôte.
+3. **Confirmation par l'adversaire** maintenue, comme une saisie à la main.
+4. Contact avec le mainteneur de LCT : plus tard.
+
+## Mise en œuvre
+
+| Élément | Où |
+|---|---|
+| Script de l'objet | `tts/WarhammerMatchmaker.lua`, tests avec de faux TTS/LCT dans `tts/tests/` (`lua tts/tests/WarhammerMatchmaker_test.lua`, lancé en CI avec Lua 5.2) |
+| Fichier « Saved Object » | généré par le site à partir du script embarqué : `/tts/WarhammerMatchmaker.json` |
+| Page d'installation | `/tts` |
+| API | `src/Matchmaker.Web/Tts/` : réponses JSON `{ message }` ; 400 envoi invalide, 403 joueurs ou hôte étrangers à la partie, 404 code inconnu, 409 résultat déjà déclaré, 429 plus de `Tts:RequestsPerMinute` envois par minute et par adresse IP |
+| Interrupteur | `Tts:Enabled` (activé) : affiche le code de partie aux joueurs |
+
+Reste l'étape 5 : essai réel dans TTS, puis éventuellement publication sur le Workshop.

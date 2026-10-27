@@ -22,6 +22,8 @@ jobs:
           dotnet-version: 10.0.x
       # Les tests web démarrent un PostgreSQL jetable avec Docker (Testcontainers), disponible sur ce runner.
       - run: dotnet test
+      # Script de l'objet TTS : testé avec Lua 5.2, la version que TTS (MoonSharp) imite.
+      - run: sudo apt-get install -y --no-install-recommends lua5.2 && lua5.2 tts/tests/WarhammerMatchmaker_test.lua
 
   image:
     needs: test
