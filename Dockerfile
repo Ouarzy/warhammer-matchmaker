@@ -12,6 +12,8 @@ COPY src/ src/
 RUN dotnet publish src/Matchmaker.Web/Matchmaker.Web.csproj -c Release -o /app --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
+# Rattache l'image publiée sur ghcr.io au dépôt GitHub (même visibilité, lien vers le code).
+LABEL org.opencontainers.image.source="https://github.com/Ouarzy/warhammer-matchmaker"
 WORKDIR /app
 
 # Dossier des clés de connexion, monté sur un volume en production.
