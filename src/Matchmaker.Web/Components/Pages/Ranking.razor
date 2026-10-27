@@ -1,0 +1,61 @@
+@page "/ranking"
+@using Matchmaker.Domain.Players
+@using Matchmaker.Web.Accounts
+@using Matchmaker.Web.Matches
+@inject MatchService Matches
+
+<PageTitle>Classement</PageTitle>
+
+<h1>Classement</h1>
+
+<p class="hint">Classement Elo des joueurs ayant disputé au moins une partie classée.</p>
+
+@if (_ranking.Count == 0)
+{
+    <p>Aucune partie classée n'a encore été jouée. Soyez le premier !</p>
+}
+else
+{
+    <div class="table-scroll">
+        <table class="ranking">
+            <thead>
+                <tr><th>#</th><th>Joueur</th><th>Elo</th><th>Parties classées</th></tr>
+            </thead>
+            <tbody>
+                @for (var i = 0; i < _ranking.Count; i++)
+                {
+                    var player = _ranking[i];
+                    <tr class="@(player.Id == _me ? "me" : null)">
+                        <td>@(i + 1)</td>
+                        <td>
+                            <span class="player">
+                                @if (player.AvatarUrl is not null)
+                                {
+                                    <img src="@player.AvatarUrl" alt="" width="24" height="24" />
+                                }
+                                @player.DisplayName
+                            </span>
+                        </td>
+                        <td><strong>@player.Rating.Value</strong></td>
+                        <td>@player.RankedGamesPlayed</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> AuthenticationState { get; set; } = default!;
+
+    private IReadOnlyList<Player> _ranking = [];
+    private PlayerId? _me;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _ranking = await Matches.RankingAsync();
+        var user = (await AuthenticationState).User;
+        if (user.Identity?.IsAuthenticated == true)
+            _me = SteamAuthentication.PlayerIdOf(user);
+    }
+}

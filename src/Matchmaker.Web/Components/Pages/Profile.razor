@@ -1,8 +1,11 @@
 @page "/profile"
 @attribute [Authorize]
+@using Matchmaker.Domain.Matches
 @using Matchmaker.Domain.Players
 @using Matchmaker.Web.Accounts
+@using Matchmaker.Web.Matches
 @inject PlayerAccounts Accounts
+@inject MatchService Matches
 
 <PageTitle>Mon profil</PageTitle>
 
@@ -20,16 +23,36 @@
             <p>Steam ID : <code>@_player.Id.SteamId</code></p>
         </div>
     </section>
+
+    <section>
+        <h2>Historique</h2>
+        @if (_history.Count == 0)
+        {
+            <p>Aucun match terminé pour l'instant. <a href="/play">Trouver un adversaire</a></p>
+        }
+        else
+        {
+            @foreach (var match in _history)
+            {
+                var opponent = match.OpponentOf(_player.Id).Player;
+                <MatchSummaryLine Match="match" Me="_player.Id" OpponentName="@(_opponents.GetValueOrDefault(opponent)?.DisplayName)" />
+            }
+        }
+    </section>
 }
 
 @code {
     [CascadingParameter] private Task<AuthenticationState> AuthenticationState { get; set; } = default!;
 
     private Player? _player;
+    private IReadOnlyList<Match> _history = [];
+    private IReadOnlyDictionary<PlayerId, Player> _opponents = new Dictionary<PlayerId, Player>();
 
     protected override async Task OnInitializedAsync()
     {
-        var user = (await AuthenticationState).User;
-        _player = await Accounts.FindAsync(SteamAuthentication.PlayerIdOf(user));
+        var me = SteamAuthentication.PlayerIdOf((await AuthenticationState).User);
+        _player = await Accounts.FindAsync(me);
+        _history = await Matches.HistoryOfAsync(me);
+        _opponents = await Accounts.FindManyAsync(_history.Select(m => m.OpponentOf(me).Player));
     }
 }

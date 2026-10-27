@@ -27,7 +27,7 @@ Spécifications : voir [PROJECT.md](PROJECT.md).
 | 3 | **Squelette web** : solution .NET, connexion Steam, profil joueur, BDD | On peut se connecter | Fait |
 | 4 | **Listes d'armée** : import (selon étude), plusieurs listes par joueur, format associé | On gère ses listes | Fait |
 | 5 | **File d'attente temps réel** : recherche, notification SignalR, écran d'acceptation, Steam ID + liste adverse | **Premier MVP jouable** | Fait |
-| 6 | **Résultats & classement** : déclaration, confirmation, historique, classement Elo | MVP complet | À faire |
+| 6 | **Résultats & classement** : déclaration, confirmation, historique, classement Elo | MVP complet | Fait |
 | 7 | **V2** : objet TTS de remontée du score, parties planifiées, AOS… | Évolutions | À faire |
 
 ## Résultats de l'itération 0

@@ -151,3 +151,8 @@ dd { margin-left: 0; color: #c9c6c1; }
 .match-line { display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; margin: 0.4rem 0; }
 .gain { color: #5fd18a; font-weight: 600; }
 .loss { color: #ff7b7b; font-weight: 600; }
+
+.topbar > a:nth-child(2) { margin-right: auto; }
+.ranking .player { display: inline-flex; gap: 0.5rem; align-items: center; }
+.ranking .player img { border-radius: 0.25rem; }
+.ranking tr.me td { background: #2a2618; }
