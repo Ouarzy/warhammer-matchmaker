@@ -1,6 +1,6 @@
 @using Matchmaker.Domain.ArmyLists
+@using Matchmaker.Domain.Matchmaking
 @using Matchmaker.Domain.Players
-@using Matchmaker.Web.Matchmaking
 
 <div class="opponent">
     @if (Player?.AvatarUrl is not null)
@@ -8,12 +8,12 @@
         <img src="@Player.AvatarUrl" alt="" width="64" height="64" />
     }
     <div>
-        <p class="opponent-name">@(Player?.DisplayName ?? Match.Opponent.Player.SteamId)</p>
+        <p class="opponent-name">@(Player?.DisplayName ?? Ticket.Player.SteamId)</p>
         <p>
-            Elo @Match.Opponent.Rating.Value
+            Elo @(Player?.Rating.Value ?? Ticket.Rating.Value)
             · @(List?.Faction ?? "Faction inconnue")
-            · @Match.Opponent.Format.Name
-            · @(Match.Opponent.Ranked ? "classée" : "amicale")
+            · @Ticket.Format.Name
+            · @(Ticket.Ranked ? "classée" : "amicale")
         </p>
         @if (List is not null)
         {
@@ -23,7 +23,7 @@
 </div>
 
 @code {
-    [Parameter, EditorRequired] public MatchView Match { get; set; } = default!;
+    [Parameter, EditorRequired] public QueueTicket Ticket { get; set; } = default!;
     [Parameter] public Player? Player { get; set; }
     [Parameter] public ArmyList? List { get; set; }
 }

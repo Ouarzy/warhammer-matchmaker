@@ -1,4 +1,5 @@
 using Matchmaker.Domain.ArmyLists;
+using Matchmaker.Domain.Matches;
 using Matchmaker.Domain.Matchmaking;
 using Matchmaker.Domain.Players;
 using Matchmaker.Web.Matchmaking;
@@ -20,8 +21,9 @@ public class MatchmakingCoordinatorTests
 
     public MatchmakingCoordinatorTests()
     {
-        _coordinator = new MatchmakingCoordinator(_time);
-        _coordinator.PlayerChanged += _notified.Add;
+        var notifier = new PlayerNotifier();
+        notifier.PlayerChanged += _notified.Add;
+        _coordinator = new MatchmakingCoordinator(_time, notifier);
     }
 
     private static ArmyList ListOf(Player player, GameFormat? format = null) =>
@@ -117,15 +119,39 @@ public class MatchmakingCoordinatorTests
     }
 
     [Fact]
-    public void Once_both_accept_the_players_are_in_the_match()
+    public void Accepting_returns_the_match_once_both_players_accepted()
     {
         var matchId = ProposeAliceVersusBob();
 
+        Assert.Null(_coordinator.Accept(_alice.Id, matchId));
+        var accepted = _coordinator.Accept(_bob.Id, matchId);
+
+        Assert.Equal(matchId, accepted!.Id);
+        Assert.Equal(MatchStatus.Accepted, accepted.Status);
+        Assert.Equal(PlayerActivity.InMatch, _coordinator.StatusOf(_alice.Id).Activity);
+    }
+
+    [Fact]
+    public void Once_recorded_an_accepted_match_is_released_and_both_players_are_told()
+    {
+        var matchId = ProposeAliceVersusBob();
         _coordinator.Accept(_alice.Id, matchId);
         _coordinator.Accept(_bob.Id, matchId);
+        _notified.Clear();
 
-        Assert.Equal(PlayerActivity.InMatch, _coordinator.StatusOf(_alice.Id).Activity);
-        Assert.Equal(PlayerActivity.InMatch, _coordinator.StatusOf(_bob.Id).Activity);
+        _coordinator.Release(matchId);
+
+        Assert.Equal(PlayerActivity.Idle, _coordinator.StatusOf(_alice.Id).Activity);
+        Assert.Equal(PlayerActivity.Idle, _coordinator.StatusOf(_bob.Id).Activity);
+        Assert.Equal([_alice.Id, _bob.Id], _notified);
+    }
+
+    [Fact]
+    public void Only_an_accepted_match_can_be_released()
+    {
+        var matchId = ProposeAliceVersusBob();
+
+        Assert.Throws<InvalidOperationException>(() => _coordinator.Release(matchId));
     }
 
     [Fact]
@@ -172,19 +198,6 @@ public class MatchmakingCoordinatorTests
         _coordinator.ExpireOverdueMatches();
 
         Assert.Equal(PlayerActivity.MatchProposed, _coordinator.StatusOf(_alice.Id).Activity);
-    }
-
-    [Fact]
-    public void Abandoning_a_match_frees_both_players()
-    {
-        var matchId = ProposeAliceVersusBob();
-        _coordinator.Accept(_alice.Id, matchId);
-        _coordinator.Accept(_bob.Id, matchId);
-
-        _coordinator.Abandon(_bob.Id, matchId);
-
-        Assert.Equal(PlayerActivity.Idle, _coordinator.StatusOf(_alice.Id).Activity);
-        Assert.Equal(PlayerActivity.Idle, _coordinator.StatusOf(_bob.Id).Activity);
     }
 
     [Fact]

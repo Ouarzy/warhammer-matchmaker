@@ -1,0 +1,19 @@
+@using Matchmaker.Domain.Matches
+@using Matchmaker.Domain.Players
+@using Matchmaker.Domain.Results
+
+@{
+    var mine = Match.VictoryPointsOf(Me);
+    var theirs = Match.VictoryPointsOf(Match.OpponentOf(Me).Player);
+    var score = WtcScore.FromVictoryPoints(mine, theirs);
+}
+<p class="result-summary">
+    Vous <strong>@mine</strong> – <strong>@theirs</strong> votre adversaire
+    · score WTC @score.Points – @score.Opponent.Points
+    · <strong>@ResultLabels.Of(score.Category)</strong> pour vous
+</p>
+
+@code {
+    [Parameter, EditorRequired] public Match Match { get; set; } = default!;
+    [Parameter, EditorRequired] public PlayerId Me { get; set; }
+}

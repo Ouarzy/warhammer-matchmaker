@@ -1,0 +1,29 @@
+@using Matchmaker.Domain.Matches
+@using Matchmaker.Domain.Players
+
+@{
+    var opponent = Match.OpponentOf(Me);
+}
+<p class="match-line">
+    <span>@Match.ProposedAt.ToString("dd/MM/yyyy") · @Match.First.Format.Name · @(Match.First.Ranked ? "classée" : "amicale")</span>
+    <span>contre @(OpponentName ?? opponent.Player.SteamId)</span>
+    @if (Match.Status == MatchStatus.Completed)
+    {
+        var score = Match.ScoreOf(Me);
+        <span><strong>@ResultLabels.Of(score.Category)</strong> (@Match.VictoryPointsOf(Me) – @Match.VictoryPointsOf(opponent.Player), WTC @score.Points – @score.Opponent.Points)</span>
+        @if (Match.RatingChangeOf(Me) is { } change)
+        {
+            <span class="@(change >= 0 ? "gain" : "loss")">Elo @ResultLabels.Signed(change)</span>
+        }
+    }
+    else
+    {
+        <span class="hint">@ResultLabels.Of(Match.Status) · sans effet sur l'Elo</span>
+    }
+</p>
+
+@code {
+    [Parameter, EditorRequired] public Match Match { get; set; } = default!;
+    [Parameter, EditorRequired] public PlayerId Me { get; set; }
+    [Parameter] public string? OpponentName { get; set; }
+}

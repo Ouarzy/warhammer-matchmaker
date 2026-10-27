@@ -6,18 +6,17 @@ using Matchmaker.Domain.Players;
 namespace Matchmaker.Web.Matchmaking;
 
 /// <summary>
-/// File d'attente et matchs en cours, en mémoire (une seule instance du site).
-/// Sérialise les accès au domaine et signale chaque joueur dont la situation change.
+/// Recherche et propositions de match, en mémoire (une seule instance du site).
+/// Un match accepté par les deux joueurs est rendu à l'appelant pour être enregistré en base,
+/// puis libéré avec <see cref="Release"/>. Sérialise les accès au domaine et prévient chaque joueur
+/// dont la situation change.
 /// </summary>
-public sealed class MatchmakingCoordinator(TimeProvider time)
+public sealed class MatchmakingCoordinator(TimeProvider time, PlayerNotifier notifier)
 {
     private readonly Lock _gate = new();
     private readonly MatchmakingQueue _queue = new();
     private readonly Dictionary<PlayerId, QueueTicket> _searches = [];
     private readonly Dictionary<PlayerId, Match> _matches = [];
-
-    /// <summary>Levé hors verrou, pour chaque joueur dont la situation a changé.</summary>
-    public event Action<PlayerId>? PlayerChanged;
 
     public PlayerStatus StatusOf(PlayerId player)
     {
@@ -61,7 +60,8 @@ public sealed class MatchmakingCoordinator(TimeProvider time)
         Notify([player]);
     }
 
-    public void Accept(PlayerId player, Guid matchId)
+    /// <returns>Le match, une fois accepté par les deux joueurs : à enregistrer puis à libérer.</returns>
+    public Match? Accept(PlayerId player, Guid matchId)
     {
         Match match;
         lock (_gate)
@@ -70,6 +70,7 @@ public sealed class MatchmakingCoordinator(TimeProvider time)
             match.Accept(player, time.GetUtcNow());
         }
         Notify([match.First.Player, match.Second.Player]);
+        return match.Status == MatchStatus.Accepted ? match : null;
     }
 
     public void Decline(PlayerId player, Guid matchId)
@@ -86,13 +87,15 @@ public sealed class MatchmakingCoordinator(TimeProvider time)
         Notify(changed);
     }
 
-    public void Abandon(PlayerId player, Guid matchId)
+    /// <summary>Libère un match accepté, une fois enregistré en base.</summary>
+    public void Release(Guid matchId)
     {
         List<PlayerId> changed;
         lock (_gate)
         {
-            var match = MatchOf(player, matchId);
-            match.Abandon(player);
+            var match = _matches.Values.FirstOrDefault(m => m.Id == matchId);
+            if (match?.Status != MatchStatus.Accepted)
+                throw new InvalidOperationException("Seul un match accepté par les deux joueurs peut être libéré.");
             changed = Release(match);
         }
         Notify(changed);
@@ -163,9 +166,5 @@ public sealed class MatchmakingCoordinator(TimeProvider time)
             OpponentAccepted: match.HasAccepted(opponent.Player));
     }
 
-    private void Notify(IEnumerable<PlayerId> players)
-    {
-        foreach (var player in players.Distinct())
-            PlayerChanged?.Invoke(player);
-    }
+    private void Notify(IEnumerable<PlayerId> players) => notifier.Notify(players);
 }

@@ -142,3 +142,12 @@ dd { margin-left: 0; color: #c9c6c1; }
 .opponent p { margin: 0.2rem 0; }
 .opponent-name { font-size: 1.25rem; font-weight: 700; }
 .steps li { margin-block: 0.4rem; }
+
+.result-form { border-top: 1px solid #2c3038; margin-top: 1rem; padding-top: 0.5rem; }
+.vp-inputs { display: flex; flex-wrap: wrap; gap: 1rem; }
+.vp-inputs label { display: grid; gap: 0.25rem; }
+.vp-inputs input { width: 6rem; }
+.abandon { margin-top: 1rem; }
+.match-line { display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; margin: 0.4rem 0; }
+.gain { color: #5fd18a; font-weight: 600; }
+.loss { color: #ff7b7b; font-weight: 600; }
