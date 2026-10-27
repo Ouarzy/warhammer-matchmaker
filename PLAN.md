@@ -30,6 +30,7 @@ Spécifications : voir [PROJECT.md](PROJECT.md).
 | 6 | **Résultats & classement** : déclaration, confirmation, historique, classement Elo | MVP complet | Fait |
 | 6b | **Parties longues** : jusqu'à 5 parties en parallèle sans limite de durée, abandon = victoire 20-0 pour l'adversaire, confirmation automatique du résultat après 24 h sans réponse | Règles de jeu réelles | Fait |
 | 6c | **Préparation du déploiement** : image Docker, Docker Compose de production (site, PostgreSQL, Caddy HTTPS, sauvegardes), scripts, répétition générale en local | Prêt à déployer | Fait |
+| 6d | **Mise en ligne** : Gandi VPS Starter, image publiée par GitHub Actions sur ghcr.io, HTTPS Caddy, https://warhammer-matchmaker.com (connexion Steam validée en production le 2026-10-27) | Site public | Fait |
 | 7 | **V2** : objet TTS de remontée du score, parties planifiées, AOS… | Évolutions | À faire |
 
 ## Résultats de l'itération 0
