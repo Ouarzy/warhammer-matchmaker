@@ -1,3 +1,4 @@
+using Matchmaker.Domain.ArmyLists;
 using Matchmaker.Domain.Matches;
 using Matchmaker.Domain.Players;
 using Matchmaker.Domain.Ratings;
@@ -22,9 +23,24 @@ public sealed class MatchService(MatchmakerDbContext db, TimeProvider time)
         if (match.Status != MatchStatus.Accepted)
             throw new InvalidOperationException("Seul un match accepté par les deux joueurs peut commencer.");
 
+        // Les listes jouées sont figées avec le match, dans la même transaction.
+        var listIds = new[] { match.First.ArmyListId, match.Second.ArmyListId };
+        var lists = await db.ArmyLists.Where(l => listIds.Contains(l.Id)).ToListAsync(cancellationToken);
+        var now = time.GetUtcNow();
+        db.ArchivedArmyLists.AddRange(lists.Select(list => list.ArchiveFor(match.Id, now)));
+
         db.Matches.Add(match);
         await db.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<ArchivedLists> ArchivedListsOfAsync(IEnumerable<Guid> matchIds, CancellationToken cancellationToken = default)
+    {
+        var ids = matchIds.Distinct().ToList();
+        return new ArchivedLists(await db.ArchivedArmyLists.Where(a => ids.Contains(a.MatchId)).ToListAsync(cancellationToken));
+    }
+
+    public async Task<ArchivedArmyList?> FindArchivedListAsync(Guid id, CancellationToken cancellationToken = default) =>
+        await db.ArchivedArmyLists.FindAsync([id], cancellationToken);
 
     /// <summary>Le match, s'il existe et si ce joueur y participe.</summary>
     public async Task<Match?> FindForAsync(PlayerId player, Guid matchId, CancellationToken cancellationToken = default)

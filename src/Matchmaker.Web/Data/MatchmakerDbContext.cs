@@ -15,6 +15,7 @@ public sealed class MatchmakerDbContext(DbContextOptions<MatchmakerDbContext> op
     public DbSet<Player> Players => Set<Player>();
     public DbSet<ArmyList> ArmyLists => Set<ArmyList>();
     public DbSet<Match> Matches => Set<Match>();
+    public DbSet<ArchivedArmyList> ArchivedArmyLists => Set<ArchivedArmyList>();
 
     private static readonly ValueConverter<PlayerId, string> PlayerIdConverter = new(id => id.SteamId, steamId => new PlayerId(steamId));
     private static readonly ValueConverter<EloRating, int> EloRatingConverter = new(rating => rating.Value, value => new EloRating(value));
@@ -52,18 +53,25 @@ public sealed class MatchmakerDbContext(DbContextOptions<MatchmakerDbContext> op
             list.HasOne<Player>().WithMany().HasForeignKey(l => l.Owner).OnDelete(DeleteBehavior.Cascade);
             list.HasIndex(l => l.Owner);
             list.Property(l => l.Name).HasColumnName("name").HasMaxLength(ArmyList.NameMaxLength);
-            list.ComplexProperty(l => l.Format, format =>
-            {
-                format.Property(f => f.Game).HasColumnName("game").HasConversion<string>().HasMaxLength(32);
-                format.Property(f => f.Name).HasColumnName("format").HasMaxLength(32);
-            });
-            list.Property(l => l.Roster)
-                .HasColumnName("roster")
-                .HasColumnType("jsonb")
-                .HasConversion(
-                    roster => JsonSerializer.Serialize(roster, RosterJson),
-                    json => JsonSerializer.Deserialize<Roster>(json, RosterJson)!);
+            list.ComplexProperty(l => l.Format, MapFormat);
+            MapRoster(list.Property(l => l.Roster));
             list.Property(l => l.ImportedAt).HasColumnName("imported_at");
+        });
+
+        // Copies figées des listes jouées : indépendantes des listes d'origine (pas de clé étrangère).
+        modelBuilder.Entity<ArchivedArmyList>(archive =>
+        {
+            archive.ToTable("archived_army_lists");
+            archive.HasKey(a => a.Id);
+            archive.Property(a => a.Id).HasColumnName("id").ValueGeneratedNever();
+            archive.Property(a => a.MatchId).HasColumnName("match_id");
+            archive.HasIndex(a => a.MatchId);
+            archive.Property(a => a.OriginalListId).HasColumnName("original_list_id");
+            archive.Property(a => a.Owner).HasColumnName("owner_steam_id").HasMaxLength(20).HasConversion(PlayerIdConverter);
+            archive.Property(a => a.Name).HasColumnName("name").HasMaxLength(ArmyList.NameMaxLength);
+            archive.ComplexProperty(a => a.Format, MapFormat);
+            MapRoster(archive.Property(a => a.Roster));
+            archive.Property(a => a.ArchivedAt).HasColumnName("archived_at");
         });
 
         modelBuilder.Entity<Match>(match =>
@@ -90,6 +98,20 @@ public sealed class MatchmakerDbContext(DbContextOptions<MatchmakerDbContext> op
             match.Property<uint>("RowVersion").IsRowVersion();
         });
     }
+
+    private static void MapFormat(ComplexPropertyBuilder<GameFormat> format)
+    {
+        format.Property(f => f.Game).HasColumnName("game").HasConversion<string>().HasMaxLength(32);
+        format.Property(f => f.Name).HasColumnName("format").HasMaxLength(32);
+    }
+
+    private static void MapRoster(PropertyBuilder<Roster> roster) =>
+        roster
+            .HasColumnName("roster")
+            .HasColumnType("jsonb")
+            .HasConversion(
+                value => JsonSerializer.Serialize(value, RosterJson),
+                json => JsonSerializer.Deserialize<Roster>(json, RosterJson)!);
 
     private static void MapTicket(ComplexPropertyBuilder<QueueTicket> ticket, string side)
     {

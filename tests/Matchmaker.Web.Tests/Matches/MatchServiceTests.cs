@@ -1,8 +1,10 @@
+using Matchmaker.Domain.ArmyLists;
 using Matchmaker.Domain.Matches;
 using Matchmaker.Domain.Matchmaking;
 using Matchmaker.Domain.Players;
 using Matchmaker.Domain.Ratings;
 using Matchmaker.Web.Accounts;
+using Matchmaker.Web.ArmyLists;
 using Matchmaker.Web.Data;
 using Matchmaker.Web.Matches;
 using Matchmaker.Web.Tests.Infrastructure;
@@ -111,6 +113,69 @@ public class MatchServiceTests(PostgresFixture postgres)
         await Service(db).AbandonAsync(alice, matches[0].Id);
 
         Assert.True(await Service(db).CanLookForAnotherOpponentAsync(alice));
+    }
+
+    private async Task<ArmyList> ListOf(PlayerId owner, string name)
+    {
+        await using var db = postgres.CreateDbContext();
+        return await new ArmyListService(db, new StubRosterProvider(), _time)
+            .ImportAsync(owner, Samples.CustodesCode, name, GameFormats.StrikeForce);
+    }
+
+    private static Match AcceptedMatchWith(ArmyList first, ArmyList second)
+    {
+        QueueTicket Ticket(ArmyList list) => new(list.Owner, list.Id, list.Format, true, EloRating.Initial, Noon);
+        var match = Match.Propose(Ticket(first), Ticket(second), Noon);
+        match.Accept(first.Owner, Noon);
+        match.Accept(second.Owner, Noon);
+        return match;
+    }
+
+    [Fact]
+    public async Task Starting_a_match_archives_the_lists_of_both_players()
+    {
+        var (alice, bob) = (await NewPlayer(), await NewPlayer());
+        var (aliceList, bobList) = (await ListOf(alice, "Custodes d'Alice"), await ListOf(bob, "Custodes de Bob"));
+        var match = AcceptedMatchWith(aliceList, bobList);
+        await using (var db = postgres.CreateDbContext())
+            await Service(db).StartAsync(match);
+
+        await using var reloaded = postgres.CreateDbContext();
+        var archives = await Service(reloaded).ArchivedListsOfAsync([match.Id]);
+
+        var aliceArchive = archives.For(match.Id, alice)!;
+        Assert.Equal("Custodes d'Alice", aliceArchive.Name);
+        Assert.Equal(aliceList.Id, aliceArchive.OriginalListId);
+        Assert.Equal(Samples.Custodes.Units.Count, aliceArchive.Roster.Units.Count);
+        Assert.Equal("Custodes de Bob", archives.For(match.Id, bob)!.Name);
+        Assert.Equal(aliceArchive.Id, (await Service(reloaded).FindArchivedListAsync(aliceArchive.Id))!.Id);
+    }
+
+    [Fact]
+    public async Task An_archived_list_survives_the_renaming_and_deletion_of_the_original()
+    {
+        var (alice, bob) = (await NewPlayer(), await NewPlayer());
+        var (aliceList, bobList) = (await ListOf(alice, "Avant"), await ListOf(bob, "Bob"));
+        var match = AcceptedMatchWith(aliceList, bobList);
+        await using (var db = postgres.CreateDbContext())
+        {
+            await Service(db).StartAsync(match);
+            var lists = new ArmyListService(db, new StubRosterProvider(), _time);
+            await lists.RenameAsync(alice, aliceList.Id, "Après");
+            await lists.DeleteAsync(alice, aliceList.Id);
+        }
+
+        await using var reloaded = postgres.CreateDbContext();
+        Assert.Equal("Avant", (await Service(reloaded).ArchivedListsOfAsync([match.Id])).For(match.Id, alice)!.Name);
+    }
+
+    [Fact]
+    public async Task A_match_whose_lists_no_longer_exist_starts_without_archive()
+    {
+        var (alice, bob, matchId) = await StartedMatch();
+
+        await using var db = postgres.CreateDbContext();
+        Assert.Null((await Service(db).ArchivedListsOfAsync([matchId])).For(matchId, alice));
     }
 
     [Fact]

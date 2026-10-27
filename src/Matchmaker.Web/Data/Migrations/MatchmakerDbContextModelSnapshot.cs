@@ -23,6 +23,65 @@ namespace Matchmaker.Web.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Matchmaker.Domain.ArmyLists.ArchivedArmyList", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("ArchivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("archived_at");
+
+                    b.Property<Guid>("MatchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("match_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("OriginalListId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("original_list_id");
+
+                    b.Property<string>("Owner")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("owner_steam_id");
+
+                    b.Property<string>("Roster")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("roster");
+
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Format", "Matchmaker.Domain.ArmyLists.ArchivedArmyList.Format#GameFormat", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<string>("Game")
+                                .IsRequired()
+                                .HasMaxLength(32)
+                                .HasColumnType("character varying(32)")
+                                .HasColumnName("game");
+
+                            b1.Property<string>("Name")
+                                .IsRequired()
+                                .HasMaxLength(32)
+                                .HasColumnType("character varying(32)")
+                                .HasColumnName("format");
+                        });
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MatchId");
+
+                    b.ToTable("archived_army_lists", (string)null);
+                });
+
             modelBuilder.Entity("Matchmaker.Domain.ArmyLists.ArmyList", b =>
                 {
                     b.Property<Guid>("Id")
