@@ -6,6 +6,7 @@ using Matchmaker.Web.ArmyLists;
 using Matchmaker.Web.ArmyLists.YellowScribe;
 using Matchmaker.Web.Components;
 using Matchmaker.Web.Data;
+using Matchmaker.Web.Matchmaking;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,6 +28,8 @@ builder.Services.AddHttpClient<IRosterProvider, YellowScribeClient>(http =>
     http.DefaultRequestHeaders.UserAgent.ParseAdd("WarhammerMatchmaker/1.0 (+https://warhammer-matchmaker.com)");
 });
 builder.Services.AddScoped<ArmyListService>();
+builder.Services.AddSingleton<MatchmakingCoordinator>();
+builder.Services.AddHostedService<MatchExpiryService>();
 builder.Services.AddSteamAuthentication(builder.Configuration);
 
 var app = builder.Build();
