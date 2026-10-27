@@ -1,10 +1,6 @@
 using System.Net;
-using Matchmaker.Domain.Matches;
 using Matchmaker.Domain.Matchmaking;
-using Matchmaker.Domain.Players;
-using Matchmaker.Domain.Ratings;
 using Matchmaker.Web.ArmyLists;
-using Matchmaker.Web.Matches;
 using Matchmaker.Web.Tests.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -51,47 +47,46 @@ public sealed class PlayPageTests(PostgresFixture postgres) : IDisposable
         Assert.Contains("Rechercher un adversaire", html);
     }
 
-    private async Task<(HttpClient Alice, HttpClient Bob, PlayerId AliceId, Guid MatchId)> MatchInProgress()
-    {
-        var (alice, bob) = (MatchmakerWebFactory.NewPlayerId(), MatchmakerWebFactory.NewPlayerId());
-        var aliceClient = await _factory.CreateClientAsAsync(alice, "Alice");
-        var bobClient = await _factory.CreateClientAsAsync(bob, "Bob");
-
-        var now = DateTimeOffset.UtcNow;
-        QueueTicket Ticket(PlayerId player) => new(player, Guid.NewGuid(), GameFormats.StrikeForce, true, EloRating.Initial, now);
-        var match = Match.Propose(Ticket(alice), Ticket(bob), now);
-        match.Accept(alice, now);
-        match.Accept(bob, now);
-        using var scope = _factory.Services.CreateScope();
-        await scope.ServiceProvider.GetRequiredService<MatchService>().StartAsync(match);
-        return (aliceClient, bobClient, alice, match.Id);
-    }
-
     [Fact]
-    public async Task During_a_match_the_players_can_declare_the_result()
+    public async Task The_matches_in_progress_are_listed_and_the_player_can_still_search()
     {
-        var (alice, _, _, _) = await MatchInProgress();
-
-        var html = await alice.GetStringAsync("/play");
-
-        Assert.Contains("Match accepté", html);
-        Assert.Contains("Bob", html);
-        Assert.Contains("Déclarer le résultat", html);
-        Assert.DoesNotContain("Rechercher un adversaire", html);
-    }
-
-    [Fact]
-    public async Task Once_declared_the_opponent_is_asked_to_confirm()
-    {
-        var (_, bob, alice, matchId) = await MatchInProgress();
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+        foreach (var name in new[] { "Bob", "Carol" })
+        {
+            var opponent = MatchmakerWebFactory.NewPlayerId();
+            await _factory.CreateClientAsAsync(opponent, name);
+            await _factory.StartMatchAsync(me, opponent);
+        }
         using (var scope = _factory.Services.CreateScope())
-            await scope.ServiceProvider.GetRequiredService<MatchService>().DeclareResultAsync(alice, matchId, 85, 70);
+            await scope.ServiceProvider.GetRequiredService<ArmyListService>()
+                .ImportAsync(me, Samples.CustodesCode, null, GameFormats.StrikeForce);
 
-        var html = await bob.GetStringAsync("/play");
+        var html = await client.GetStringAsync("/play");
 
-        Assert.Contains("Votre adversaire a déclaré le résultat", html);
-        Assert.Contains("Petite défaite", html);
-        Assert.Contains("Confirmer", html);
+        Assert.Contains("Mes parties en cours (2/5)", html);
+        Assert.Contains("Bob", html);
+        Assert.Contains("Carol", html);
+        Assert.Contains("Rechercher un adversaire", html);
+    }
+
+    [Fact]
+    public async Task With_5_matches_in_progress_the_player_cannot_search()
+    {
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+        for (var i = 0; i < 5; i++)
+        {
+            var opponent = MatchmakerWebFactory.NewPlayerId();
+            await _factory.CreateClientAsAsync(opponent);
+            await _factory.StartMatchAsync(me, opponent);
+        }
+
+        var html = await client.GetStringAsync("/play");
+
+        Assert.Contains("Mes parties en cours (5/5)", html);
+        Assert.DoesNotContain("Rechercher un adversaire", html);
+        Assert.Contains("Terminez une partie", html);
     }
 
     public void Dispose() => _factory.Dispose();

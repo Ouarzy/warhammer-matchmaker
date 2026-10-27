@@ -1,0 +1,193 @@
+@page "/matches/{Id:guid}"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@implements IDisposable
+@using Matchmaker.Domain.ArmyLists
+@using Matchmaker.Domain.Matches
+@using Matchmaker.Domain.Players
+@using Matchmaker.Domain.Results
+@using Matchmaker.Web.Accounts
+@using Matchmaker.Web.ArmyLists
+@using Matchmaker.Web.Matches
+@using Matchmaker.Web.Matchmaking
+@inject PlayerNotifier Notifier
+@inject IServiceScopeFactory ScopeFactory
+@inject NavigationManager Navigation
+@inject TimeProvider Time
+
+<PageTitle>Match</PageTitle>
+
+<p><a href="/play">← Mes parties</a></p>
+
+@if (_error is not null)
+{
+    <p class="error" role="alert">@_error</p>
+}
+
+@if (_match is not null)
+{
+    var opponent = _match.OpponentOf(_me);
+    <section class="card status @(_match.Status is MatchStatus.Accepted or MatchStatus.ResultDeclared ? "in-match" : null)">
+        @switch (_match.Status)
+        {
+            case MatchStatus.Accepted:
+                <h1>Partie en cours</h1>
+                <Opponent Ticket="opponent" Player="_opponent" List="_opponentList" />
+                <ol class="steps">
+                    <li>
+                        Ajoutez votre adversaire sur Steam :
+                        <code>@opponent.Player.SteamId</code>
+                        · <a href="steam://friends/add/@opponent.Player.SteamId">Ajouter en ami</a>
+                        · <a href="https://steamcommunity.com/profiles/@opponent.Player.SteamId" target="_blank" rel="noopener">Profil Steam</a>
+                    </li>
+                    <li>Lancez Tabletop Simulator avec le mod LCT et invitez-le. La partie peut se jouer en plusieurs fois.</li>
+                    <li>Consultez <a href="/lists/@opponent.ArmyListId" target="_blank">sa liste</a> avant de commencer.</li>
+                    <li>À la fin de la partie, l'un de vous déclare le score ci-dessous et l'autre le confirme.</li>
+                </ol>
+
+                <div class="result-form">
+                    <h2>Déclarer le résultat</h2>
+                    <div class="vp-inputs">
+                        <label>Mes points de victoire <input type="number" min="0" max="100" @bind="_myVictoryPoints" @bind:event="oninput" /></label>
+                        <label>Ses points de victoire <input type="number" min="0" max="100" @bind="_opponentVictoryPoints" @bind:event="oninput" /></label>
+                    </div>
+                    @if (_myVictoryPoints >= 0 && _opponentVictoryPoints >= 0)
+                    {
+                        var preview = WtcScore.FromVictoryPoints(_myVictoryPoints, _opponentVictoryPoints);
+                        <p>Score WTC : <strong>@preview.Points – @preview.Opponent.Points</strong> · @ResultLabels.Of(preview.Category)</p>
+                    }
+                    <button class="button" @onclick="DeclareResult" disabled="@(!RendererInfo.IsInteractive)">Déclarer le résultat</button>
+                </div>
+                break;
+
+            case MatchStatus.ResultDeclared when _match.Declarer == _me:
+                <h1>Résultat déclaré</h1>
+                <Opponent Ticket="opponent" Player="_opponent" List="_opponentList" />
+                <ResultSummary Match="_match" Me="_me" />
+                <p>En attente de la confirmation de votre adversaire.</p>
+                <p class="hint">Sans réponse de sa part, le résultat sera confirmé automatiquement dans @Remaining(_match.ResultConfirmationDeadline!.Value).</p>
+                break;
+
+            case MatchStatus.ResultDeclared:
+                <h1>Votre adversaire a déclaré le résultat</h1>
+                <Opponent Ticket="opponent" Player="_opponent" List="_opponentList" />
+                <ResultSummary Match="_match" Me="_me" />
+                <p>Ce score est-il exact ?</p>
+                <div class="actions">
+                    <button class="button" @onclick="ConfirmResult">Confirmer</button>
+                    <button class="button secondary" @onclick="DisputeResult">Contester</button>
+                </div>
+                <p class="hint">
+                    Sans réponse de votre part, ce résultat sera confirmé automatiquement dans @Remaining(_match.ResultConfirmationDeadline!.Value).
+                    Un résultat contesté ne compte pas pour l'Elo.
+                </p>
+                break;
+
+            default:
+                <h1>Partie terminée</h1>
+                <MatchSummaryLine Match="_match" Me="_me" OpponentName="@_opponent?.DisplayName" />
+                break;
+        }
+
+        @if (_match.Status is MatchStatus.Accepted or MatchStatus.ResultDeclared)
+        {
+            <div class="abandon">
+                @if (_confirmingAbandon)
+                {
+                    <p><strong>Abandonner donne la victoire 20-0 à @(_opponent?.DisplayName ?? "votre adversaire")@(_match.First.Ranked ? " et compte pour l'Elo" : "").</strong></p>
+                    <div class="actions">
+                        <button class="button danger" @onclick="Abandon">Confirmer l'abandon</button>
+                        <button class="button secondary" @onclick="() => _confirmingAbandon = false">Annuler</button>
+                    </div>
+                }
+                else
+                {
+                    <button class="button danger" @onclick="() => _confirmingAbandon = true" disabled="@(!RendererInfo.IsInteractive)">Abandonner la partie</button>
+                }
+            </div>
+        }
+    </section>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    [CascadingParameter] private Task<AuthenticationState> AuthenticationState { get; set; } = default!;
+
+    private PlayerId _me;
+    private Match? _match;
+    private Player? _opponent;
+    private ArmyList? _opponentList;
+    private int _myVictoryPoints;
+    private int _opponentVictoryPoints;
+    private bool _confirmingAbandon;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _me = SteamAuthentication.PlayerIdOf((await AuthenticationState).User);
+        await RefreshAsync();
+        if (_match is null)
+        {
+            Navigation.NotFound();
+            return;
+        }
+
+        var opponent = _match.OpponentOf(_me);
+        (_opponent, _opponentList) = await UsingServices(async services => (
+            await services.GetRequiredService<PlayerAccounts>().FindAsync(opponent.Player),
+            await services.GetRequiredService<ArmyListService>().FindAsync(opponent.ArmyListId)));
+
+        if (RendererInfo.IsInteractive)
+            Notifier.PlayerChanged += OnPlayerChanged;
+    }
+
+    private Task DeclareResult() => Update(matches => matches.DeclareResultAsync(_me, Id, _myVictoryPoints, _opponentVictoryPoints));
+    private Task ConfirmResult() => Update(matches => matches.ConfirmResultAsync(_me, Id));
+    private Task DisputeResult() => Update(matches => matches.DisputeResultAsync(_me, Id));
+    private Task Abandon() => Update(matches => matches.AbandonAsync(_me, Id));
+
+    private async Task Update(Func<MatchService, Task<Match>> change)
+    {
+        _error = null;
+        _confirmingAbandon = false;
+        try
+        {
+            var match = await UsingServices(services => change(services.GetRequiredService<MatchService>()));
+            Notifier.Notify([match.First.Player, match.Second.Player]);
+        }
+        catch (Exception e) when (e is InvalidOperationException or ArgumentException)
+        {
+            _error = e.Message;
+        }
+        await RefreshAsync();
+    }
+
+    private void OnPlayerChanged(PlayerId player)
+    {
+        if (player != _me) return;
+        _ = InvokeAsync(async () =>
+        {
+            await RefreshAsync();
+            StateHasChanged();
+        });
+    }
+
+    private async Task RefreshAsync() =>
+        _match = await UsingServices(services => services.GetRequiredService<MatchService>().FindForAsync(_me, Id));
+
+    // Composant interactif de longue durée : un scope (et donc un DbContext) par opération.
+    private async Task<T> UsingServices<T>(Func<IServiceProvider, Task<T>> work)
+    {
+        await using var scope = ScopeFactory.CreateAsyncScope();
+        return await work(scope.ServiceProvider);
+    }
+
+    private string Remaining(DateTimeOffset deadline)
+    {
+        var left = deadline - Time.GetUtcNow();
+        if (left <= TimeSpan.Zero) return "quelques instants";
+        return left.TotalHours >= 1 ? $"{(int)left.TotalHours} h {left.Minutes:00}" : $"{left.Minutes} min";
+    }
+
+    public void Dispose() => Notifier.PlayerChanged -= OnPlayerChanged;
+}

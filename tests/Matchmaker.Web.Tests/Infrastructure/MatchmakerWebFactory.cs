@@ -1,8 +1,12 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
+using Matchmaker.Domain.Matches;
+using Matchmaker.Domain.Matchmaking;
 using Matchmaker.Domain.Players;
+using Matchmaker.Domain.Ratings;
 using Matchmaker.Web.Accounts;
 using Matchmaker.Web.ArmyLists;
+using Matchmaker.Web.Matches;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -40,6 +44,26 @@ public sealed class MatchmakerWebFactory(PostgresFixture postgres) : WebApplicat
         var client = CreateAnonymousClient();
         client.DefaultRequestHeaders.Add(TestAuthentication.Header, player.SteamId);
         return client;
+    }
+
+    /// <summary>Enregistre un match accepté par les deux joueurs (déjà créés).</summary>
+    public async Task<Guid> StartMatchAsync(PlayerId first, PlayerId second, bool ranked = true)
+    {
+        var now = DateTimeOffset.UtcNow;
+        QueueTicket Ticket(PlayerId player) => new(player, Guid.NewGuid(), GameFormats.StrikeForce, ranked, EloRating.Initial, now);
+        var match = Match.Propose(Ticket(first), Ticket(second), now);
+        match.Accept(first, now);
+        match.Accept(second, now);
+
+        using var scope = Services.CreateScope();
+        await scope.ServiceProvider.GetRequiredService<MatchService>().StartAsync(match);
+        return match.Id;
+    }
+
+    public async Task WithMatchesAsync(Func<MatchService, Task> work)
+    {
+        using var scope = Services.CreateScope();
+        await work(scope.ServiceProvider.GetRequiredService<MatchService>());
     }
 
     public static PlayerId NewPlayerId() => new(Random.Shared.NextInt64(76561197960265728, 76561199999999999).ToString());

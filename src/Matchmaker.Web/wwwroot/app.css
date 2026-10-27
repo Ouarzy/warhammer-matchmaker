@@ -156,3 +156,8 @@ dd { margin-left: 0; color: #c9c6c1; }
 .ranking .player { display: inline-flex; gap: 0.5rem; align-items: center; }
 .ranking .player img { border-radius: 0.25rem; }
 .ranking tr.me td { background: #2a2618; }
+
+.active-matches { list-style: none; padding: 0; display: grid; gap: 0.5rem; }
+.active-matches li { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: space-between; align-items: center; margin: 0; }
+.active-matches li p { margin: 0.25rem 0 0; }
+.active-matches li.to-do { border-color: #d4a73c; }

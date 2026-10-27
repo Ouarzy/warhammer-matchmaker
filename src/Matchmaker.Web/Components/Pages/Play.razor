@@ -4,9 +4,7 @@
 @implements IAsyncDisposable
 @using Matchmaker.Domain.ArmyLists
 @using Matchmaker.Domain.Matches
-@using Matchmaker.Domain.Matchmaking
 @using Matchmaker.Domain.Players
-@using Matchmaker.Domain.Results
 @using Matchmaker.Web.Accounts
 @using Matchmaker.Web.ArmyLists
 @using Matchmaker.Web.Matches
@@ -14,6 +12,7 @@
 @inject MatchmakingCoordinator Coordinator
 @inject PlayerNotifier Notifier
 @inject IServiceScopeFactory ScopeFactory
+@inject NavigationManager Navigation
 @inject IJSRuntime JS
 @inject TimeProvider Time
 
@@ -26,138 +25,101 @@
     <p class="error" role="alert">@_error</p>
 }
 
-@if (_match is not null)
+@switch (_status.Activity)
 {
-    var opponent = _match.OpponentOf(_me);
-    <section class="card status in-match">
-        @switch (_match.Status)
-        {
-            case MatchStatus.Accepted:
-                <h2>Match accepté : à vous de jouer !</h2>
-                <Opponent Ticket="opponent" Player="_opponent" List="_opponentList" />
-                <ol class="steps">
-                    <li>
-                        Ajoutez votre adversaire sur Steam :
-                        <code>@opponent.Player.SteamId</code>
-                        · <a href="steam://friends/add/@opponent.Player.SteamId">Ajouter en ami</a>
-                        · <a href="https://steamcommunity.com/profiles/@opponent.Player.SteamId" target="_blank" rel="noopener">Profil Steam</a>
-                    </li>
-                    <li>Lancez Tabletop Simulator avec le mod LCT et invitez-le.</li>
-                    <li>Consultez <a href="/lists/@opponent.ArmyListId" target="_blank">sa liste</a> avant de commencer.</li>
-                    <li>À la fin de la partie, déclarez le score ci-dessous : votre adversaire le confirmera.</li>
-                </ol>
+    case PlayerActivity.Idle when _activeMatches.Count >= MatchService.MaxActiveMatches:
+        <p class="card">Vous avez déjà @MatchService.MaxActiveMatches parties en cours. Terminez une partie pour chercher un nouvel adversaire.</p>
+        break;
 
-                <div class="result-form">
-                    <h3>Déclarer le résultat</h3>
-                    <div class="vp-inputs">
-                        <label>Mes points de victoire <input type="number" min="0" max="100" @bind="_myVictoryPoints" @bind:event="oninput" /></label>
-                        <label>Ses points de victoire <input type="number" min="0" max="100" @bind="_opponentVictoryPoints" @bind:event="oninput" /></label>
-                    </div>
-                    @if (_myVictoryPoints >= 0 && _opponentVictoryPoints >= 0)
+    case PlayerActivity.Idle when _lists.Count == 0:
+        <p>Importez d'abord une liste d'armée pour pouvoir chercher un adversaire.</p>
+        <p><a href="/lists" class="button">Importer une liste</a></p>
+        break;
+
+    case PlayerActivity.Idle:
+        <section class="card form">
+            <h2>Nouvelle partie</h2>
+            <label>
+                Liste
+                <select @bind="_selectedListId">
+                    @foreach (var list in _lists)
                     {
-                        var preview = WtcScore.FromVictoryPoints(_myVictoryPoints, _opponentVictoryPoints);
-                        <p>Score WTC : <strong>@preview.Points – @preview.Opponent.Points</strong> · @ResultLabels.Of(preview.Category)</p>
+                        <option value="@list.Id">@list.Name (@list.Format.Name)</option>
                     }
-                    <button class="button" @onclick="DeclareResult" disabled="@(!RendererInfo.IsInteractive)">Déclarer le résultat</button>
-                </div>
-                break;
+                </select>
+            </label>
+            <label class="checkbox">
+                <input type="checkbox" @bind="_ranked" />
+                Partie classée <span class="hint">(compte pour l'Elo ; décochez pour une partie amicale)</span>
+            </label>
+            <button class="button" @onclick="SearchAsync" disabled="@(!RendererInfo.IsInteractive)">Rechercher un adversaire</button>
+        </section>
+        break;
 
-            case MatchStatus.ResultDeclared when _match.Declarer == _me:
-                <h2>Résultat déclaré</h2>
-                <Opponent Ticket="opponent" Player="_opponent" List="_opponentList" />
-                <ResultSummary Match="_match" Me="_me" />
-                <p>En attente de la confirmation de votre adversaire…</p>
-                break;
+    case PlayerActivity.Searching:
+        <section class="card status searching">
+            <h2>Recherche d'un adversaire…</h2>
+            <p>@_status.Search!.Format.Name · @(_status.Search.Ranked ? "classée" : "amicale") · depuis @Elapsed(_status.Search.EnqueuedAt)</p>
+            <p class="hint">Gardez cet onglet ouvert : vous serez prévenu dès qu'un adversaire est trouvé.</p>
+            <button class="button secondary" @onclick="CancelSearch">Annuler la recherche</button>
+        </section>
+        break;
 
-            case MatchStatus.ResultDeclared:
-                <h2>Votre adversaire a déclaré le résultat</h2>
-                <Opponent Ticket="opponent" Player="_opponent" List="_opponentList" />
-                <ResultSummary Match="_match" Me="_me" />
-                <p>Ce score est-il exact ?</p>
-                <div class="actions">
-                    <button class="button" @onclick="ConfirmResult">Confirmer</button>
-                    <button class="button secondary" @onclick="DisputeResult">Contester</button>
-                </div>
-                <p class="hint">Un résultat contesté ne compte pas pour l'Elo.</p>
-                break;
-        }
-
-        <button class="button danger abandon" @onclick="Abandon">Abandonner le match</button>
-    </section>
-}
-else
-{
-    @switch (_status.Activity)
-    {
-        case PlayerActivity.Idle:
-            @if (_lastMatch is not null)
+    case PlayerActivity.MatchProposed:
+        <section class="card status proposed">
+            <h2>Adversaire trouvé !</h2>
+            <Opponent Ticket="_status.Match!.Opponent" Player="_proposedOpponent" List="_proposedOpponentList" />
+            <p>Temps restant pour accepter : <strong>@Remaining(_status.Match.AcceptanceDeadline)</strong></p>
+            @if (_status.Match.IAccepted)
             {
-                <section class="card last-match">
-                    <h2>Dernier match</h2>
-                    <MatchSummaryLine Match="_lastMatch" Me="_me" OpponentName="@_lastOpponentName" />
-                    <p><a href="/profile">Voir mon historique</a></p>
-                </section>
-            }
-            @if (_lists.Count == 0)
-            {
-                <p>Importez d'abord une liste d'armée pour pouvoir chercher un adversaire.</p>
-                <p><a href="/lists" class="button">Importer une liste</a></p>
+                <p>Vous avez accepté. En attente de votre adversaire…</p>
             }
             else
             {
-                <section class="card form">
-                    <label>
-                        Liste
-                        <select @bind="_selectedListId">
-                            @foreach (var list in _lists)
-                            {
-                                <option value="@list.Id">@list.Name (@list.Format.Name)</option>
-                            }
-                        </select>
-                    </label>
-                    <label class="checkbox">
-                        <input type="checkbox" @bind="_ranked" />
-                        Partie classée <span class="hint">(compte pour l'Elo ; décochez pour une partie amicale)</span>
-                    </label>
-                    <button class="button" @onclick="SearchAsync" disabled="@(!RendererInfo.IsInteractive)">Rechercher un adversaire</button>
-                </section>
+                <div class="actions">
+                    <button class="button" @onclick="Accept">Accepter</button>
+                    <button class="button secondary" @onclick="Decline">Refuser</button>
+                </div>
             }
-            break;
+        </section>
+        break;
 
-        case PlayerActivity.Searching:
-            <section class="card status searching">
-                <h2>Recherche d'un adversaire…</h2>
-                <p>@_status.Search!.Format.Name · @(_status.Search.Ranked ? "classée" : "amicale") · depuis @Elapsed(_status.Search.EnqueuedAt)</p>
-                <p class="hint">Gardez cet onglet ouvert : vous serez prévenu dès qu'un adversaire est trouvé.</p>
-                <button class="button secondary" @onclick="CancelSearch">Annuler la recherche</button>
-            </section>
-            break;
+    case PlayerActivity.InMatch:
+        <section class="card status">
+            <p>Match accepté, préparation en cours…</p>
+        </section>
+        break;
+}
 
-        case PlayerActivity.MatchProposed:
-            <section class="card status proposed">
-                <h2>Adversaire trouvé !</h2>
-                <Opponent Ticket="_status.Match!.Opponent" Player="_opponent" List="_opponentList" />
-                <p>Temps restant pour accepter : <strong>@Remaining(_status.Match.AcceptanceDeadline)</strong></p>
-                @if (_status.Match.IAccepted)
-                {
-                    <p>Vous avez accepté. En attente de votre adversaire…</p>
-                }
-                else
-                {
-                    <div class="actions">
-                        <button class="button" @onclick="Accept">Accepter</button>
-                        <button class="button secondary" @onclick="Decline">Refuser</button>
+@if (_activeMatches.Count > 0)
+{
+    <section>
+        <h2>Mes parties en cours (@_activeMatches.Count/@MatchService.MaxActiveMatches)</h2>
+        <ul class="active-matches">
+            @foreach (var match in _activeMatches)
+            {
+                var opponent = match.OpponentOf(_me);
+                var (label, highlight) = StateOf(match);
+                <li class="card @(highlight ? "to-do" : null)">
+                    <div>
+                        <strong>@(_names.GetValueOrDefault(opponent.Player)?.DisplayName ?? opponent.Player.SteamId)</strong>
+                        <span class="hint">· @opponent.Format.Name · @(opponent.Ranked ? "classée" : "amicale") · depuis le @match.ProposedAt.ToString("dd/MM")</span>
+                        <p>@label</p>
                     </div>
-                }
-            </section>
-            break;
+                    <a class="button @(highlight ? null : "secondary")" href="/matches/@match.Id">Ouvrir</a>
+                </li>
+            }
+        </ul>
+    </section>
+}
 
-        case PlayerActivity.InMatch:
-            <section class="card status">
-                <p>Match accepté, préparation en cours…</p>
-            </section>
-            break;
-    }
+@if (_lastMatch is not null)
+{
+    <section>
+        <h2>Dernière partie terminée</h2>
+        <MatchSummaryLine Match="_lastMatch" Me="_me" OpponentName="@_names.GetValueOrDefault(_lastMatch.OpponentOf(_me).Player)?.DisplayName" />
+        <p><a href="/profile">Voir mon historique</a></p>
+    </section>
 }
 
 @code {
@@ -165,19 +127,17 @@ else
 
     private PlayerId _me;
     private PlayerStatus _status = PlayerStatus.Idle;
-    private Match? _match;
+    private IReadOnlyList<Match> _activeMatches = [];
     private Match? _lastMatch;
-    private string? _lastOpponentName;
+    private IReadOnlyDictionary<PlayerId, Player> _names = new Dictionary<PlayerId, Player>();
     private IReadOnlyList<ArmyList> _lists = [];
     private Guid _selectedListId;
     private bool _ranked = true;
-    private int _myVictoryPoints;
-    private int _opponentVictoryPoints;
     private string? _error;
 
-    private PlayerId? _opponentLoadedFor;
-    private Player? _opponent;
-    private ArmyList? _opponentList;
+    private Guid? _proposalLoadedFor;
+    private Player? _proposedOpponent;
+    private ArmyList? _proposedOpponentList;
 
     private Timer? _clock;
     private IJSObjectReference? _notifications;
@@ -199,11 +159,11 @@ else
     private Task SearchAsync() => RunAsync(async () =>
     {
         await RequestNotificationPermissionAsync();
-        var (player, list, active) = await UsingServices(async services => (
+        var (player, list, hasRoom) = await UsingServices(async services => (
             await services.GetRequiredService<PlayerAccounts>().FindAsync(_me),
             await services.GetRequiredService<ArmyListService>().FindAsync(_selectedListId),
             await services.GetRequiredService<MatchService>().CanLookForAnotherOpponentAsync(_me)));
-        if (!active)
+        if (!hasRoom)
             throw new InvalidOperationException($"Vous avez déjà {MatchService.MaxActiveMatches} parties en cours.");
         if (player is null || list is null)
             throw new InvalidOperationException("Liste introuvable.");
@@ -222,21 +182,7 @@ else
 
         await UsingServices(services => services.GetRequiredService<MatchService>().StartAsync(accepted));
         Coordinator.Release(accepted.Id);
-    });
-
-    private Task DeclareResult() => UpdateMatch(matches =>
-        matches.DeclareResultAsync(_me, _match!.Id, _myVictoryPoints, _opponentVictoryPoints));
-
-    private Task ConfirmResult() => UpdateMatch(matches => matches.ConfirmResultAsync(_me, _match!.Id));
-
-    private Task DisputeResult() => UpdateMatch(matches => matches.DisputeResultAsync(_me, _match!.Id));
-
-    private Task Abandon() => UpdateMatch(matches => matches.AbandonAsync(_me, _match!.Id));
-
-    private Task UpdateMatch(Func<MatchService, Task<Match>> change) => RunAsync(async () =>
-    {
-        var match = await UsingServices(services => change(services.GetRequiredService<MatchService>()));
-        Notifier.Notify([match.First.Player, match.Second.Player]);
+        Navigation.NavigateTo($"/matches/{accepted.Id}");
     });
 
     private Task RunAsync(Action action) => RunAsync(() => { action(); return Task.CompletedTask; });
@@ -271,23 +217,31 @@ else
 
     private async Task RefreshAsync()
     {
-        (_match, _lastMatch, _lastOpponentName) = await UsingServices(async services =>
+        (_activeMatches, _lastMatch, _names) = await UsingServices(async services =>
         {
             var matches = services.GetRequiredService<MatchService>();
+            var active = await matches.ActiveMatchesOfAsync(_me);
             var last = (await matches.HistoryOfAsync(_me, limit: 1)).FirstOrDefault();
-            var lastOpponent = last is null ? null : await services.GetRequiredService<PlayerAccounts>().FindAsync(last.OpponentOf(_me).Player);
-            return ((await matches.ActiveMatchesOfAsync(_me)).FirstOrDefault(), last, lastOpponent?.DisplayName);
+            var opponents = active.Append(last).OfType<Match>().Select(m => m.OpponentOf(_me).Player);
+            return (active, last, await services.GetRequiredService<PlayerAccounts>().FindManyAsync(opponents));
         });
         _status = Coordinator.StatusOf(_me);
 
-        var opponent = _match?.OpponentOf(_me) ?? _status.Match?.Opponent;
-        if (opponent is null || opponent.Player == _opponentLoadedFor) return;
+        var proposal = _status.Match;
+        if (proposal is null || proposal.Id == _proposalLoadedFor) return;
 
-        (_opponent, _opponentList) = await UsingServices(async services => (
-            await services.GetRequiredService<PlayerAccounts>().FindAsync(opponent.Player),
-            await services.GetRequiredService<ArmyListService>().FindAsync(opponent.ArmyListId)));
-        _opponentLoadedFor = opponent.Player;
+        (_proposedOpponent, _proposedOpponentList) = await UsingServices(async services => (
+            await services.GetRequiredService<PlayerAccounts>().FindAsync(proposal.Opponent.Player),
+            await services.GetRequiredService<ArmyListService>().FindAsync(proposal.Opponent.ArmyListId)));
+        _proposalLoadedFor = proposal.Id;
     }
+
+    private (string Label, bool Highlight) StateOf(Match match) => match.Status switch
+    {
+        MatchStatus.ResultDeclared when match.Declarer == _me => ("Résultat déclaré, en attente de confirmation", false),
+        MatchStatus.ResultDeclared => ("Votre adversaire a déclaré le résultat : à confirmer", true),
+        _ => ("En cours", false),
+    };
 
     private async Task RequestNotificationPermissionAsync()
     {
@@ -307,7 +261,7 @@ else
         try
         {
             _notifications ??= await JS.InvokeAsync<IJSObjectReference>("import", "./js/notifications.js");
-            await _notifications.InvokeVoidAsync("notifyMatchFound", _opponent?.DisplayName ?? "Votre adversaire");
+            await _notifications.InvokeVoidAsync("notifyMatchFound", _proposedOpponent?.DisplayName ?? "Votre adversaire");
         }
         catch (JSException)
         {

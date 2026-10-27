@@ -3,14 +3,25 @@
 
 @{
     var opponent = Match.OpponentOf(Me);
+    var opponentName = OpponentName ?? opponent.Player.SteamId;
 }
 <p class="match-line">
     <span>@Match.ProposedAt.ToString("dd/MM/yyyy") · @Match.First.Format.Name · @(Match.First.Ranked ? "classée" : "amicale")</span>
-    <span>contre @(OpponentName ?? opponent.Player.SteamId)</span>
-    @if (Match.Status == MatchStatus.Completed)
+    <span>contre @opponentName</span>
+    @if (Match.Status is MatchStatus.Completed or MatchStatus.Abandoned)
     {
         var score = Match.ScoreOf(Me);
-        <span><strong>@ResultLabels.Of(score.Category)</strong> (@Match.VictoryPointsOf(Me) – @Match.VictoryPointsOf(opponent.Player), WTC @score.Points – @score.Opponent.Points)</span>
+        <span>
+            <strong>@ResultLabels.Of(score.Category)</strong>
+            @if (Match.Status == MatchStatus.Abandoned)
+            {
+                @($"(WTC {score.Points} – {score.Opponent.Points}, {(Match.AbandonedBy == Me ? "abandon" : $"abandon de {opponentName}")})")
+            }
+            else
+            {
+                @($"({Match.VictoryPointsOf(Me)} – {Match.VictoryPointsOf(opponent.Player)}, WTC {score.Points} – {score.Opponent.Points}{(Match.ConfirmedAutomatically ? ", confirmé automatiquement" : "")})")
+            }
+        </span>
         @if (Match.RatingChangeOf(Me) is { } change)
         {
             <span class="@(change >= 0 ? "gain" : "loss")">Elo @ResultLabels.Signed(change)</span>
