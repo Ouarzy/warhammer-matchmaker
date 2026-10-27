@@ -15,7 +15,7 @@ public class MatchRatingTests
         var match = Match.Propose(For("alice", ranked: ranked), For("bob", ranked: ranked), Noon);
         match.Accept(_alice.Id, Noon);
         match.Accept(_bob.Id, Noon);
-        match.DeclareResult(_alice.Id, aliceVp, bobVp);
+        match.DeclareResult(_alice.Id, aliceVp, bobVp, Noon);
         if (confirmed) match.ConfirmResult(_bob.Id);
         else match.DisputeResult(_bob.Id);
         return match;
@@ -81,6 +81,20 @@ public class MatchRatingTests
         MatchRating.Apply(match, _alice, _bob);
 
         Assert.Null(match.RatingChangeOf(_alice.Id));
+    }
+
+    [Fact]
+    public void An_abandon_counts_as_a_20_0_defeat_for_the_rating()
+    {
+        var match = Match.Propose(For("alice"), For("bob"), Noon);
+        match.Accept(_alice.Id, Noon);
+        match.Accept(_bob.Id, Noon);
+        match.Abandon(_bob.Id);
+
+        Assert.True(MatchRating.Apply(match, _alice, _bob));
+
+        Assert.Equal(1520, _alice.Rating.Value);
+        Assert.Equal(1480, _bob.Rating.Value);
     }
 
     [Fact]

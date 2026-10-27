@@ -23,7 +23,8 @@ Tous les joueurs jouent via le mod LCT (11e édition) de TTS et enregistrent leu
 - être notifié dans le navigateur quand un adversaire est trouvé
 - accepter / refuser le match proposé
 - une fois accepté : voir l'identifiant steam de son adversaire et pouvoir parcourir sa liste d'armée
-- enregistrer le résultat de la partie (victoire / défaite / nul) et mettre à jour l'Elo
+- enregistrer le résultat de la partie (points de victoire des deux joueurs) et mettre à jour l'Elo
+- jouer jusqu'à 5 parties en parallèle : une partie peut se jouer en plusieurs fois, sur plusieurs semaines
 
 ## Hors périmètre (pour l'instant)
 - un lien avec discord pour lancer des recherche depuis un chan discord
@@ -71,12 +72,16 @@ Catégorie du résultat selon le score WTC du joueur :
 | 8-9 | Petite défaite |
 | 5-7 | Défaite |
 | 0-4 | Grosse défaite |
-- Abandon, absence de l'adversaire ou désaccord sur le résultat : la partie n'impacte pas l'Elo
+- Résultat contesté : la partie n'impacte pas l'Elo
+- Abandon : victoire 20-0 (score WTC) pour l'adversaire
+- Sans réponse de l'adversaire 24 h après la déclaration du résultat, celui-ci est confirmé automatiquement
 
 ### Appariement
 - Deux joueurs sont appariés s'ils cherchent le même format et le même mode (classé / non classé)
 - Écart d'Elo toléré très large au démarrage (à resserrer quand la base de joueurs grandit)
 - Les deux joueurs doivent accepter le match dans les 5 minutes ; si l'un refuse ou ne répond pas, l'autre retourne dans la file (en gardant son ancienneté)
+- Un joueur peut avoir jusqu'à 5 parties en cours ; il peut chercher un nouvel adversaire tant qu'il n'a pas atteint cette limite
+- Une partie en cours n'a pas de limite de durée
 - Parmi les adversaires compatibles, on choisit l'Elo le plus proche, puis celui qui attend depuis le plus longtemps
 
 ## Données

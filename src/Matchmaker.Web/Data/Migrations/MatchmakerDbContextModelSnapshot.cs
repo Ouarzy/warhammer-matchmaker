@@ -80,6 +80,19 @@ namespace Matchmaker.Web.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<string>("AbandonedBy")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("abandoned_by_steam_id");
+
+                    b.Property<bool>("ConfirmedAutomatically")
+                        .HasColumnType("boolean")
+                        .HasColumnName("confirmed_automatically");
+
+                    b.Property<DateTimeOffset?>("DeclaredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("declared_at");
+
                     b.Property<string>("Declarer")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")

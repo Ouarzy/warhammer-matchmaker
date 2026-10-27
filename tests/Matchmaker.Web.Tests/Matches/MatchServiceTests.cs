@@ -15,7 +15,9 @@ public class MatchServiceTests(PostgresFixture postgres)
 {
     private static readonly DateTimeOffset Noon = new(2026, 10, 27, 12, 0, 0, TimeSpan.Zero);
 
-    private static MatchService Service(MatchmakerDbContext db) => new(db);
+    private readonly FixedTime _time = new(Noon);
+
+    private MatchService Service(MatchmakerDbContext db) => new(db, _time);
 
     private async Task<PlayerId> NewPlayer()
     {

@@ -25,7 +25,7 @@ public class MatchTests
     private static Match Declared(int aliceVp = 85, int bobVp = 70)
     {
         var match = Accepted();
-        match.DeclareResult(Alice.Player, aliceVp, bobVp);
+        match.DeclareResult(Alice.Player, aliceVp, bobVp, Noon);
         return match;
     }
 
@@ -161,13 +161,13 @@ public class MatchTests
         [Fact]
         public void The_result_cannot_be_declared_before_the_match_is_on()
         {
-            Assert.Throws<InvalidOperationException>(() => Proposed().DeclareResult(Alice.Player, 85, 70));
+            Assert.Throws<InvalidOperationException>(() => Proposed().DeclareResult(Alice.Player, 85, 70, Noon));
         }
 
         [Fact]
         public void Negative_victory_points_are_refused()
         {
-            Assert.Throws<ArgumentOutOfRangeException>(() => Accepted().DeclareResult(Alice.Player, -1, 70));
+            Assert.Throws<ArgumentOutOfRangeException>(() => Accepted().DeclareResult(Alice.Player, -1, 70, Noon));
         }
 
         [Fact]
@@ -239,24 +239,46 @@ public class MatchTests
     public class Abandon
     {
         [Fact]
-        public void A_player_can_abandon_a_match_in_progress()
+        public void Abandoning_gives_a_20_0_victory_to_the_opponent()
         {
             var match = Accepted();
 
             match.Abandon(Bob.Player);
 
             Assert.Equal(MatchStatus.Abandoned, match.Status);
+            Assert.Equal(Bob.Player, match.AbandonedBy);
+            Assert.Equal(20, match.ScoreOf(Alice.Player).Points);
+            Assert.Equal(0, match.ScoreOf(Bob.Player).Points);
+        }
+
+        [Fact]
+        public void An_abandoned_ranked_match_affects_rating()
+        {
+            var match = Accepted();
+
+            match.Abandon(Bob.Player);
+
+            Assert.True(match.AffectsRating);
+        }
+
+        [Fact]
+        public void An_abandoned_unranked_match_does_not_affect_rating()
+        {
+            var match = Accepted(ranked: false);
+
+            match.Abandon(Bob.Player);
+
             Assert.False(match.AffectsRating);
         }
 
         [Fact]
-        public void A_player_can_abandon_while_the_result_awaits_confirmation()
+        public void Abandoning_overrides_a_result_awaiting_confirmation()
         {
-            var match = Declared();
+            var match = Declared(aliceVp: 40, bobVp: 90);
 
             match.Abandon(Bob.Player);
 
-            Assert.Equal(MatchStatus.Abandoned, match.Status);
+            Assert.Equal(20, match.ScoreOf(Alice.Player).Points);
         }
 
         [Fact]
@@ -266,6 +288,63 @@ public class MatchTests
             match.ConfirmResult(Bob.Player);
 
             Assert.Throws<InvalidOperationException>(() => match.Abandon(Bob.Player));
+        }
+
+        [Fact]
+        public void Only_participants_can_abandon()
+        {
+            Assert.Throws<InvalidOperationException>(() => Accepted().Abandon(Stranger));
+        }
+    }
+
+    public class AutomaticConfirmation
+    {
+        [Fact]
+        public void The_opponent_has_24_hours_to_answer_a_declared_result()
+        {
+            Assert.Equal(Noon.AddHours(24), Declared().ResultConfirmationDeadline);
+        }
+
+        [Fact]
+        public void There_is_no_confirmation_deadline_before_the_declaration()
+        {
+            Assert.Null(Accepted().ResultConfirmationDeadline);
+        }
+
+        [Fact]
+        public void Without_answer_after_24_hours_the_result_is_confirmed_automatically()
+        {
+            var match = Declared(aliceVp: 85, bobVp: 70);
+
+            match.ConfirmAutomatically(Noon.AddHours(24).AddSeconds(1));
+
+            Assert.Equal(MatchStatus.Completed, match.Status);
+            Assert.True(match.ConfirmedAutomatically);
+            Assert.Equal(12, match.ScoreOf(Alice.Player).Points);
+        }
+
+        [Fact]
+        public void The_result_cannot_be_confirmed_automatically_before_24_hours()
+        {
+            Assert.Throws<InvalidOperationException>(() => Declared().ConfirmAutomatically(Noon.AddHours(24)));
+        }
+
+        [Fact]
+        public void A_result_answered_by_the_opponent_is_not_confirmed_automatically()
+        {
+            var match = Declared();
+            match.DisputeResult(Bob.Player);
+
+            Assert.Throws<InvalidOperationException>(() => match.ConfirmAutomatically(Noon.AddDays(2)));
+        }
+
+        [Fact]
+        public void A_result_confirmed_by_the_opponent_is_not_marked_automatic()
+        {
+            var match = Declared();
+            match.ConfirmResult(Bob.Player);
+
+            Assert.False(match.ConfirmedAutomatically);
         }
     }
 
@@ -284,7 +363,7 @@ public class MatchTests
         public void A_completed_unranked_match_does_not_affect_rating()
         {
             var match = Accepted(ranked: false);
-            match.DeclareResult(Alice.Player, 85, 70);
+            match.DeclareResult(Alice.Player, 85, 70, Noon);
             match.ConfirmResult(Bob.Player);
 
             Assert.False(match.AffectsRating);

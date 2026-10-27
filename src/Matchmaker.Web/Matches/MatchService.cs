@@ -9,7 +9,7 @@ namespace Matchmaker.Web.Matches;
 /// <summary>
 /// Matchs acceptés, enregistrés en base : déclaration et confirmation du résultat, Elo, historique, classement.
 /// </summary>
-public sealed class MatchService(MatchmakerDbContext db)
+public sealed class MatchService(MatchmakerDbContext db, TimeProvider time)
 {
     private static readonly MatchStatus[] InProgress = [MatchStatus.Accepted, MatchStatus.ResultDeclared];
     private static readonly MatchStatus[] Finished = [MatchStatus.Completed, MatchStatus.Disputed, MatchStatus.Abandoned];
@@ -32,7 +32,7 @@ public sealed class MatchService(MatchmakerDbContext db)
 
     public Task<Match> DeclareResultAsync(PlayerId player, Guid matchId, int myVictoryPoints, int opponentVictoryPoints,
         CancellationToken cancellationToken = default) =>
-        UpdateAsync(player, matchId, match => match.DeclareResult(player, myVictoryPoints, opponentVictoryPoints), cancellationToken);
+        UpdateAsync(player, matchId, match => match.DeclareResult(player, myVictoryPoints, opponentVictoryPoints, time.GetUtcNow()), cancellationToken);
 
     /// <summary>Confirme le résultat et, pour un match classé, met à jour l'Elo des deux joueurs dans la même transaction.</summary>
     public async Task<Match> ConfirmResultAsync(PlayerId player, Guid matchId, CancellationToken cancellationToken = default)

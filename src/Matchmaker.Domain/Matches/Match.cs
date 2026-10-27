@@ -5,12 +5,15 @@ using Matchmaker.Domain.Results;
 namespace Matchmaker.Domain.Matches;
 
 /// <summary>
-/// Cycle de vie d'un match : proposé → accepté par les deux joueurs → résultat déclaré → confirmé.
-/// Un match refusé, expiré, abandonné ou contesté n'impacte pas l'Elo.
+/// Cycle de vie d'un match : proposé → accepté par les deux joueurs → résultat déclaré → confirmé
+/// (par l'adversaire, ou automatiquement après 24 h sans réponse). Une partie en cours n'a pas de
+/// limite de durée. Un abandon donne la victoire 20-0 à l'adversaire. Un match refusé, expiré ou
+/// contesté n'impacte pas l'Elo.
 /// </summary>
 public sealed class Match
 {
     public static readonly TimeSpan AcceptanceDelay = TimeSpan.FromMinutes(5);
+    public static readonly TimeSpan ResultConfirmationDelay = TimeSpan.FromHours(24);
 
     // Un champ par camp (First / Second) : état simple à enregistrer en base.
     private bool _firstAccepted;
@@ -40,9 +43,13 @@ public sealed class Match
     public DateTimeOffset ProposedAt { get; }
     public MatchStatus Status { get; private set; } = MatchStatus.Proposed;
     public PlayerId? Declarer { get; private set; }
+    public DateTimeOffset? DeclaredAt { get; private set; }
+    public bool ConfirmedAutomatically { get; private set; }
+    public PlayerId? AbandonedBy { get; private set; }
 
     public DateTimeOffset AcceptanceDeadline => ProposedAt + AcceptanceDelay;
-    public bool AffectsRating => First.Ranked && Status == MatchStatus.Completed;
+    public DateTimeOffset? ResultConfirmationDeadline => DeclaredAt + ResultConfirmationDelay;
+    public bool AffectsRating => First.Ranked && Status is MatchStatus.Completed or MatchStatus.Abandoned;
 
     public static Match Propose(QueueTicket first, QueueTicket second, DateTimeOffset now) => new(first, second, now);
 
@@ -84,7 +91,7 @@ public sealed class Match
         return [.. new[] { First, Second }.Where(t => HasAccepted(t.Player))];
     }
 
-    public void DeclareResult(PlayerId declarer, int declarerVp, int opponentVp)
+    public void DeclareResult(PlayerId declarer, int declarerVp, int opponentVp, DateTimeOffset now)
     {
         EnsureParticipant(declarer);
         EnsureStatus(MatchStatus.Accepted);
@@ -92,6 +99,7 @@ public sealed class Match
         ArgumentOutOfRangeException.ThrowIfNegative(opponentVp);
 
         Declarer = declarer;
+        DeclaredAt = now;
         (_firstVictoryPoints, _secondVictoryPoints) = IsFirst(declarer)
             ? (declarerVp, opponentVp)
             : (opponentVp, declarerVp);
@@ -102,11 +110,24 @@ public sealed class Match
 
     public void DisputeResult(PlayerId player) => RespondToResult(player, MatchStatus.Disputed);
 
+    /// <summary>L'adversaire n'a pas répondu dans les 24 h : le résultat déclaré est confirmé.</summary>
+    public void ConfirmAutomatically(DateTimeOffset now)
+    {
+        EnsureStatus(MatchStatus.ResultDeclared);
+        if (now <= ResultConfirmationDeadline)
+            throw new InvalidOperationException("Le délai de confirmation du résultat n'est pas encore dépassé.");
+
+        ConfirmedAutomatically = true;
+        Status = MatchStatus.Completed;
+    }
+
+    /// <summary>Abandon : victoire 20-0 pour l'adversaire, même si un résultat avait été déclaré.</summary>
     public void Abandon(PlayerId player)
     {
         EnsureParticipant(player);
         EnsureStatus(MatchStatus.Accepted, MatchStatus.ResultDeclared);
 
+        AbandonedBy = player;
         Status = MatchStatus.Abandoned;
     }
 
@@ -117,11 +138,15 @@ public sealed class Match
         return victoryPoints ?? throw new InvalidOperationException("Aucun résultat n'a encore été déclaré.");
     }
 
-    /// <summary>Score WTC du joueur, une fois le résultat confirmé.</summary>
+    /// <summary>Score WTC du joueur, une fois le résultat confirmé ou le match abandonné.</summary>
     public WtcScore ScoreOf(PlayerId player)
     {
         EnsureParticipant(player);
-        EnsureStatus(MatchStatus.Completed);
+        EnsureStatus(MatchStatus.Completed, MatchStatus.Abandoned);
+
+        if (Status == MatchStatus.Abandoned)
+            return new WtcScore(player == AbandonedBy ? 0 : WtcScore.Max);
+
         return WtcScore.FromVictoryPoints(VictoryPointsOf(player), VictoryPointsOf(OpponentOf(player).Player));
     }
 
