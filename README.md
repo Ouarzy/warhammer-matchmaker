@@ -50,3 +50,7 @@ Les tests web lancent un PostgreSQL jetable via Docker (Testcontainers) : Docker
 dotnet tool restore
 dotnet ef migrations add <Nom> -p src/Matchmaker.Web -o Data/Migrations
 ```
+
+## Déploiement
+
+Voir [docs/DEPLOIEMENT.md](docs/DEPLOIEMENT.md) : un VPS, Docker Compose (site, PostgreSQL, Caddy pour le HTTPS) et `deploy/deploy.sh` pour mettre en ligne une nouvelle version.
