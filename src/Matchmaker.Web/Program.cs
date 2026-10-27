@@ -34,7 +34,7 @@ builder.Services.AddScoped<ArmyListService>();
 builder.Services.AddSingleton<PlayerNotifier>();
 builder.Services.AddSingleton<MatchmakingCoordinator>();
 builder.Services.AddScoped<MatchService>();
-builder.Services.AddScoped<TtsReporting>();
+builder.Services.AddTtsReporting(builder.Configuration);
 builder.Services.AddHostedService<MatchExpiryService>();
 builder.Services.AddHostedService<ResultConfirmationService>();
 builder.Services.AddSteamAuthentication(builder.Configuration);
@@ -65,11 +65,13 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
+app.UseRateLimiter();
 
 app.MapStaticAssets();
 app.MapHealthChecks("/health");
 app.MapSteamAuthentication();
 app.MapDevelopmentLogin();
+app.MapTtsReporting();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
