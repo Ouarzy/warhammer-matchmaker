@@ -9,7 +9,11 @@ COPY src/Matchmaker.Web/Matchmaker.Web.csproj src/Matchmaker.Web/
 RUN dotnet restore src/Matchmaker.Web/Matchmaker.Web.csproj
 
 COPY src/ src/
-RUN dotnet publish src/Matchmaker.Web/Matchmaker.Web.csproj -c Release -o /app --no-restore
+# Sans --no-restore : la publication ajoute ses propres paquets (dont les scripts Blazor de _framework),
+# absents d'une restauration faite seule.
+RUN dotnet publish src/Matchmaker.Web/Matchmaker.Web.csproj -c Release -o /app
+# Garde-fou : sans ce script, aucune page interactive ne fonctionne.
+RUN test -f /app/wwwroot/_framework/blazor.web.js
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 # Rattache l'image publiée sur ghcr.io au dépôt GitHub (même visibilité, lien vers le code).
