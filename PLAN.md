@@ -23,7 +23,7 @@ Spécifications : voir [PROJECT.md](PROJECT.md).
 |---|---|---|---|
 | 0 | **Étude** : récupération d'une liste via code YellowScribe ; manière dont LCT expose ses scores (pour V2) | Décision sur l'import des listes | Fait |
 | 1 | **Domaine Résultat & Elo** (TDD) : VP → score WTC sur 20 → catégorie (7 niveaux) ; Elo avec résultat = score WTC / 20, facteur K | Moteur de score et Elo testé | Fait |
-| 2 | **Domaine Match** (TDD) : file par format + classé/non classé, appariement, acceptation/refus/timeout, déclaration des VP + confirmation, litige/abandon sans effet sur l'Elo | Logique métier complète, testée | À faire |
+| 2 | **Domaine Match** (TDD) : file par format + classé/non classé, appariement, acceptation/refus/timeout, déclaration des VP + confirmation, litige/abandon sans effet sur l'Elo | Logique métier complète, testée | Fait |
 | 3 | **Squelette web** : solution .NET, connexion Steam, profil joueur, BDD | On peut se connecter | À faire |
 | 4 | **Listes d'armée** : import (selon étude), plusieurs listes par joueur, format associé | On gère ses listes | À faire |
 | 5 | **File d'attente temps réel** : recherche, notification SignalR, écran d'acceptation, Steam ID + liste adverse | **Premier MVP jouable** | À faire |
