@@ -7,8 +7,8 @@ namespace Matchmaker.Domain.Tests;
 internal static class Tickets
 {
     public static readonly DateTimeOffset Noon = new(2026, 10, 27, 12, 0, 0, TimeSpan.Zero);
-    public static readonly GameFormat StrikeForce = new(GameSystem.Warhammer40k, "Strike Force");
-    public static readonly GameFormat Incursion = new(GameSystem.Warhammer40k, "Incursion");
+    public static readonly GameFormat StrikeForce = GameFormats.StrikeForce;
+    public static readonly GameFormat Incursion = GameFormats.Incursion;
 
     public static QueueTicket For(
         string steamId,
