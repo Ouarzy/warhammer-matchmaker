@@ -1,0 +1,53 @@
+@page "/archived-lists/{Id:guid}"
+@attribute [Authorize]
+@using Matchmaker.Domain.ArmyLists
+@using Matchmaker.Domain.Players
+@using Matchmaker.Web.Accounts
+@using Matchmaker.Web.Matches
+@inject MatchService Matches
+@inject PlayerAccounts Accounts
+@inject NavigationManager Navigation
+
+@if (_archive is not null)
+{
+    <PageTitle>@_archive.Name (archivée)</PageTitle>
+
+    <header class="list-header">
+        <p class="badge">Liste archivée</p>
+        <h1>@_archive.Name</h1>
+        <p>@(_archive.Faction ?? "Faction inconnue") · @_archive.Format.Name · @_archive.Roster.Units.Count unités · édition @_archive.Roster.Edition</p>
+        <p>
+            Jouée par
+            @if (_owner is not null)
+            {
+                <PlayerLink Player="_owner" />
+            }
+            else
+            {
+                @_archive.Owner.SteamId
+            }
+            lors de la partie du @_archive.ArchivedAt.ToString("dd/MM/yyyy").
+            <span class="hint">Copie figée au début de la partie : elle ne suit pas les modifications de la liste d'origine.</span>
+        </p>
+    </header>
+
+    <RosterView Roster="_archive.Roster" />
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private ArchivedArmyList? _archive;
+    private Player? _owner;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _archive = await Matches.FindArchivedListAsync(Id);
+        if (_archive is null)
+        {
+            Navigation.NotFound();
+            return;
+        }
+        _owner = await Accounts.FindAsync(_archive.Owner);
+    }
+}

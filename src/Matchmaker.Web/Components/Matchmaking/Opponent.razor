@@ -1,4 +1,3 @@
-@using Matchmaker.Domain.ArmyLists
 @using Matchmaker.Domain.Matchmaking
 @using Matchmaker.Domain.Players
 
@@ -8,7 +7,16 @@
         <img src="@Player.AvatarUrl" alt="" width="64" height="64" />
     }
     <div>
-        <p class="opponent-name">@(Player?.DisplayName ?? Ticket.Player.SteamId)</p>
+        <p class="opponent-name">
+            @if (Player is not null)
+            {
+                <a href="/players/@Player.Id.SteamId" target="_blank">@Player.DisplayName</a>
+            }
+            else
+            {
+                @Ticket.Player.SteamId
+            }
+        </p>
         <p>
             Elo @(Player?.Rating.Value ?? Ticket.Rating.Value)
             · @(List?.Faction ?? "Faction inconnue")
@@ -17,7 +25,7 @@
         </p>
         @if (List is not null)
         {
-            <p><a href="/lists/@List.Id" target="_blank">Voir sa liste « @List.Name »</a></p>
+            <p><a href="@List.Url" target="_blank">Voir sa liste « @List.Name »</a></p>
         }
     </div>
 </div>
@@ -25,5 +33,5 @@
 @code {
     [Parameter, EditorRequired] public QueueTicket Ticket { get; set; } = default!;
     [Parameter] public Player? Player { get; set; }
-    [Parameter] public ArmyList? List { get; set; }
+    [Parameter] public ListLink? List { get; set; }
 }

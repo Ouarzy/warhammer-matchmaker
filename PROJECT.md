@@ -25,7 +25,7 @@ Tous les joueurs jouent via le mod LCT (11e édition) de TTS et enregistrent leu
 - une fois accepté : voir l'identifiant steam de son adversaire et pouvoir parcourir sa liste d'armée
 - enregistrer le résultat de la partie (points de victoire des deux joueurs) et mettre à jour l'Elo
 - jouer jusqu'à 5 parties en parallèle : une partie peut se jouer en plusieurs fois, sur plusieurs semaines
-- garder l'historique de toutes les parties jouées
+- garder l'historique de toutes les parties jouées, avec une copie figée (archive) de la liste jouée par chaque joueur, consultable depuis la partie historisée
 - rechercher un joueur inscrit et consulter son profil : Elo, listes et historique de parties
 - classement Elo public, dont les noms mènent au profil des joueurs
 

@@ -165,3 +165,6 @@ dd { margin-left: 0; color: #c9c6c1; }
 .plain-list { padding-left: 1.2rem; }
 .plain-list li { margin-block: 0.25rem; }
 .pagination { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-block: 1rem; }
+
+.match-line .lists { flex-basis: 100%; font-size: 0.9rem; color: #a9a6a1; }
+.badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 1rem; background: #3a3f49; font-size: 0.8rem; margin: 0; }

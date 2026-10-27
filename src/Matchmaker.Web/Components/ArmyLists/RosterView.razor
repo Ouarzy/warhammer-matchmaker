@@ -1,0 +1,73 @@
+@using Matchmaker.Domain.ArmyLists
+
+@foreach (var unit in Roster.Units)
+{
+    <article class="unit">
+        <h2>@unit.Name <span class="count">@unit.ModelCount @(unit.ModelCount > 1 ? "figurines" : "figurine")</span></h2>
+
+        <div class="table-scroll">
+            <table>
+                <thead><tr><th>Profil</th><th>M</th><th>E</th><th>Sv</th><th>PV</th><th>Cd</th><th>CO</th><th>Invu</th></tr></thead>
+                <tbody>
+                    @foreach (var profile in unit.Profiles)
+                    {
+                        <tr>
+                            <td>@profile.Name</td><td>@profile.M</td><td>@profile.T</td><td>@profile.Sv</td>
+                            <td>@profile.W</td><td>@profile.Ld</td><td>@profile.Oc</td><td>@(profile.InvulnerableSave ?? "-")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @foreach (var (title, weapons) in WeaponGroups(unit))
+        {
+            <div class="table-scroll">
+                <table>
+                    <thead><tr><th>@title</th><th>Portée</th><th>A</th><th>CT/CC</th><th>F</th><th>PA</th><th>D</th><th>Aptitudes</th></tr></thead>
+                    <tbody>
+                        @foreach (var weapon in weapons)
+                        {
+                            <tr>
+                                <td>@weapon.Name</td><td>@weapon.Range</td><td>@weapon.A</td><td>@weapon.Skill</td>
+                                <td>@weapon.S</td><td>@weapon.Ap</td><td>@weapon.D</td><td>@weapon.Abilities</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <p class="composition">
+            @foreach (var model in unit.Models)
+            {
+                <span>@(model.Count > 1 ? $"{model.Count}x " : "")@model.Name : @string.Join(", ", model.Weapons)</span>
+            }
+        </p>
+
+        <details>
+            <summary>Aptitudes (@unit.Abilities.Count)</summary>
+            <dl>
+                @foreach (var ability in unit.Abilities)
+                {
+                    <dt>@ability.Name</dt>
+                    <dd>@ability.Description</dd>
+                }
+            </dl>
+        </details>
+
+        <p class="keywords">@string.Join(" · ", unit.Keywords)</p>
+    </article>
+}
+
+@code {
+    [Parameter, EditorRequired] public Roster Roster { get; set; } = default!;
+
+    private static IEnumerable<(string Title, IReadOnlyList<Weapon> Weapons)> WeaponGroups(RosterUnit unit)
+    {
+        var ranged = unit.Weapons.Where(w => !w.IsMelee).ToList();
+        var melee = unit.Weapons.Where(w => w.IsMelee).ToList();
+        if (ranged.Count > 0) yield return ("Armes de tir", ranged);
+        if (melee.Count > 0) yield return ("Armes de mêlée", melee);
+    }
+}

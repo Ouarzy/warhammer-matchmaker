@@ -41,7 +41,10 @@
                         · <a href="https://steamcommunity.com/profiles/@opponent.Player.SteamId" target="_blank" rel="noopener">Profil Steam</a>
                     </li>
                     <li>Lancez Tabletop Simulator avec le mod LCT et invitez-le. La partie peut se jouer en plusieurs fois.</li>
-                    <li>Consultez <a href="/lists/@opponent.ArmyListId" target="_blank">sa liste</a> avant de commencer.</li>
+                    @if (_opponentList is not null)
+                    {
+                        <li>Consultez <a href="@_opponentList.Url" target="_blank">sa liste</a> avant de commencer.</li>
+                    }
                     <li>À la fin de la partie, l'un de vous déclare le score ci-dessous et l'autre le confirme.</li>
                 </ol>
 
@@ -85,7 +88,7 @@
 
             default:
                 <h1>Partie terminée</h1>
-                <MatchSummaryLine Match="_match" Me="_me" OpponentName="@_opponent?.DisplayName" />
+                <MatchSummaryLine Match="_match" Me="_me" OpponentName="@_opponent?.DisplayName" Archives="_archives" />
                 break;
         }
 
@@ -116,7 +119,8 @@
     private PlayerId _me;
     private Match? _match;
     private Player? _opponent;
-    private ArmyList? _opponentList;
+    private ListLink? _opponentList;
+    private ArchivedLists _archives = ArchivedLists.None;
     private int _myVictoryPoints;
     private int _opponentVictoryPoints;
     private bool _confirmingAbandon;
@@ -133,9 +137,12 @@
         }
 
         var opponent = _match.OpponentOf(_me);
-        (_opponent, _opponentList) = await UsingServices(async services => (
+        (_opponent, _archives) = await UsingServices(async services => (
             await services.GetRequiredService<PlayerAccounts>().FindAsync(opponent.Player),
-            await services.GetRequiredService<ArmyListService>().FindAsync(opponent.ArmyListId)));
+            await services.GetRequiredService<MatchService>().ArchivedListsOfAsync([Id])));
+        // Liste archivée avec le match ; la liste vivante seulement pour un match antérieur à l'archivage.
+        _opponentList = ListLink.To(_archives.For(Id, opponent.Player))
+            ?? ListLink.To(await UsingServices(services => services.GetRequiredService<ArmyListService>().FindAsync(opponent.ArmyListId)));
 
         if (RendererInfo.IsInteractive)
             Notifier.PlayerChanged += OnPlayerChanged;

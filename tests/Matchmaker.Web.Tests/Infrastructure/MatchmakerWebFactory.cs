@@ -46,18 +46,32 @@ public sealed class MatchmakerWebFactory(PostgresFixture postgres) : WebApplicat
         return client;
     }
 
-    /// <summary>Enregistre un match accepté par les deux joueurs (déjà créés).</summary>
+    /// <summary>
+    /// Enregistre un match accepté par les deux joueurs (déjà créés), chacun jouant une liste Custodes
+    /// importée pour l'occasion et nommée « Liste de match ».
+    /// </summary>
     public async Task<Guid> StartMatchAsync(PlayerId first, PlayerId second, bool ranked = true)
     {
+        using var scope = Services.CreateScope();
+        var lists = scope.ServiceProvider.GetRequiredService<ArmyListService>();
         var now = DateTimeOffset.UtcNow;
-        QueueTicket Ticket(PlayerId player) => new(player, Guid.NewGuid(), GameFormats.StrikeForce, ranked, EloRating.Initial, now);
-        var match = Match.Propose(Ticket(first), Ticket(second), now);
+        async Task<QueueTicket> Ticket(PlayerId player)
+        {
+            var list = await lists.ImportAsync(player, Samples.CustodesCode, "Liste de match", GameFormats.StrikeForce);
+            return new QueueTicket(player, list.Id, list.Format, ranked, EloRating.Initial, now);
+        }
+
+        var match = Match.Propose(await Ticket(first), await Ticket(second), now);
         match.Accept(first, now);
         match.Accept(second, now);
-
-        using var scope = Services.CreateScope();
         await scope.ServiceProvider.GetRequiredService<MatchService>().StartAsync(match);
         return match.Id;
+    }
+
+    public async Task<ArchivedLists> ArchivedListsOfAsync(Guid matchId)
+    {
+        using var scope = Services.CreateScope();
+        return await scope.ServiceProvider.GetRequiredService<MatchService>().ArchivedListsOfAsync([matchId]);
     }
 
     public async Task WithMatchesAsync(Func<MatchService, Task> work)
