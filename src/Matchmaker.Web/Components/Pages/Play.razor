@@ -202,9 +202,9 @@ else
         var (player, list, active) = await UsingServices(async services => (
             await services.GetRequiredService<PlayerAccounts>().FindAsync(_me),
             await services.GetRequiredService<ArmyListService>().FindAsync(_selectedListId),
-            await services.GetRequiredService<MatchService>().ActiveMatchOfAsync(_me)));
-        if (active is not null)
-            throw new InvalidOperationException("Vous avez déjà un match en cours.");
+            await services.GetRequiredService<MatchService>().CanLookForAnotherOpponentAsync(_me)));
+        if (!active)
+            throw new InvalidOperationException($"Vous avez déjà {MatchService.MaxActiveMatches} parties en cours.");
         if (player is null || list is null)
             throw new InvalidOperationException("Liste introuvable.");
 
@@ -276,7 +276,7 @@ else
             var matches = services.GetRequiredService<MatchService>();
             var last = (await matches.HistoryOfAsync(_me, limit: 1)).FirstOrDefault();
             var lastOpponent = last is null ? null : await services.GetRequiredService<PlayerAccounts>().FindAsync(last.OpponentOf(_me).Player);
-            return (await matches.ActiveMatchOfAsync(_me), last, lastOpponent?.DisplayName);
+            return ((await matches.ActiveMatchesOfAsync(_me)).FirstOrDefault(), last, lastOpponent?.DisplayName);
         });
         _status = Coordinator.StatusOf(_me);
 

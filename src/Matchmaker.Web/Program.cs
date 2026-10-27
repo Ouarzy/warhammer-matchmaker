@@ -33,6 +33,7 @@ builder.Services.AddSingleton<PlayerNotifier>();
 builder.Services.AddSingleton<MatchmakingCoordinator>();
 builder.Services.AddScoped<MatchService>();
 builder.Services.AddHostedService<MatchExpiryService>();
+builder.Services.AddHostedService<ResultConfirmationService>();
 builder.Services.AddSteamAuthentication(builder.Configuration);
 
 var app = builder.Build();

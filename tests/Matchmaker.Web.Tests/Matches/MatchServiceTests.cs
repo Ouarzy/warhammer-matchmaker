@@ -55,14 +55,62 @@ public class MatchServiceTests(PostgresFixture postgres)
     }
 
     [Fact]
-    public async Task A_started_match_is_the_active_match_of_both_players()
+    public async Task A_started_match_is_in_progress_for_both_players()
     {
         var (alice, bob, matchId) = await StartedMatch();
 
         await using var db = postgres.CreateDbContext();
-        Assert.Equal(matchId, (await Service(db).ActiveMatchOfAsync(alice))!.Id);
-        Assert.Equal(matchId, (await Service(db).ActiveMatchOfAsync(bob))!.Id);
-        Assert.Null(await Service(db).ActiveMatchOfAsync(await NewPlayer()));
+        Assert.Equal([matchId], (await Service(db).ActiveMatchesOfAsync(alice)).Select(m => m.Id));
+        Assert.Equal([matchId], (await Service(db).ActiveMatchesOfAsync(bob)).Select(m => m.Id));
+        Assert.Empty(await Service(db).ActiveMatchesOfAsync(await NewPlayer()));
+    }
+
+    [Fact]
+    public async Task A_player_can_play_several_matches_in_parallel_most_recent_first()
+    {
+        var (alice, bob, carol) = (await NewPlayer(), await NewPlayer(), await NewPlayer());
+        var withBob = AcceptedMatch(alice, bob, at: Noon);
+        var withCarol = AcceptedMatch(carol, alice, at: Noon.AddDays(3));
+        await using (var db = postgres.CreateDbContext())
+        {
+            await Service(db).StartAsync(withBob);
+            await Service(db).StartAsync(withCarol);
+        }
+
+        await using var reloaded = postgres.CreateDbContext();
+        Assert.Equal([withCarol.Id, withBob.Id], (await Service(reloaded).ActiveMatchesOfAsync(alice)).Select(m => m.Id));
+    }
+
+    [Fact]
+    public async Task A_player_can_look_for_another_opponent_until_5_matches_are_in_progress()
+    {
+        var alice = await NewPlayer();
+        await using var db = postgres.CreateDbContext();
+        for (var i = 0; i < 4; i++)
+            await Service(db).StartAsync(AcceptedMatch(alice, await NewPlayer()));
+        Assert.True(await Service(db).CanLookForAnotherOpponentAsync(alice));
+
+        await Service(db).StartAsync(AcceptedMatch(alice, await NewPlayer()));
+
+        Assert.False(await Service(db).CanLookForAnotherOpponentAsync(alice));
+    }
+
+    [Fact]
+    public async Task A_finished_match_frees_a_slot()
+    {
+        var alice = await NewPlayer();
+        await using var db = postgres.CreateDbContext();
+        var matches = new List<Match>();
+        for (var i = 0; i < 5; i++)
+        {
+            var match = AcceptedMatch(alice, await NewPlayer());
+            await Service(db).StartAsync(match);
+            matches.Add(match);
+        }
+
+        await Service(db).AbandonAsync(alice, matches[0].Id);
+
+        Assert.True(await Service(db).CanLookForAnotherOpponentAsync(alice));
     }
 
     [Fact]
@@ -94,7 +142,7 @@ public class MatchServiceTests(PostgresFixture postgres)
         Assert.Equal(MatchStatus.Completed, match.Status);
         Assert.Equal(20, match.RatingChangeOf(alice));
         Assert.Equal(100, match.VictoryPointsOf(alice));
-        Assert.Null(await Service(reloaded).ActiveMatchOfAsync(alice));
+        Assert.Empty(await Service(reloaded).ActiveMatchesOfAsync(alice));
     }
 
     [Fact]
@@ -125,19 +173,49 @@ public class MatchServiceTests(PostgresFixture postgres)
         Assert.Equal(EloRating.Initial, (await Reload(alice)).Rating);
         await using var reloaded = postgres.CreateDbContext();
         Assert.Equal(MatchStatus.Disputed, (await reloaded.Matches.FindAsync(matchId))!.Status);
-        Assert.Null(await Service(reloaded).ActiveMatchOfAsync(bob));
+        Assert.Empty(await Service(reloaded).ActiveMatchesOfAsync(bob));
     }
 
     [Fact]
-    public async Task An_abandoned_match_is_no_longer_active()
+    public async Task Abandoning_a_ranked_match_gives_the_opponent_a_20_0_victory()
     {
         var (alice, bob, matchId) = await StartedMatch();
 
         await using (var db = postgres.CreateDbContext())
             await Service(db).AbandonAsync(bob, matchId);
 
+        Assert.Equal(1520, (await Reload(alice)).Rating.Value);
+        Assert.Equal(1480, (await Reload(bob)).Rating.Value);
         await using var reloaded = postgres.CreateDbContext();
-        Assert.Null(await Service(reloaded).ActiveMatchOfAsync(alice));
+        Assert.Empty(await Service(reloaded).ActiveMatchesOfAsync(alice));
+        Assert.Equal(bob, (await reloaded.Matches.FindAsync(matchId))!.AbandonedBy);
+    }
+
+    [Fact]
+    public async Task Unanswered_results_are_confirmed_automatically_after_24_hours()
+    {
+        var (alice, bob, overdue) = await StartedMatch();
+        var (carol, dave, recent) = await StartedMatch();
+        await using (var db = postgres.CreateDbContext())
+        {
+            await Service(db).DeclareResultAsync(alice, overdue, 100, 40);
+            _time.Now = Noon.AddHours(12);
+            await Service(db).DeclareResultAsync(carol, recent, 100, 40);
+        }
+
+        _time.Now = Noon.AddHours(24).AddMinutes(1);
+        IReadOnlyList<Match> confirmed;
+        await using (var db = postgres.CreateDbContext())
+            confirmed = await Service(db).ConfirmOverdueResultsAsync();
+
+        Assert.Contains(overdue, confirmed.Select(m => m.Id));
+        Assert.DoesNotContain(recent, confirmed.Select(m => m.Id));
+        Assert.Equal(1480, (await Reload(bob)).Rating.Value);
+        await using var reloaded = postgres.CreateDbContext();
+        var match = (await reloaded.Matches.FindAsync(overdue))!;
+        Assert.Equal(MatchStatus.Completed, match.Status);
+        Assert.True(match.ConfirmedAutomatically);
+        Assert.Equal(MatchStatus.ResultDeclared, (await reloaded.Matches.FindAsync(recent))!.Status);
     }
 
     [Fact]
