@@ -23,14 +23,16 @@ Une seule instance du site : la file d'attente est gardée en mémoire. Les clé
 ## Première installation
 
 ```sh
-# 1. Sur le serveur, en root : Docker, swap de 1 Go, pare-feu, code, deploy/.env
-ssh root@<ip> 'bash -s' < deploy/bootstrap.sh
+# Gandi : se connecter avec l'utilisateur « ubuntu » (root est refusé), qui a les droits sudo.
+
+# 1. Sur le serveur : Docker, swap de 1 Go, pare-feu, code, deploy/.env
+ssh ubuntu@<ip> 'sudo bash -s' < deploy/bootstrap.sh
 
 # 2. Compléter les secrets sur le serveur (ACME_EMAIL, STEAM_API_KEY)
-ssh root@<ip> 'nano /opt/matchmaker/deploy/.env'
+ssh -t ubuntu@<ip> 'nano /opt/matchmaker/deploy/.env'
 
 # 3. Démarrer
-ssh root@<ip> 'cd /opt/matchmaker && docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d'
+ssh ubuntu@<ip> 'cd /opt/matchmaker && docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d'
 ```
 
 Le certificat HTTPS est obtenu au premier accès, une fois le DNS propagé. Vérification : `https://<domaine>/health` doit répondre `Healthy`.
@@ -41,12 +43,12 @@ Le certificat HTTPS est obtenu au premier accès, une fois le DNS propagé. Vér
 2. Une fois la CI au vert, depuis un poste de développement :
 
 ```sh
-deploy/deploy.sh root@<ip>
+deploy/deploy.sh ubuntu@<ip>
 ```
 
 Le script met à jour les fichiers de déploiement, télécharge la nouvelle image, redémarre le site et vérifie `/health`. Les migrations de base s'appliquent au démarrage.
 
-Pour revenir à une version précédente : `IMAGE_TAG=<hash du commit> deploy/deploy.sh root@<ip>` (chaque image est aussi publiée sous le hash de son commit).
+Pour revenir à une version précédente : `IMAGE_TAG=<hash du commit> deploy/deploy.sh ubuntu@<ip>` (chaque image est aussi publiée sous le hash de son commit).
 
 ## Exploitation
 

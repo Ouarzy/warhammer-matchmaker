@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Met en ligne la dernière image publiée par GitHub Actions (à lancer depuis un poste de développement,
-# une fois la CI de main terminée). Usage : deploy/deploy.sh root@<ip-du-serveur> [domaine]
-# Pour revenir à une version précise : IMAGE_TAG=<hash du commit> deploy/deploy.sh root@<ip>
+# une fois la CI de main terminée). Usage : deploy/deploy.sh ubuntu@<ip-du-serveur> [domaine]
+# Pour revenir à une version précise : IMAGE_TAG=<hash du commit> deploy/deploy.sh ubuntu@<ip>
 set -euo pipefail
 
-SERVER="${1:?Usage : deploy/deploy.sh root@<ip-du-serveur> [domaine]}"
+SERVER="${1:?Usage : deploy/deploy.sh ubuntu@<ip-du-serveur> [domaine]}"
 DOMAIN="${2:-warhammer-matchmaker.com}"
 APP_DIR="${APP_DIR:-/opt/matchmaker}"
 IMAGE_TAG="${IMAGE_TAG:-latest}"

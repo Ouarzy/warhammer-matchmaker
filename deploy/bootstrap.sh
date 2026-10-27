@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# Installation initiale d'un serveur Ubuntu 24.04 (à lancer une fois, en root, sur le serveur).
+# Installation initiale d'un serveur Ubuntu 24.04 (à lancer une fois, avec sudo, sur le serveur) :
+#   ssh ubuntu@<ip> 'sudo bash -s' < deploy/bootstrap.sh
 # Installe Docker, ouvre uniquement SSH/HTTP/HTTPS, récupère le code et prépare deploy/.env.
+# L'utilisateur qui lance sudo (ex. ubuntu) peut ensuite déployer sans sudo.
 set -euo pipefail
 
 REPO_URL="${REPO_URL:-https://github.com/Ouarzy/warhammer-matchmaker.git}"
@@ -42,6 +44,12 @@ if [[ ! -f "$ENV_FILE" ]]; then
   chmod 600 "$ENV_FILE"
 fi
 mkdir -p "$APP_DIR/deploy/backups"
+
+if [[ -n "${SUDO_USER:-}" && "$SUDO_USER" != "root" ]]; then
+  echo "==> $SUDO_USER peut utiliser Docker et mettre à jour $APP_DIR"
+  usermod -aG docker "$SUDO_USER"
+  chown -R "$SUDO_USER" "$APP_DIR"
+fi
 
 echo
 echo "Terminé. Complétez ACME_EMAIL et STEAM_API_KEY dans $ENV_FILE, puis lancez :"
