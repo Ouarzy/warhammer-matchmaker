@@ -48,7 +48,7 @@
                 {
                     <li>
                         <a href="/lists/@list.Id"><Icon Name="eye" /> @list.Name</a>
-                        <span class="hint">· @(list.Faction ?? "Faction inconnue") · @list.Format.Name</span>
+                        <span class="hint">· @(list.Faction ?? "Faction inconnue")@(list.Detachment is { } detachment ? $" · {detachment}" : "") · @list.Format.Name</span>
                     </li>
                 }
             </ul>

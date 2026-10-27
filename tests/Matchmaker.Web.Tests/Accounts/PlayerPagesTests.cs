@@ -52,6 +52,23 @@ public sealed class PlayerPagesTests(PostgresFixture postgres) : IDisposable
     }
 
     [Fact]
+    public async Task The_lists_of_a_profile_show_their_detachment_when_known()
+    {
+        var player = await NewPlayer("Custodes");
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var lists = scope.ServiceProvider.GetRequiredService<ArmyListService>();
+            await lists.ImportAsync(player, Samples.CustodesCode, "Avec détachement", GameFormats.StrikeForce, "Shield Host");
+            await lists.ImportAsync(player, Samples.CustodesCode, "Sans détachement", GameFormats.StrikeForce);
+        }
+
+        var html = await Text(await _factory.CreateAnonymousClient().GetAsync($"/players/{player.SteamId}"));
+
+        Assert.Contains("· Adeptus Custodes · Shield Host · Strike Force", html);
+        Assert.Contains("· Adeptus Custodes · Strike Force", html);
+    }
+
+    [Fact]
     public async Task A_player_profile_shows_rating_lists_and_history()
     {
         var (custodes, rival) = (await NewPlayer("Custodes"), await NewPlayer("Rival"));
