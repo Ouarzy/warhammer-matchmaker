@@ -1,14 +1,13 @@
 using Matchmaker.Domain.ArmyLists;
 using Matchmaker.Web.ArmyLists;
 using Matchmaker.Web.ArmyLists.YellowScribe;
+using Matchmaker.Web.Tests.Infrastructure;
 
 namespace Matchmaker.Web.Tests.ArmyLists;
 
 public class YellowScribeRosterParserTests
 {
-    // Liste réelle récupérée sur YellowScribe le 2026-10-27 (Adeptus Custodes, 11e édition).
-    private static readonly Roster Custodes =
-        YellowScribeRosterParser.Parse(File.ReadAllText(Path.Combine("Samples", "yellowscribe-0c6cfa93.json")));
+    private static readonly Roster Custodes = Samples.Custodes;
 
     [Fact]
     public void Reads_the_edition_and_every_unit_in_order()

@@ -1,12 +1,13 @@
 using System.Net;
 using Matchmaker.Web.ArmyLists;
 using Matchmaker.Web.ArmyLists.YellowScribe;
+using Matchmaker.Web.Tests.Infrastructure;
 
 namespace Matchmaker.Web.Tests.ArmyLists;
 
 public class YellowScribeClientTests
 {
-    private static readonly string CustodesJson = File.ReadAllText(Path.Combine("Samples", "yellowscribe-0c6cfa93.json"));
+    private static readonly string CustodesJson = Samples.CustodesJson;
 
     private sealed class FakeYellowScribe(Func<HttpRequestMessage, HttpResponseMessage> respond) : HttpMessageHandler
     {

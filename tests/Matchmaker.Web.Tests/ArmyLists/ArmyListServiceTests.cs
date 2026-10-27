@@ -3,7 +3,6 @@ using Matchmaker.Domain.Matchmaking;
 using Matchmaker.Domain.Players;
 using Matchmaker.Web.Accounts;
 using Matchmaker.Web.ArmyLists;
-using Matchmaker.Web.ArmyLists.YellowScribe;
 using Matchmaker.Web.Data;
 using Matchmaker.Web.Tests.Infrastructure;
 
@@ -13,8 +12,7 @@ namespace Matchmaker.Web.Tests.ArmyLists;
 public class ArmyListServiceTests(PostgresFixture postgres)
 {
     private static readonly DateTimeOffset Noon = new(2026, 10, 27, 12, 0, 0, TimeSpan.Zero);
-    private static readonly Roster Custodes =
-        YellowScribeRosterParser.Parse(File.ReadAllText(Path.Combine("Samples", "yellowscribe-0c6cfa93.json")));
+    private static readonly Roster Custodes = Samples.Custodes;
 
     private sealed class FixedTime(DateTimeOffset now) : TimeProvider
     {
@@ -22,17 +20,9 @@ public class ArmyListServiceTests(PostgresFixture postgres)
         public override DateTimeOffset GetUtcNow() => Now;
     }
 
-    private sealed class StubProvider : IRosterProvider
-    {
-        public Task<Roster> FetchAsync(string code, CancellationToken cancellationToken = default) =>
-            code == "0c6cfa93"
-                ? Task.FromResult(Custodes)
-                : throw new RosterImportException(RosterImportError.NotFound, "Code expiré.");
-    }
-
     private readonly FixedTime _time = new(Noon);
 
-    private ArmyListService Service(MatchmakerDbContext db) => new(db, new StubProvider(), _time);
+    private ArmyListService Service(MatchmakerDbContext db) => new(db, new StubRosterProvider(), _time);
 
     private async Task<PlayerId> NewPlayer()
     {

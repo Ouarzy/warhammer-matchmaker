@@ -1,0 +1,151 @@
+@page "/lists/{Id:guid}"
+@attribute [Authorize]
+@using System.ComponentModel.DataAnnotations
+@using Matchmaker.Domain.ArmyLists
+@using Matchmaker.Web.Accounts
+@using Matchmaker.Web.ArmyLists
+@inject ArmyListService Lists
+@inject NavigationManager Navigation
+
+@if (_list is not null)
+{
+    <PageTitle>@_list.Name</PageTitle>
+
+    <header class="list-header">
+        <h1>@_list.Name</h1>
+        <p>@(_list.Faction ?? "Faction inconnue") · @_list.Format.Name · @_list.Roster.Units.Count unités · édition @_list.Roster.Edition</p>
+    </header>
+
+    @if (_isOwner)
+    {
+        <section class="card owner-actions">
+            <EditForm Model="Rename" FormName="rename" OnValidSubmit="RenameAsync" Enhance class="inline-form">
+                <DataAnnotationsValidator />
+                <label>
+                    Nom
+                    <InputText @bind-Value="Rename!.Name" maxlength="@ArmyList.NameMaxLength" />
+                </label>
+                <button type="submit" class="button">Renommer</button>
+                <ValidationMessage For="() => Rename.Name" class="error" />
+            </EditForm>
+
+            <form method="post" @formname="delete" @onsubmit="DeleteAsync">
+                <AntiforgeryToken />
+                <button type="submit" class="button danger" onclick="return confirm('Supprimer définitivement cette liste ?')">Supprimer</button>
+            </form>
+        </section>
+    }
+
+    @foreach (var unit in _list.Roster.Units)
+    {
+        <article class="unit">
+            <h2>@unit.Name <span class="count">@unit.ModelCount @(unit.ModelCount > 1 ? "figurines" : "figurine")</span></h2>
+
+            <div class="table-scroll">
+                <table>
+                    <thead><tr><th>Profil</th><th>M</th><th>E</th><th>Sv</th><th>PV</th><th>Cd</th><th>CO</th><th>Invu</th></tr></thead>
+                    <tbody>
+                        @foreach (var profile in unit.Profiles)
+                        {
+                            <tr>
+                                <td>@profile.Name</td><td>@profile.M</td><td>@profile.T</td><td>@profile.Sv</td>
+                                <td>@profile.W</td><td>@profile.Ld</td><td>@profile.Oc</td><td>@(profile.InvulnerableSave ?? "-")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @foreach (var (title, weapons) in WeaponGroups(unit))
+            {
+                <div class="table-scroll">
+                    <table>
+                        <thead><tr><th>@title</th><th>Portée</th><th>A</th><th>CT/CC</th><th>F</th><th>PA</th><th>D</th><th>Aptitudes</th></tr></thead>
+                        <tbody>
+                            @foreach (var weapon in weapons)
+                            {
+                                <tr>
+                                    <td>@weapon.Name</td><td>@weapon.Range</td><td>@weapon.A</td><td>@weapon.Skill</td>
+                                    <td>@weapon.S</td><td>@weapon.Ap</td><td>@weapon.D</td><td>@weapon.Abilities</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+            <p class="composition">
+                @foreach (var model in unit.Models)
+                {
+                    <span>@(model.Count > 1 ? $"{model.Count}x " : "")@model.Name : @string.Join(", ", model.Weapons)</span>
+                }
+            </p>
+
+            <details>
+                <summary>Aptitudes (@unit.Abilities.Count)</summary>
+                <dl>
+                    @foreach (var ability in unit.Abilities)
+                    {
+                        <dt>@ability.Name</dt>
+                        <dd>@ability.Description</dd>
+                    }
+                </dl>
+            </details>
+
+            <p class="keywords">@string.Join(" · ", unit.Keywords)</p>
+        </article>
+    }
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    [CascadingParameter] private Task<AuthenticationState> AuthenticationState { get; set; } = default!;
+
+    [SupplyParameterFromForm(FormName = "rename")]
+    private RenameModel? Rename { get; set; }
+
+    private ArmyList? _list;
+    private bool _isOwner;
+    private Matchmaker.Domain.Players.PlayerId _me;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _me = SteamAuthentication.PlayerIdOf((await AuthenticationState).User);
+        _list = await Lists.FindAsync(Id);
+        if (_list is null)
+        {
+            Navigation.NotFound();
+            return;
+        }
+
+        _isOwner = _list.IsOwnedBy(_me);
+        Rename ??= new RenameModel { Name = _list.Name };
+    }
+
+    private async Task RenameAsync()
+    {
+        if (await Lists.RenameAsync(_me, Id, Rename!.Name))
+            _list = await Lists.FindAsync(Id);
+    }
+
+    private async Task DeleteAsync()
+    {
+        if (await Lists.DeleteAsync(_me, Id))
+            Navigation.NavigateTo("/lists");
+    }
+
+    private static IEnumerable<(string Title, IReadOnlyList<Weapon> Weapons)> WeaponGroups(RosterUnit unit)
+    {
+        var ranged = unit.Weapons.Where(w => !w.IsMelee).ToList();
+        var melee = unit.Weapons.Where(w => w.IsMelee).ToList();
+        if (ranged.Count > 0) yield return ("Armes de tir", ranged);
+        if (melee.Count > 0) yield return ("Armes de mêlée", melee);
+    }
+
+    private sealed class RenameModel
+    {
+        [Required(ErrorMessage = "Donnez un nom à votre liste.")]
+        [MaxLength(ArmyList.NameMaxLength, ErrorMessage = "Le nom est limité à 60 caractères.")]
+        public string Name { get; set; } = "";
+    }
+}
