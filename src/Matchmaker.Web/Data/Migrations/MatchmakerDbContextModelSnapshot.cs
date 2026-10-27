@@ -167,6 +167,10 @@ namespace Matchmaker.Web.Data.Migrations
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
 
+                    b.Property<DateTimeOffset?>("ScheduledFor")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("scheduled_for");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -295,9 +299,90 @@ namespace Matchmaker.Web.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ScheduledFor");
+
                     b.HasIndex("Status");
 
                     b.ToTable("matches", (string)null);
+                });
+
+            modelBuilder.Entity("Matchmaker.Domain.Matchmaking.ScheduledSearch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("MatchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("match_id");
+
+                    b.Property<DateTimeOffset>("PlannedFor")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("planned_for");
+
+                    b.Property<uint>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Ticket", "Matchmaker.Domain.Matchmaking.ScheduledSearch.Ticket#QueueTicket", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<Guid>("ArmyListId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("player_army_list_id");
+
+                            b1.Property<DateTimeOffset>("EnqueuedAt")
+                                .HasColumnType("timestamp with time zone")
+                                .HasColumnName("player_enqueued_at");
+
+                            b1.Property<string>("Player")
+                                .IsRequired()
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)")
+                                .HasColumnName("player_steam_id");
+
+                            b1.Property<bool>("Ranked")
+                                .HasColumnType("boolean")
+                                .HasColumnName("player_ranked");
+
+                            b1.Property<int>("Rating")
+                                .HasColumnType("integer")
+                                .HasColumnName("player_rating");
+
+                            b1.ComplexProperty(typeof(Dictionary<string, object>), "Format", "Matchmaker.Domain.Matchmaking.ScheduledSearch.Ticket#QueueTicket.Format#GameFormat", b2 =>
+                                {
+                                    b2.IsRequired();
+
+                                    b2.Property<string>("Game")
+                                        .IsRequired()
+                                        .HasMaxLength(32)
+                                        .HasColumnType("character varying(32)")
+                                        .HasColumnName("player_game");
+
+                                    b2.Property<string>("Name")
+                                        .IsRequired()
+                                        .HasMaxLength(32)
+                                        .HasColumnType("character varying(32)")
+                                        .HasColumnName("player_format");
+                                });
+                        });
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MatchId");
+
+                    b.HasIndex("Status", "PlannedFor");
+
+                    b.ToTable("scheduled_searches", (string)null);
                 });
 
             modelBuilder.Entity("Matchmaker.Domain.Players.Player", b =>

@@ -21,19 +21,26 @@ public sealed class MatchService(MatchmakerDbContext db, TimeProvider time)
 
     public async Task StartAsync(Match match, CancellationToken cancellationToken = default)
     {
+        await PrepareStartAsync(match, cancellationToken);
+        db.Matches.Add(match);
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Fige les listes jouées et crée le code TTS du match qui commence, sans enregistrer :
+    /// l'appelant enregistre le tout dans la même transaction.
+    /// </summary>
+    public async Task PrepareStartAsync(Match match, CancellationToken cancellationToken = default)
+    {
         if (match.Status != MatchStatus.Accepted)
             throw new InvalidOperationException("Seul un match accepté par les deux joueurs peut commencer.");
 
-        // Les listes jouées sont figées avec le match, dans la même transaction.
         var listIds = new[] { match.First.ArmyListId, match.Second.ArmyListId };
         var lists = await db.ArmyLists.Where(l => listIds.Contains(l.Id)).ToListAsync(cancellationToken);
         var now = time.GetUtcNow();
         db.ArchivedArmyLists.AddRange(lists.Select(list => list.ArchiveFor(match.Id, now)));
         // Code secret pour envoyer le score depuis l'objet TTS.
         db.ReportCodes.Add(new ReportCode(match.Id, ReportCode.Generate()));
-
-        db.Matches.Add(match);
-        await db.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<ArchivedLists> ArchivedListsOfAsync(IEnumerable<Guid> matchIds, CancellationToken cancellationToken = default)

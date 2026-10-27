@@ -18,6 +18,7 @@ public sealed class MatchmakerDbContext(DbContextOptions<MatchmakerDbContext> op
     public DbSet<Match> Matches => Set<Match>();
     public DbSet<ArchivedArmyList> ArchivedArmyLists => Set<ArchivedArmyList>();
     public DbSet<ReportCode> ReportCodes => Set<ReportCode>();
+    public DbSet<ScheduledSearch> ScheduledSearches => Set<ScheduledSearch>();
 
     private static readonly ValueConverter<PlayerId, string> PlayerIdConverter = new(id => id.SteamId, steamId => new PlayerId(steamId));
     private static readonly ValueConverter<EloRating, int> EloRatingConverter = new(rating => rating.Value, value => new EloRating(value));
@@ -85,6 +86,20 @@ public sealed class MatchmakerDbContext(DbContextOptions<MatchmakerDbContext> op
             archive.Property(a => a.ArchivedAt).HasColumnName("archived_at");
         });
 
+        modelBuilder.Entity<ScheduledSearch>(search =>
+        {
+            search.ToTable("scheduled_searches");
+            search.HasKey(s => s.Id);
+            search.Property(s => s.Id).HasColumnName("id").ValueGeneratedNever();
+            search.ComplexProperty(s => s.Ticket, ticket => MapTicket(ticket, "player"));
+            search.Property(s => s.PlannedFor).HasColumnName("planned_for");
+            search.Property(s => s.Status).HasColumnName("status").HasConversion<string>().HasMaxLength(20);
+            search.Property(s => s.MatchId).HasColumnName("match_id");
+            search.HasIndex(s => new { s.Status, s.PlannedFor });
+            search.HasIndex(s => s.MatchId);
+            search.Property<uint>("RowVersion").IsRowVersion();
+        });
+
         modelBuilder.Entity<Match>(match =>
         {
             match.ToTable("matches");
@@ -93,6 +108,7 @@ public sealed class MatchmakerDbContext(DbContextOptions<MatchmakerDbContext> op
             match.ComplexProperty(m => m.First, ticket => MapTicket(ticket, "first"));
             match.ComplexProperty(m => m.Second, ticket => MapTicket(ticket, "second"));
             match.Property(m => m.ProposedAt).HasColumnName("proposed_at");
+            match.Property(m => m.ScheduledFor).HasColumnName("scheduled_for");
             match.Property(m => m.Status).HasColumnName("status").HasConversion<string>().HasMaxLength(20);
             match.Property(m => m.Declarer).HasColumnName("declarer_steam_id").HasMaxLength(20).HasConversion(PlayerIdConverter);
             match.Property(m => m.DeclaredAt).HasColumnName("declared_at");
@@ -107,6 +123,7 @@ public sealed class MatchmakerDbContext(DbContextOptions<MatchmakerDbContext> op
                 match.Property<int?>($"{prefix}RatingBefore").HasColumnName($"{side}_rating_before");
             }
             match.HasIndex(m => m.Status);
+            match.HasIndex(m => m.ScheduledFor);
             match.Property<uint>("RowVersion").IsRowVersion();
         });
     }

@@ -34,9 +34,11 @@ builder.Services.AddScoped<ArmyListService>();
 builder.Services.AddSingleton<PlayerNotifier>();
 builder.Services.AddSingleton<MatchmakingCoordinator>();
 builder.Services.AddScoped<MatchService>();
+builder.Services.AddScoped<ScheduledGames>();
 builder.Services.AddTtsReporting(builder.Configuration);
 builder.Services.AddHostedService<MatchExpiryService>();
 builder.Services.AddHostedService<ResultConfirmationService>();
+builder.Services.AddHostedService<ScheduledGamesExpiryService>();
 builder.Services.AddSteamAuthentication(builder.Configuration);
 builder.Services.AddHealthChecks().AddDbContextCheck<MatchmakerDbContext>();
 
