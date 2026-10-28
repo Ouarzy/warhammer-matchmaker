@@ -22,7 +22,7 @@ sequenceDiagram
     A->>S: confirme (ou, sans réponse sous 24 h, confirmation automatique)
 ```
 
-Le site traite l'envoi exactement comme une déclaration faite à la main : **l'adversaire confirme** (ou conteste), et sans réponse sous 24 h le résultat est confirmé automatiquement. L'objet ne fait que supprimer la saisie manuelle des VP et les erreurs de recopie.
+Le site traite l'envoi exactement comme une déclaration faite à la main : **l'adversaire confirme**, ou conteste en proposant le bon score, que l'hôte confirme ou conteste à son tour jusqu'à accord ; sans réponse sous 24 h, le dernier score proposé est confirmé automatiquement. L'objet est facultatif : il ne fait que supprimer la saisie manuelle des VP et les erreurs de recopie.
 
 ## Ce que LCT permet déjà
 
@@ -113,7 +113,8 @@ end
 | Risque | Parade |
 |---|---|
 | LCT change `getMatchSummary` ou le GUID de la feuille (mod très actif). | Message clair dans TTS si la feuille est introuvable ; repli sur `playerSum(1/2)` ; champ `version` dans l'envoi ; prendre contact avec le mainteneur de LCT. Dans le pire cas, la saisie manuelle reste disponible. |
-| Un joueur n'est pas assis en Rouge/Bleu (spectateur, autre couleur). | L'objet refuse d'envoyer et l'explique. |
+| Un joueur n'est pas assis en Rouge/Bleu (spectateur, autre couleur, essai en solo). | L'objet refuse d'envoyer le score final et l'explique. Le score en direct n'est pas envoyé non plus, mais sans message : la ligne d'état reste sur « Code enregistré ». Il faut donc deux joueurs assis pour essayer l'objet. |
+| Le site redémarre (déploiement) pendant une partie. | Le score en direct n'est gardé qu'en mémoire : il disparaît de la page jusqu'au prochain changement de score, l'objet n'envoyant que les scores qui changent. Le score final n'est pas concerné. |
 | L'hôte n'est pas l'un des deux joueurs. | Le site refuse ; un des deux joueurs doit héberger (cas habituel). |
 | Faux envoi. | Code secret par partie + vérification des deux Steam ID + confirmation par l'adversaire. |
 | Le script ne peut pas être testé automatiquement dans TTS. | Logique du script testée hors de TTS avec Lua 5.4 et de faux objets TTS/LCT ; validation finale à la main dans TTS (par toi). |

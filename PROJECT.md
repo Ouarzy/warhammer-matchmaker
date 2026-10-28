@@ -35,10 +35,10 @@ Tous les joueurs jouent via le mod LCT (11e édition) de TTS et enregistrent leu
 - gérer les autres jeux que warhammer 40k (AOS prévu plus tard)
 - gérer d'autres identifiants que Steam
 - gérer d'autres plateforme que TableTopSimulator
-- parties planifiées (prise de rendez-vous) : plus tard, MVP = recherche immédiate
-- notifications push / e-mail
+- ~~parties planifiées (prise de rendez-vous)~~ → faites (PLAN.md, itération 7b)
+- ~~notifications push~~ → faites (PLAN.md, itération 7c) ; e-mail toujours hors périmètre
 - anti-triche
-- remontée automatique du résultat depuis TTS / le mod LCT (V2, voir Questions ouvertes)
+- ~~remontée automatique du résultat depuis TTS / le mod LCT~~ → objet TTS facultatif (PLAN.md, itération 7)
 
 ## Règles métier
 ### Elo (inspiré des échecs)

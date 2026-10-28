@@ -23,17 +23,19 @@ Spécifications : voir [PROJECT.md](PROJECT.md).
 |---|---|---|---|
 | 0 | **Étude** : récupération d'une liste via code YellowScribe ; manière dont LCT expose ses scores (pour V2) | Décision sur l'import des listes | Fait |
 | 1 | **Domaine Résultat & Elo** (TDD) : VP → score WTC sur 20 → catégorie (7 niveaux) ; Elo avec résultat = score WTC / 20, facteur K | Moteur de score et Elo testé | Fait |
-| 2 | **Domaine Match** (TDD) : file par format + classé/non classé, appariement, acceptation/refus/timeout, déclaration des VP + confirmation, litige/abandon sans effet sur l'Elo | Logique métier complète, testée | Fait |
+| 2 | **Domaine Match** (TDD) : file par format + classé/non classé, appariement, acceptation/refus/timeout, déclaration des VP + confirmation, abandon | Logique métier complète, testée | Fait |
 | 3 | **Squelette web** : solution .NET, connexion Steam, profil joueur, BDD | On peut se connecter | Fait |
 | 4 | **Listes d'armée** : import (selon étude), plusieurs listes par joueur, format associé | On gère ses listes | Fait |
 | 5 | **File d'attente temps réel** : recherche, notification SignalR, écran d'acceptation, Steam ID + liste adverse | **Premier MVP jouable** | Fait |
 | 6 | **Résultats & classement** : déclaration, confirmation, historique, classement Elo | MVP complet | Fait |
 | 6b | **Parties longues** : jusqu'à 5 parties en parallèle sans limite de durée, abandon = victoire 20-0 pour l'adversaire, confirmation automatique du résultat après 24 h sans réponse | Règles de jeu réelles | Fait |
+| 6e | **Contestation du score** : contester = proposer le bon score, que l'adversaire confirme ou conteste à son tour jusqu'à accord (24 h à chaque proposition) ; l'ancien statut « contesté », sans effet sur l'Elo, et ses parties sont supprimés (2026-10-28) | Plus de partie perdue pour l'Elo | Fait |
 | 6c | **Préparation du déploiement** : image Docker, Docker Compose de production (site, PostgreSQL, Caddy HTTPS, sauvegardes), scripts, répétition générale en local | Prêt à déployer | Fait |
 | 6d | **Mise en ligne** : Gandi VPS Starter, image publiée par GitHub Actions sur ghcr.io, HTTPS Caddy, https://warhammer-matchmaker.com (connexion Steam validée en production le 2026-10-27) | Site public | Fait |
-| 7 | **V2** : objet TTS de remontée du score ([étude](docs/V2-OBJET-TTS.md)) : score en direct + bouton score final, en bêta, essai réel dans TTS à faire | Plus de saisie des VP | Fait (à essayer) |
+| 7 | **V2** : objet TTS de remontée du score ([étude](docs/V2-OBJET-TTS.md)) : score en direct + bouton score final, facultatif (la saisie à la main reste possible), en bêta, essai réel à deux joueurs dans TTS à faire | Plus de saisie des VP | Fait (à essayer) |
 | 7b | **Parties planifiées** : recherche à une date et heure précises enregistrée en base, appariement à ± 1 h (heure la plus proche, puis Elo), partie fixée à l'heure du premier joueur, 24 h pour accepter et au plus tard 1 h avant, refus/expiration qui relancent la recherche de l'autre, pastille dans le menu, heures affichées dans le fuseau de chacun | Jouer sans être en ligne en même temps | Fait |
-| 8 | **Suite** : notifications push du navigateur, AOS… | Évolutions | À faire |
+| 7c | **Notifications push** du navigateur : partie planifiée proposée, confirmée ou annulée, résultat à confirmer, score contesté, abandon de l'adversaire | Être prévenu sans garder le site ouvert | Fait |
+| 8 | **Suite** : essai réel de l'objet TTS à deux joueurs, prise de contact avec les mainteneurs de YellowScribe et de LCT, Age of Sigmar… | Évolutions | À faire |
 
 ## Résultats de l'itération 0
 
