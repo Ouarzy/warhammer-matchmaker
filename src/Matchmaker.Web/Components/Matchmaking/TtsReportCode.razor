@@ -1,0 +1,32 @@
+@inject IJSRuntime JS
+
+@* Code secret de la partie, à coller dans l'objet TTS « Warhammer Matchmaker ». *@
+<div class="tts-code">
+    <p><Icon Name="send" /> <strong>Envoyer le score depuis TTS (facultatif)</strong> : collez ce code dans l'objet « Warhammer Matchmaker » de votre table. Si vous préférez, saisissez simplement le score à la main ci-dessous.</p>
+    <p class="code-value">
+        <code>@Code</code>
+        <button class="button secondary" @onclick="CopyAsync" disabled="@(!RendererInfo.IsInteractive)" aria-live="polite">
+            <Icon Name="@(_copied ? "check" : "copy")" /> @(_copied ? "Copié" : "Copier")
+        </button>
+    </p>
+    <p class="hint">Code secret de cette partie : ne le donnez qu'à votre adversaire. <a href="/tts">Installer l'objet TTS</a></p>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Code { get; set; } = "";
+
+    private bool _copied;
+
+    private async Task CopyAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", Code);
+            _copied = true;
+        }
+        catch (JSException)
+        {
+            // Presse-papiers refusé par le navigateur : le code reste affiché pour être recopié.
+        }
+    }
+}
