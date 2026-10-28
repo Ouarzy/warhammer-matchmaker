@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json;
 using AspNet.Security.OpenId;
 using AspNet.Security.OpenId.Steam;
 using Matchmaker.Domain.Players;
@@ -61,8 +62,9 @@ public static class SteamAuthentication
     private static async Task OnSteamAuthenticated(OpenIdAuthenticatedContext context)
     {
         var id = PlayerId.FromSteamOpenId(context.Identifier ?? "");
-        var profile = context.UserPayload?.RootElement.GetProperty("response").GetProperty("players")[0];
-        var displayName = profile?.GetProperty("personaname").GetString() ?? id.SteamId;
+        // Profil public renvoyé par l'API Steam ; s'il manque (API indisponible), on se connecte avec le seul Steam ID.
+        var profile = PublicProfileOf(context.UserPayload?.RootElement);
+        var displayName = profile?.TryGetProperty("personaname", out var name) == true ? name.GetString() ?? id.SteamId : id.SteamId;
         var avatarUrl = profile?.TryGetProperty("avatarfull", out var avatar) == true ? avatar.GetString() : null;
 
         var accounts = context.HttpContext.RequestServices.GetRequiredService<PlayerAccounts>();
@@ -70,6 +72,14 @@ public static class SteamAuthentication
 
         context.Identity!.AddClaim(new Claim(SteamIdClaim, id.SteamId));
     }
+
+    private static JsonElement? PublicProfileOf(JsonElement? payload) =>
+        payload is { ValueKind: JsonValueKind.Object } root
+        && root.TryGetProperty("response", out var response)
+        && response.TryGetProperty("players", out var players)
+        && players.ValueKind == JsonValueKind.Array && players.GetArrayLength() > 0
+            ? players[0]
+            : null;
 
     private static bool IsLocal(string? url) =>
         !string.IsNullOrEmpty(url) && url.StartsWith('/') && !url.StartsWith("//") && !url.StartsWith("/\\");

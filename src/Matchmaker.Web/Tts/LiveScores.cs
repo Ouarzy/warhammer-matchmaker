@@ -11,9 +11,18 @@ public sealed record LiveScore(int FirstVictoryPoints, int SecondVictoryPoints, 
 /// </summary>
 public sealed class LiveScores
 {
+    /// <summary>Au-delà, un score sans nouvelles (partie abandonnée, objet fermé) est oublié.</summary>
+    public static readonly TimeSpan KeptFor = TimeSpan.FromDays(1);
+
     private readonly ConcurrentDictionary<Guid, LiveScore> _scores = new();
 
-    public void Update(Guid matchId, LiveScore score) => _scores[matchId] = score;
+    public void Update(Guid matchId, LiveScore score)
+    {
+        _scores[matchId] = score;
+        foreach (var (id, old) in _scores)
+            if (old.At < score.At - KeptFor)
+                _scores.TryRemove(id, out _);
+    }
 
     public LiveScore? Of(Guid matchId) => _scores.GetValueOrDefault(matchId);
 
