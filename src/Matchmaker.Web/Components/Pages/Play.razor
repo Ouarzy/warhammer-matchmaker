@@ -187,7 +187,7 @@
     protected override async Task OnInitializedAsync()
     {
         _me = SteamAuthentication.PlayerIdOf((await AuthenticationState).User);
-        _lists = await UsingServices(services => services.GetRequiredService<ArmyListService>().ListOwnedByAsync(_me));
+        _lists = await ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<ArmyListService>().ListOwnedByAsync(_me));
         _selectedListId = _lists.FirstOrDefault()?.Id ?? Guid.Empty;
         await RefreshAsync();
 
@@ -201,7 +201,7 @@
     private Task SearchAsync() => RunAsync(async () =>
     {
         await RequestNotificationPermissionAsync();
-        var (player, list, hasRoom) = await UsingServices(async services => (
+        var (player, list, hasRoom) = await ScopeFactory.UsingScopeAsync(async services => (
             await services.GetRequiredService<PlayerAccounts>().FindAsync(_me),
             await services.GetRequiredService<ArmyListService>().FindAsync(_selectedListId),
             await services.GetRequiredService<MatchService>().CanLookForAnotherOpponentAsync(_me)));
@@ -221,18 +221,18 @@
         var plannedFor = new DateTimeOffset(local, _timeZone.GetUtcOffset(local));
         if (plannedFor < Time.GetUtcNow() + Match.ScheduledAcceptanceNotice)
             throw new InvalidOperationException("Choisissez une heure au moins 1 h à l'avance.");
-        await UsingServices(services => services.GetRequiredService<ScheduledGames>().PlanAsync(_me, _selectedListId, _ranked, plannedFor));
+        await ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<ScheduledGames>().PlanAsync(_me, _selectedListId, _ranked, plannedFor));
     });
 
     private Task CancelPlannedAsync(Guid searchId) =>
-        RunAsync(() => UsingServices(services => services.GetRequiredService<ScheduledGames>().CancelAsync(_me, searchId)));
+        RunAsync(() => ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<ScheduledGames>().CancelAsync(_me, searchId)));
 
     private Task DeclinePlannedAsync(Guid matchId) =>
-        RunAsync(() => UsingServices(services => services.GetRequiredService<ScheduledGames>().DeclineAsync(_me, matchId)));
+        RunAsync(() => ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<ScheduledGames>().DeclineAsync(_me, matchId)));
 
     private Task AcceptPlannedAsync(Guid matchId) => RunAsync(async () =>
     {
-        var match = await UsingServices(services => services.GetRequiredService<ScheduledGames>().AcceptAsync(_me, matchId));
+        var match = await ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<ScheduledGames>().AcceptAsync(_me, matchId));
         _confirmedPlanned = match.Status == MatchStatus.Accepted;
     });
 
@@ -243,7 +243,7 @@
         var accepted = Coordinator.Accept(_me, _status.Match!.Id);
         if (accepted is null) return;
 
-        await UsingServices(services => services.GetRequiredService<MatchService>().StartAsync(accepted));
+        await ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<MatchService>().StartAsync(accepted));
         Coordinator.Release(accepted.Id);
         Navigation.NavigateTo($"/matches/{accepted.Id}");
     });
@@ -284,14 +284,14 @@
 
     private async Task RefreshAsync()
     {
-        _activeMatches = await UsingServices(services => services.GetRequiredService<MatchService>().ActiveMatchesOfAsync(_me));
+        _activeMatches = await ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<MatchService>().ActiveMatchesOfAsync(_me));
         _status = Coordinator.StatusOf(_me);
         await RefreshScheduledAsync();
 
         var proposal = _status.Match;
         if (proposal is null || proposal.Id == _proposalLoadedFor) return;
 
-        (_proposedOpponent, _proposedOpponentList) = await UsingServices(async services => (
+        (_proposedOpponent, _proposedOpponentList) = await ScopeFactory.UsingScopeAsync(async services => (
             await services.GetRequiredService<PlayerAccounts>().FindAsync(proposal.Opponent.Player),
             await services.GetRequiredService<ArmyListService>().FindAsync(proposal.Opponent.ArmyListId)));
         _proposalLoadedFor = proposal.Id;
@@ -299,9 +299,9 @@
 
     private async Task RefreshScheduledAsync()
     {
-        _scheduled = await UsingServices(services => services.GetRequiredService<ScheduledGames>().OverviewAsync(_me));
+        _scheduled = await ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<ScheduledGames>().OverviewAsync(_me));
         var opponents = _scheduled.Proposals.Select(m => m.OpponentOf(_me)).ToList();
-        (_scheduledPlayers, _scheduledLists) = await UsingServices(async services =>
+        (_scheduledPlayers, _scheduledLists) = await ScopeFactory.UsingScopeAsync(async services =>
         {
             var lists = new Dictionary<Guid, ArmyList>();
             foreach (var opponent in opponents)
@@ -352,17 +352,7 @@
     }
 
     // Composant interactif de longue durée : un scope (et donc un DbContext) par opération.
-    private async Task<T> UsingServices<T>(Func<IServiceProvider, Task<T>> work)
-    {
-        await using var scope = ScopeFactory.CreateAsyncScope();
-        return await work(scope.ServiceProvider);
-    }
 
-    private async Task UsingServices(Func<IServiceProvider, Task> work)
-    {
-        await using var scope = ScopeFactory.CreateAsyncScope();
-        await work(scope.ServiceProvider);
-    }
 
     private string Elapsed(DateTimeOffset since) => Format(Time.GetUtcNow() - since);
 

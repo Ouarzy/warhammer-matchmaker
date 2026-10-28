@@ -18,7 +18,7 @@
         if (user.Identity?.IsAuthenticated != true) return;
 
         // Rendu en même temps que la page : un DbContext à part pour ne pas partager le sien.
-        await using var scope = ScopeFactory.CreateAsyncScope();
-        _count = await scope.ServiceProvider.GetRequiredService<ScheduledGames>().ProposalsToAnswerAsync(SteamAuthentication.PlayerIdOf(user));
+        _count = await ScopeFactory.UsingScopeAsync(services =>
+            services.GetRequiredService<ScheduledGames>().ProposalsToAnswerAsync(SteamAuthentication.PlayerIdOf(user)));
     }
 }

@@ -169,9 +169,9 @@
 
         // Envoi du score depuis TTS : affiché seulement une fois la fonction ouverte (Tts:Enabled).
         if (_me is not null && Configuration.GetValue<bool>("Tts:Enabled"))
-            _reportCode = await UsingServices(services => services.GetRequiredService<TtsReporting>().CodeOfAsync(Id));
+            _reportCode = await ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<TtsReporting>().CodeOfAsync(Id));
 
-        (_players, _archives) = await UsingServices(async services => (
+        (_players, _archives) = await ScopeFactory.UsingScopeAsync(async services => (
             await services.GetRequiredService<PlayerAccounts>().FindManyAsync([_match.First.Player, _match.Second.Player]),
             await services.GetRequiredService<MatchService>().ArchivedListsOfAsync([Id])));
 
@@ -225,7 +225,7 @@
         _confirmingAbandon = false;
         try
         {
-            var match = await UsingServices(services => change(services.GetRequiredService<MatchService>(), me));
+            var match = await ScopeFactory.UsingScopeAsync(services => change(services.GetRequiredService<MatchService>(), me));
             _contesting = false;
             Notifier.Notify([match.First.Player, match.Second.Player]);
         }
@@ -254,14 +254,9 @@
     private string NameOf(PlayerId player) => _players.GetValueOrDefault(player)?.DisplayName ?? "Joueur";
 
     private async Task RefreshAsync() =>
-        _match = await UsingServices(services => services.GetRequiredService<MatchService>().FindAsync(Id));
+        _match = await ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<MatchService>().FindAsync(Id));
 
     // Composant interactif de longue durée : un scope (et donc un DbContext) par opération.
-    private async Task<T> UsingServices<T>(Func<IServiceProvider, Task<T>> work)
-    {
-        await using var scope = ScopeFactory.CreateAsyncScope();
-        return await work(scope.ServiceProvider);
-    }
 
     private string Remaining(DateTimeOffset deadline)
     {

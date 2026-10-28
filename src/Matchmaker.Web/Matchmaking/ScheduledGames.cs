@@ -23,8 +23,12 @@ public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches,
 
     private static readonly ScheduledSearchStatus Open = ScheduledSearchStatus.Open;
 
-    // Notifications push, envoyées seulement une fois les changements enregistrés.
-    private readonly List<(PlayerId, PushMessage)> _pushes = [];
+    /// <summary>Ce qu'une opération change : joueurs à prévenir et notifications push, envoyées une fois les changements enregistrés.</summary>
+    private sealed class Changes
+    {
+        public List<PlayerId> Players { get; } = [];
+        public List<(PlayerId, PushMessage)> Pushes { get; } = [];
+    }
 
     public async Task<ScheduledSearch> PlanAsync(PlayerId player, Guid armyListId, bool ranked, DateTimeOffset plannedFor,
         CancellationToken cancellationToken = default)
@@ -45,7 +49,7 @@ public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches,
             // PostgreSQL n'enregistre que des dates UTC ; l'heure saisie arrive dans le fuseau du joueur.
             var search = ScheduledSearch.Open(new QueueTicket(player, list.Id, list.Format, ranked, account.Rating, now), plannedFor.ToUniversalTime(), now);
             db.ScheduledSearches.Add(search);
-            changed.Add(player);
+            changed.Players.Add(player);
             await TryMatchAsync(search, now, changed, cancellationToken);
             return search;
         }, cancellationToken);
@@ -58,7 +62,7 @@ public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches,
             if (search is null || search.Ticket.Player != player)
                 throw new InvalidOperationException("Cette recherche n'existe pas ou ne vous concerne pas.");
             search.Cancel();
-            changed.Add(player);
+            changed.Players.Add(player);
             return 0;
         }, cancellationToken);
 
@@ -71,9 +75,9 @@ public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches,
             if (match.Status == MatchStatus.Accepted)
             {
                 await matches.PrepareStartAsync(match, cancellationToken);
-                _pushes.AddRange([(match.First.Player, PushMessages.ScheduledConfirmed(match)), (match.Second.Player, PushMessages.ScheduledConfirmed(match))]);
+                changed.Pushes.AddRange([(match.First.Player, PushMessages.ScheduledConfirmed(match)), (match.Second.Player, PushMessages.ScheduledConfirmed(match))]);
             }
-            changed.AddRange([match.First.Player, match.Second.Player]);
+            changed.Players.AddRange([match.First.Player, match.Second.Player]);
             return match;
         }, cancellationToken);
 
@@ -105,7 +109,7 @@ public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches,
                 .Where(s => s.Status == Open && s.PlannedFor < latest)
                 .ToListAsync(cancellationToken);
             foreach (var search in tooLate.Where(s => s.ExpireIfTooLate(now)))
-                changed.Add(search.Ticket.Player);
+                changed.Players.Add(search.Ticket.Player);
             return 0;
         }, cancellationToken);
 
@@ -143,7 +147,7 @@ public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches,
             : throw new InvalidOperationException("Cette proposition n'existe plus ou ne vous concerne pas.");
     }
 
-    private async Task TryMatchAsync(ScheduledSearch search, DateTimeOffset now, List<PlayerId> changed, CancellationToken cancellationToken)
+    private async Task TryMatchAsync(ScheduledSearch search, DateTimeOffset now, Changes changed, CancellationToken cancellationToken)
     {
         var (from, to) = (search.PlannedFor - ScheduledSearch.Tolerance, search.PlannedFor + ScheduledSearch.Tolerance);
         var candidates = await db.ScheduledSearches
@@ -155,19 +159,19 @@ public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches,
 
         var match = search.MatchWith(opponent, now);
         db.Matches.Add(match);
-        changed.AddRange([match.First.Player, match.Second.Player]);
-        _pushes.AddRange([(match.First.Player, PushMessages.ScheduledProposal(match)), (match.Second.Player, PushMessages.ScheduledProposal(match))]);
+        changed.Players.AddRange([match.First.Player, match.Second.Player]);
+        changed.Pushes.AddRange([(match.First.Player, PushMessages.ScheduledProposal(match)), (match.Second.Player, PushMessages.ScheduledProposal(match))]);
     }
 
     // Après un refus ou une expiration : la recherche des joueurs qui voulaient jouer repart, les autres s'arrêtent.
-    private async Task SettleSearchesAsync(Match match, IReadOnlyList<PlayerId> stillSearching, List<PlayerId> changed,
+    private async Task SettleSearchesAsync(Match match, IReadOnlyList<PlayerId> stillSearching, Changes changed,
         CancellationToken cancellationToken)
     {
         var now = time.GetUtcNow();
         var searches = await db.ScheduledSearches.Where(s => s.MatchId == match.Id).ToListAsync(cancellationToken);
         foreach (var search in searches)
         {
-            changed.Add(search.Ticket.Player);
+            changed.Players.Add(search.Ticket.Player);
             if (!stillSearching.Contains(search.Ticket.Player))
             {
                 search.Close();
@@ -176,23 +180,22 @@ public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches,
             search.Reopen(now);
             if (search.Status != Open)
             {
-                _pushes.Add((search.Ticket.Player, PushMessages.SearchStopped(search.PlannedFor)));
+                changed.Pushes.Add((search.Ticket.Player, PushMessages.SearchStopped(search.PlannedFor)));
                 continue;
             }
             await TryMatchAsync(search, now, changed, cancellationToken);
             if (search.Status == Open)
-                _pushes.Add((search.Ticket.Player, PushMessages.SearchGoesOn(search.PlannedFor)));
+                changed.Pushes.Add((search.Ticket.Player, PushMessages.SearchGoesOn(search.PlannedFor)));
         }
     }
 
-    private async Task<T> SerializedAsync<T>(Func<List<PlayerId>, Task<T>> work, CancellationToken cancellationToken)
+    private async Task<T> SerializedAsync<T>(Func<Changes, Task<T>> work, CancellationToken cancellationToken)
     {
-        var changed = new List<PlayerId>();
+        var changed = new Changes();
         T result;
         await Gate.WaitAsync(cancellationToken);
         try
         {
-            _pushes.Clear();
             result = await work(changed);
             await db.SaveChangesAsync(cancellationToken);
         }
@@ -200,8 +203,8 @@ public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches,
         {
             Gate.Release();
         }
-        notifier.Notify(changed);
-        push.Send(_pushes);
+        notifier.Notify(changed.Players);
+        push.Send(changed.Pushes);
         return result;
     }
 }
