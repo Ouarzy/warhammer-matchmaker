@@ -1,6 +1,7 @@
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using Microsoft.Extensions.WebEncoders;
+using Matchmaker.Web;
 using Matchmaker.Web.Accounts;
 using Matchmaker.Web.ArmyLists;
 using Matchmaker.Web.ArmyLists.YellowScribe;
@@ -57,6 +58,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
     await scope.ServiceProvider.GetRequiredService<MatchmakerDbContext>().Database.MigrateAsync();
 
+app.UseSecurityHeaders();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
@@ -78,6 +80,7 @@ app.MapDevelopmentLogin();
 app.MapTtsReporting();
 app.MapPushNotifications();
 app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+    // Blazor n'ajoute pas sa propre politique frame-ancestors : celle de SecurityHeaders, plus stricte, s'applique.
+    .AddInteractiveServerRenderMode(options => options.ContentSecurityFrameAncestorsPolicy = null);
 
 app.Run();
