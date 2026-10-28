@@ -91,6 +91,18 @@ public sealed class PushNotificationsTests(PostgresFixture postgres) : IDisposab
     }
 
     [Fact]
+    public async Task Only_the_10_most_recent_devices_of_a_player_are_kept()
+    {
+        var player = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(player);
+        for (var i = 0; i <= PushSubscriptions.MaxDevicesPerPlayer; i++)
+            await client.PostAsJsonAsync("/api/push/subscriptions", Subscription($"https://fcm.googleapis.com/fcm/send/{player.SteamId}-{i}"));
+
+        using var scope = _factory.Services.CreateScope();
+        Assert.Equal(PushSubscriptions.MaxDevicesPerPlayer, await scope.ServiceProvider.GetRequiredService<PushSubscriptions>().CountAsync(player));
+    }
+
+    [Fact]
     public async Task A_test_notification_reaches_every_device_of_the_player()
     {
         var (alice, client) = await SubscribedPlayer("Alice");

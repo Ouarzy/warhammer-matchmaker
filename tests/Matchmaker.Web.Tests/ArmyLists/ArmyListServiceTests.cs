@@ -16,7 +16,7 @@ public class ArmyListServiceTests(PostgresFixture postgres)
 
     private readonly FixedTime _time = new(Noon);
 
-    private ArmyListService Service(MatchmakerDbContext db) => new(db, new StubRosterProvider(), _time);
+    private ArmyListService Service(MatchmakerDbContext db) => new(db, new StubRosterProvider(), new ImportLimiter(_time), _time);
 
     private async Task<PlayerId> NewPlayer()
     {
@@ -46,6 +46,40 @@ public class ArmyListServiceTests(PostgresFixture postgres)
         Assert.Equal(Custodes.Units.Select(u => u.Name), list.Roster.Units.Select(u => u.Name));
         Assert.Equal(Custodes.Units[4].Weapons, list.Roster.Units[4].Weapons);
         Assert.Equal(Custodes.Units[0].Abilities, list.Roster.Units[0].Abilities);
+    }
+
+    [Fact]
+    public async Task A_player_cannot_keep_more_than_50_lists()
+    {
+        var owner = await NewPlayer();
+        await using var db = postgres.CreateDbContext();
+        for (var i = 0; i < ArmyListService.MaxListsPerPlayer; i++)
+            db.ArmyLists.Add(ArmyList.Import(owner, $"Liste {i}", GameFormats.StrikeForce, Custodes, Noon));
+        await db.SaveChangesAsync();
+
+        var refused = await Assert.ThrowsAsync<RosterImportException>(() =>
+            Service(db).ImportAsync(owner, Samples.CustodesCode, "Une de trop", GameFormats.StrikeForce));
+
+        Assert.Equal(RosterImportError.LimitReached, refused.Error);
+    }
+
+    [Fact]
+    public async Task Imports_are_limited_to_10_every_10_minutes()
+    {
+        var owner = await NewPlayer();
+        var limiter = new ImportLimiter(_time);
+        await using var db = postgres.CreateDbContext();
+        var service = new ArmyListService(db, new StubRosterProvider(), limiter, _time);
+        for (var i = 0; i < ImportLimiter.MaxImports; i++)
+            await service.ImportAsync(owner, Samples.CustodesCode, $"Liste {i}", GameFormats.StrikeForce);
+
+        var refused = await Assert.ThrowsAsync<RosterImportException>(() =>
+            service.ImportAsync(owner, Samples.CustodesCode, "Une de trop", GameFormats.StrikeForce));
+        Assert.Equal(RosterImportError.LimitReached, refused.Error);
+
+        _time.Now = Noon + ImportLimiter.Window;
+        await service.ImportAsync(owner, Samples.CustodesCode, "Plus tard", GameFormats.StrikeForce);
+        Assert.True(limiter.TryAcquire(await NewPlayer()));
     }
 
     [Fact]

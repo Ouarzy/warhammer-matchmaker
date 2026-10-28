@@ -30,8 +30,11 @@ builder.Services.AddHttpClient<IRosterProvider, YellowScribeClient>(http =>
 {
     http.BaseAddress = YellowScribeClient.BaseAddress;
     http.Timeout = TimeSpan.FromSeconds(10);
+    // Une liste fait environ 100 Ko : une réponse bien plus grosse n'est pas une liste.
+    http.MaxResponseContentBufferSize = 2 * 1024 * 1024;
     http.DefaultRequestHeaders.UserAgent.ParseAdd("WarhammerMatchmaker/1.0 (+https://warhammer-matchmaker.com)");
 });
+builder.Services.AddSingleton<ImportLimiter>();
 builder.Services.AddScoped<ArmyListService>();
 builder.Services.AddSingleton<PlayerNotifier>();
 builder.Services.AddSingleton<MatchmakingCoordinator>();

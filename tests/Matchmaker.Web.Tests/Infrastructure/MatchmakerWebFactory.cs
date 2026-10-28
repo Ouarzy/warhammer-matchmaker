@@ -1,11 +1,13 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
+using Matchmaker.Domain.ArmyLists;
 using Matchmaker.Domain.Matches;
 using Matchmaker.Domain.Matchmaking;
 using Matchmaker.Domain.Players;
 using Matchmaker.Domain.Ratings;
 using Matchmaker.Web.Accounts;
 using Matchmaker.Web.ArmyLists;
+using Matchmaker.Web.Data;
 using Matchmaker.Web.Matches;
 using Matchmaker.Web.Push;
 using Microsoft.AspNetCore.Authentication;
@@ -64,11 +66,15 @@ public sealed class MatchmakerWebFactory(PostgresFixture postgres) : WebApplicat
     public async Task<Guid> StartMatchAsync(PlayerId first, PlayerId second, bool ranked = true, string? detachment = null)
     {
         using var scope = Services.CreateScope();
-        var lists = scope.ServiceProvider.GetRequiredService<ArmyListService>();
+        // Listes enregistrées directement, sans passer par l'import : un même joueur peut jouer ici bien plus
+        // de parties que la limite d'imports ne le permet.
+        var db = scope.ServiceProvider.GetRequiredService<MatchmakerDbContext>();
         var now = DateTimeOffset.UtcNow;
         async Task<QueueTicket> Ticket(PlayerId player)
         {
-            var list = await lists.ImportAsync(player, Samples.CustodesCode, "Liste de match", GameFormats.StrikeForce, detachment);
+            var list = ArmyList.Import(player, "Liste de match", GameFormats.StrikeForce, Samples.Custodes, now, detachment);
+            db.ArmyLists.Add(list);
+            await db.SaveChangesAsync();
             return new QueueTicket(player, list.Id, list.Format, ranked, EloRating.Initial, now);
         }
 

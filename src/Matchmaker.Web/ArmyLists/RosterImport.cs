@@ -15,6 +15,7 @@ public enum RosterImportError
     NotFound,
     Unavailable,
     UnreadableContent,
+    LimitReached,
 }
 
 public sealed class RosterImportException(RosterImportError error, string message, Exception? inner = null)

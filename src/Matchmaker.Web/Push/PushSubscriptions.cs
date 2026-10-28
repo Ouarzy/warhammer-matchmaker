@@ -7,6 +7,9 @@ namespace Matchmaker.Web.Push;
 /// <summary>Abonnements des navigateurs des joueurs.</summary>
 public sealed class PushSubscriptions(MatchmakerDbContext db, TimeProvider time)
 {
+    /// <summary>Au-delà, les abonnements les plus anciens du joueur sont oubliés.</summary>
+    public const int MaxDevicesPerPlayer = 10;
+
     public async Task SubscribeAsync(PlayerId player, string endpoint, string p256dh, string auth, CancellationToken cancellationToken = default)
     {
         if (!Uri.TryCreate(endpoint, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps || !IsKnownPushService(uri)
@@ -22,6 +25,12 @@ public sealed class PushSubscriptions(MatchmakerDbContext db, TimeProvider time)
         else
             existing.Renew(player, p256dh, auth, now);
         await db.SaveChangesAsync(cancellationToken);
+
+        await db.PushSubscriptions
+            .Where(s => s.Player == player)
+            .OrderByDescending(s => s.CreatedAt)
+            .Skip(MaxDevicesPerPlayer)
+            .ExecuteDeleteAsync(cancellationToken);
     }
 
     // Le serveur envoie ses notifications à l'adresse fournie par le navigateur : seuls les services push des

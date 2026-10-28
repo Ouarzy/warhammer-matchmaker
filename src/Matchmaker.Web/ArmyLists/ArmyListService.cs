@@ -6,12 +6,22 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Matchmaker.Web.ArmyLists;
 
-public sealed class ArmyListService(MatchmakerDbContext db, IRosterProvider rosters, TimeProvider time)
+public sealed class ArmyListService(MatchmakerDbContext db, IRosterProvider rosters, ImportLimiter limiter, TimeProvider time)
 {
-    /// <exception cref="RosterImportException">La liste n'a pas pu être récupérée.</exception>
+    public const int MaxListsPerPlayer = 50;
+
+    /// <exception cref="RosterImportException">La liste n'a pas pu être récupérée, ou le joueur a atteint une limite.</exception>
     public async Task<ArmyList> ImportAsync(PlayerId owner, string code, string? name, GameFormat format, string? detachment = null,
         CancellationToken cancellationToken = default)
     {
+        if (await db.ArmyLists.CountAsync(l => l.Owner == owner, cancellationToken) >= MaxListsPerPlayer)
+            throw new RosterImportException(RosterImportError.LimitReached,
+                $"Vous avez déjà {MaxListsPerPlayer} listes : supprimez-en une avant d'en importer une autre.");
+        // Chaque import interroge YellowScribe : on ne le fait pas appeler en boucle par un même joueur.
+        if (!limiter.TryAcquire(owner))
+            throw new RosterImportException(RosterImportError.LimitReached,
+                $"Trop d'imports à la suite : réessayez dans quelques minutes ({ImportLimiter.MaxImports} imports par tranche de {ImportLimiter.Window.TotalMinutes} minutes).");
+
         var roster = await rosters.FetchAsync(code, cancellationToken);
         var list = ArmyList.Import(owner, name, format, roster, time.GetUtcNow(), detachment);
 

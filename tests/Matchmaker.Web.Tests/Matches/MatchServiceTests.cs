@@ -120,7 +120,7 @@ public class MatchServiceTests(PostgresFixture postgres)
     private async Task<ArmyList> ListOf(PlayerId owner, string name)
     {
         await using var db = postgres.CreateDbContext();
-        return await new ArmyListService(db, new StubRosterProvider(), _time)
+        return await new ArmyListService(db, new StubRosterProvider(), new ImportLimiter(_time), _time)
             .ImportAsync(owner, Samples.CustodesCode, name, GameFormats.StrikeForce);
     }
 
@@ -162,7 +162,7 @@ public class MatchServiceTests(PostgresFixture postgres)
         await using (var db = postgres.CreateDbContext())
         {
             await Service(db).StartAsync(match);
-            var lists = new ArmyListService(db, new StubRosterProvider(), _time);
+            var lists = new ArmyListService(db, new StubRosterProvider(), new ImportLimiter(_time), _time);
             await lists.UpdateAsync(alice, aliceList.Id, "Après", null);
             await lists.DeleteAsync(alice, aliceList.Id);
         }
