@@ -9,7 +9,7 @@ public sealed class PushSubscriptions(MatchmakerDbContext db, TimeProvider time)
 {
     public async Task SubscribeAsync(PlayerId player, string endpoint, string p256dh, string auth, CancellationToken cancellationToken = default)
     {
-        if (!Uri.TryCreate(endpoint, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps
+        if (!Uri.TryCreate(endpoint, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps || !IsKnownPushService(uri)
             || endpoint.Length > PushSubscription.EndpointMaxLength
             || string.IsNullOrWhiteSpace(p256dh) || p256dh.Length > PushSubscription.KeyMaxLength
             || string.IsNullOrWhiteSpace(auth) || auth.Length > PushSubscription.KeyMaxLength)
@@ -23,6 +23,14 @@ public sealed class PushSubscriptions(MatchmakerDbContext db, TimeProvider time)
             existing.Renew(player, p256dh, auth, now);
         await db.SaveChangesAsync(cancellationToken);
     }
+
+    // Le serveur envoie ses notifications à l'adresse fournie par le navigateur : seuls les services push des
+    // navigateurs sont acceptés, pour qu'un joueur ne puisse pas lui faire appeler une autre adresse.
+    private static readonly string[] PushServices =
+        ["fcm.googleapis.com", "push.services.mozilla.com", "push.apple.com", "notify.windows.com"];
+
+    private static bool IsKnownPushService(Uri uri) =>
+        uri.IsDefaultPort && PushServices.Any(host => uri.Host == host || uri.Host.EndsWith("." + host, StringComparison.Ordinal));
 
     public async Task UnsubscribeAsync(PlayerId player, string endpoint, CancellationToken cancellationToken = default) =>
         await db.PushSubscriptions.Where(s => s.Player == player && s.Endpoint == endpoint).ExecuteDeleteAsync(cancellationToken);

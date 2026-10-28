@@ -25,7 +25,7 @@ public sealed class PushNotificationsTests(PostgresFixture postgres) : IDisposab
     {
         var player = MatchmakerWebFactory.NewPlayerId();
         var client = await _factory.CreateClientAsAsync(player, name);
-        var response = await client.PostAsJsonAsync("/api/push/subscriptions", Subscription(endpoint ?? $"https://push.example/{player.SteamId}"));
+        var response = await client.PostAsJsonAsync("/api/push/subscriptions", Subscription(endpoint ?? $"https://fcm.googleapis.com/fcm/send/{player.SteamId}"));
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         return (player, client);
     }
@@ -47,7 +47,7 @@ public sealed class PushNotificationsTests(PostgresFixture postgres) : IDisposab
     [Fact]
     public async Task Subscribing_requires_to_be_signed_in()
     {
-        var response = await _factory.CreateAnonymousClient().PostAsJsonAsync("/api/push/subscriptions", Subscription("https://push.example/x"));
+        var response = await _factory.CreateAnonymousClient().PostAsJsonAsync("/api/push/subscriptions", Subscription("https://fcm.googleapis.com/fcm/send/x"));
 
         Assert.NotEqual(HttpStatusCode.NoContent, response.StatusCode);
     }
@@ -62,11 +62,39 @@ public sealed class PushNotificationsTests(PostgresFixture postgres) : IDisposab
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    [Theory]
+    [InlineData("https://evil.example/x")]
+    [InlineData("https://fcm.googleapis.com.evil.example/x")]
+    [InlineData("https://localhost/x")]
+    [InlineData("https://10.0.0.1/x")]
+    public async Task Only_the_push_services_of_the_browsers_are_accepted(string endpoint)
+    {
+        var client = await _factory.CreateClientAsAsync(MatchmakerWebFactory.NewPlayerId());
+
+        var response = await client.PostAsJsonAsync("/api/push/subscriptions", Subscription(endpoint));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("https://fcm.googleapis.com/fcm/send/abc")]
+    [InlineData("https://updates.push.services.mozilla.com/wpush/v2/abc")]
+    [InlineData("https://web.push.apple.com/abc")]
+    [InlineData("https://wns2-par02p.notify.windows.com/w/?token=abc")]
+    public async Task The_push_services_of_chrome_firefox_safari_and_edge_are_accepted(string endpoint)
+    {
+        var client = await _factory.CreateClientAsAsync(MatchmakerWebFactory.NewPlayerId());
+
+        var response = await client.PostAsJsonAsync("/api/push/subscriptions", Subscription(endpoint));
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+    }
+
     [Fact]
     public async Task A_test_notification_reaches_every_device_of_the_player()
     {
         var (alice, client) = await SubscribedPlayer("Alice");
-        await client.PostAsJsonAsync("/api/push/subscriptions", Subscription($"https://push.example/{alice.SteamId}/phone"));
+        await client.PostAsJsonAsync("/api/push/subscriptions", Subscription($"https://fcm.googleapis.com/fcm/send/{alice.SteamId}/phone"));
 
         await client.PostAsync("/api/push/test", null);
 
@@ -78,7 +106,7 @@ public sealed class PushNotificationsTests(PostgresFixture postgres) : IDisposab
     [Fact]
     public async Task An_unsubscribed_device_receives_nothing()
     {
-        var endpoint = $"https://push.example/{Guid.NewGuid()}";
+        var endpoint = $"https://fcm.googleapis.com/fcm/send/{Guid.NewGuid()}";
         var (alice, client) = await SubscribedPlayer("Alice", endpoint);
 
         await client.SendAsync(new HttpRequestMessage(HttpMethod.Delete, "/api/push/subscriptions") { Content = JsonContent.Create(Subscription(endpoint)) });
@@ -91,7 +119,7 @@ public sealed class PushNotificationsTests(PostgresFixture postgres) : IDisposab
     [Fact]
     public async Task An_expired_subscription_is_forgotten()
     {
-        var (alice, client) = await SubscribedPlayer("Alice", $"https://push.example/{Guid.NewGuid()}/gone");
+        var (alice, client) = await SubscribedPlayer("Alice", $"https://fcm.googleapis.com/fcm/send/{Guid.NewGuid()}/gone");
 
         await client.PostAsync("/api/push/test", null);
 
