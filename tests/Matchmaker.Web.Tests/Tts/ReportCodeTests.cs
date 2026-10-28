@@ -57,6 +57,18 @@ public sealed class ReportCodeTests(PostgresFixture postgres) : IDisposable
     }
 
     [Fact]
+    public async Task Sending_from_tts_is_presented_as_optional()
+    {
+        var (alice, _, matchId) = await MatchInProgress();
+
+        var html = WebUtility.HtmlDecode(await alice.GetStringAsync($"/matches/{matchId}"));
+
+        Assert.Contains("Envoyer le score depuis TTS (facultatif)", html);
+        Assert.Contains("saisissez simplement le score à la main", html);
+        Assert.Contains("Copier", html);
+    }
+
+    [Fact]
     public async Task The_code_stays_hidden_until_sending_from_tts_is_opened()
     {
         var (alice, bob) = (MatchmakerWebFactory.NewPlayerId(), MatchmakerWebFactory.NewPlayerId());

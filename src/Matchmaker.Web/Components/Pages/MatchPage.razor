@@ -14,6 +14,7 @@
 @inject TimeProvider Time
 @inject IConfiguration Configuration
 @inject LiveScores LiveScores
+@inject IJSRuntime JS
 
 <PageTitle>Partie</PageTitle>
 
@@ -53,51 +54,62 @@
                         </li>
                         <li>Lancez Tabletop Simulator avec le mod LCT et invitez-le. La partie peut se jouer en plusieurs fois.</li>
                         <li>Consultez sa liste ci-dessus avant de commencer.</li>
-                        <li>À la fin de la partie, l'un de vous déclare le score ci-dessous et l'autre le confirme.</li>
+                        <li>À la fin de la partie, l'un de vous déclare le score, depuis l'objet TTS ou à la main ci-dessous, et l'autre le confirme.</li>
                     </ol>
 
                     @if (_reportCode is not null)
                     {
                         <div class="tts-code">
-                            <p><Icon Name="send" /> <strong>Envoyer le score depuis TTS</strong> : collez ce code dans l'objet « Warhammer Matchmaker » de votre table.</p>
-                            <p class="code-value"><code>@_reportCode</code></p>
+                            <p><Icon Name="send" /> <strong>Envoyer le score depuis TTS (facultatif)</strong> : collez ce code dans l'objet « Warhammer Matchmaker » de votre table. Si vous préférez, saisissez simplement le score à la main ci-dessous.</p>
+                            <p class="code-value">
+                                <code>@_reportCode</code>
+                                <button class="button secondary" @onclick="CopyReportCode" disabled="@(!RendererInfo.IsInteractive)" aria-live="polite">
+                                    <Icon Name="@(_codeCopied ? "check" : "copy")" /> @(_codeCopied ? "Copié" : "Copier")
+                                </button>
+                            </p>
                             <p class="hint">Code secret de cette partie : ne le donnez qu'à votre adversaire. <a href="/tts">Installer l'objet TTS</a></p>
                         </div>
                     }
 
                     <div class="result-form">
                         <h2>Déclarer le résultat</h2>
-                        <div class="vp-inputs">
-                            <label>Mes points de victoire <input type="number" min="0" max="100" @bind="_myVictoryPoints" @bind:event="oninput" /></label>
-                            <label>Ses points de victoire <input type="number" min="0" max="100" @bind="_opponentVictoryPoints" @bind:event="oninput" /></label>
-                        </div>
-                        @if (_myVictoryPoints >= 0 && _opponentVictoryPoints >= 0)
-                        {
-                            var preview = WtcScore.FromVictoryPoints(_myVictoryPoints, _opponentVictoryPoints);
-                            <p>Score WTC : <strong>@preview.Points – @preview.Opponent.Points</strong> · @ResultLabels.Of(preview.Category)</p>
-                        }
+                        @ScoreInputs
                         <button class="button" @onclick="DeclareResult" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="send" /> Déclarer le résultat</button>
                     </div>
                     break;
 
                 case MatchStatus.ResultDeclared when _match.Declarer == me:
-                    <h2>Résultat déclaré</h2>
+                    <h2>@(_match.Contestations == 0 ? "Résultat déclaré" : "Vous avez proposé un autre score")</h2>
                     <ResultSummary Match="_match" Me="me" />
-                    <p>En attente de la confirmation de votre adversaire.</p>
+                    <p>En attente de la réponse de votre adversaire : il peut confirmer ce score ou en proposer un autre.</p>
                     <p class="hint">Sans réponse de sa part, le résultat sera confirmé automatiquement dans @Remaining(_match.ResultConfirmationDeadline!.Value).</p>
                     break;
 
                 case MatchStatus.ResultDeclared:
-                    <h2>Votre adversaire a déclaré le résultat</h2>
+                    <h2>@(_match.Contestations == 0 ? "Votre adversaire a déclaré le résultat" : "Votre adversaire conteste et propose un autre score")</h2>
                     <ResultSummary Match="_match" Me="me" />
-                    <p>Ce score est-il exact ?</p>
-                    <div class="actions">
-                        <button class="button" @onclick="ConfirmResult"><Icon Name="check" /> Confirmer</button>
-                        <button class="button secondary" @onclick="DisputeResult"><Icon Name="close" /> Contester</button>
-                    </div>
+                    @if (_contesting)
+                    {
+                        <div class="result-form">
+                            <h2>Proposer le bon score</h2>
+                            @ScoreInputs
+                            <div class="actions">
+                                <button class="button" @onclick="ContestResult"><Icon Name="send" /> Proposer ce score</button>
+                                <button class="button secondary" @onclick="() => _contesting = false">Annuler</button>
+                            </div>
+                            <p class="hint">Votre adversaire pourra l'accepter ou le contester à son tour.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <p>Ce score est-il exact ?</p>
+                        <div class="actions">
+                            <button class="button" @onclick="ConfirmResult"><Icon Name="check" /> Confirmer</button>
+                            <button class="button secondary" @onclick="() => StartContesting(me)" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="edit" /> Contester et proposer un autre score</button>
+                        </div>
+                    }
                     <p class="hint">
-                        Sans réponse de votre part, ce résultat sera confirmé automatiquement dans @Remaining(_match.ResultConfirmationDeadline!.Value).
-                        Un résultat contesté ne compte pas pour l'Elo.
+                        Sans réponse de votre part, ce score sera confirmé automatiquement dans @Remaining(_match.ResultConfirmationDeadline!.Value).
                     </p>
                     break;
             }
@@ -132,6 +144,8 @@
     private string? _reportCode;
     private int _myVictoryPoints;
     private int _opponentVictoryPoints;
+    private bool _codeCopied;
+    private bool _contesting;
     private bool _confirmingAbandon;
     private string? _error;
 
@@ -166,7 +180,40 @@
 
     private Task DeclareResult() => Update((matches, me) => matches.DeclareResultAsync(me, Id, _myVictoryPoints, _opponentVictoryPoints));
     private Task ConfirmResult() => Update((matches, me) => matches.ConfirmResultAsync(me, Id));
-    private Task DisputeResult() => Update((matches, me) => matches.DisputeResultAsync(me, Id));
+    private async Task CopyReportCode()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", _reportCode);
+            _codeCopied = true;
+        }
+        catch (JSException)
+        {
+            // Presse-papiers refusé par le navigateur : le code reste affiché pour être recopié.
+        }
+    }
+
+    private Task ContestResult() => Update((matches, me) => matches.ContestResultAsync(me, Id, _myVictoryPoints, _opponentVictoryPoints));
+
+    /// <summary>Le formulaire part du score proposé, à corriger.</summary>
+    private void StartContesting(PlayerId me)
+    {
+        _myVictoryPoints = _match!.VictoryPointsOf(me);
+        _opponentVictoryPoints = _match.VictoryPointsOf(_match.OpponentOf(me).Player);
+        _contesting = true;
+    }
+
+    private RenderFragment ScoreInputs => @<text>
+        <div class="vp-inputs">
+            <label>Mes points de victoire <input type="number" min="0" max="100" @bind="_myVictoryPoints" @bind:event="oninput" /></label>
+            <label>Ses points de victoire <input type="number" min="0" max="100" @bind="_opponentVictoryPoints" @bind:event="oninput" /></label>
+        </div>
+        @if (_myVictoryPoints >= 0 && _opponentVictoryPoints >= 0)
+        {
+            var preview = WtcScore.FromVictoryPoints(_myVictoryPoints, _opponentVictoryPoints);
+            <p>Score WTC : <strong>@preview.Points – @preview.Opponent.Points</strong> · @ResultLabels.Of(preview.Category)</p>
+        }
+    </text>;
     private Task Abandon() => Update((matches, me) => matches.AbandonAsync(me, Id));
 
     private async Task Update(Func<MatchService, PlayerId, Task<Match>> change)
@@ -178,6 +225,7 @@
         try
         {
             var match = await UsingServices(services => change(services.GetRequiredService<MatchService>(), me));
+            _contesting = false;
             Notifier.Notify([match.First.Player, match.Second.Player]);
         }
         catch (Exception e) when (e is InvalidOperationException or ArgumentException)

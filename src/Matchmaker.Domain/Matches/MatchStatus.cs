@@ -6,7 +6,6 @@ public enum MatchStatus
     Accepted,
     ResultDeclared,
     Completed,
-    Disputed,
     Declined,
     Expired,
     Abandoned,

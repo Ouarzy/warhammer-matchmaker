@@ -234,14 +234,74 @@ public class MatchTests
         }
 
         [Fact]
-        public void The_opponent_can_dispute_the_result()
+        public void Contesting_the_result_proposes_another_score_to_the_declaring_player()
+        {
+            var match = Declared(aliceVp: 85, bobVp: 70);
+
+            match.ContestResult(Bob.Player, 80, 75, Noon.AddHours(1));
+
+            Assert.Equal(MatchStatus.ResultDeclared, match.Status);
+            Assert.Equal(Bob.Player, match.Declarer);
+            Assert.Equal(80, match.VictoryPointsOf(Bob.Player));
+            Assert.Equal(75, match.VictoryPointsOf(Alice.Player));
+            Assert.Equal(1, match.Contestations);
+            Assert.False(match.AffectsRating);
+        }
+
+        [Fact]
+        public void The_declaring_player_accepts_the_counter_proposal()
+        {
+            var match = Declared(aliceVp: 85, bobVp: 70);
+            match.ContestResult(Bob.Player, 80, 75, Noon);
+
+            match.ConfirmResult(Alice.Player);
+
+            Assert.Equal(MatchStatus.Completed, match.Status);
+            Assert.Equal(10, match.ScoreOf(Alice.Player).Points);
+            Assert.True(match.AffectsRating);
+        }
+
+        [Fact]
+        public void Players_contest_in_turn_until_one_of_them_accepts()
+        {
+            var match = Declared(aliceVp: 85, bobVp: 70);
+            match.ContestResult(Bob.Player, 80, 75, Noon);
+            match.ContestResult(Alice.Player, 82, 76, Noon);
+
+            match.ConfirmResult(Bob.Player);
+
+            Assert.Equal(82, match.VictoryPointsOf(Alice.Player));
+            Assert.Equal(76, match.VictoryPointsOf(Bob.Player));
+            Assert.Equal(2, match.Contestations);
+            Assert.Equal(MatchStatus.Completed, match.Status);
+        }
+
+        [Fact]
+        public void A_player_cannot_answer_their_own_proposal()
         {
             var match = Declared();
+            match.ContestResult(Bob.Player, 80, 75, Noon);
 
-            match.DisputeResult(Bob.Player);
+            Assert.Throws<InvalidOperationException>(() => match.ContestResult(Bob.Player, 81, 75, Noon));
+            Assert.Throws<InvalidOperationException>(() => match.ConfirmResult(Bob.Player));
+        }
 
-            Assert.Equal(MatchStatus.Disputed, match.Status);
-            Assert.False(match.AffectsRating);
+        [Fact]
+        public void Contesting_with_the_same_score_is_refused()
+        {
+            Assert.Throws<ArgumentException>(() => Declared(aliceVp: 85, bobVp: 70).ContestResult(Bob.Player, 70, 85, Noon));
+        }
+
+        [Fact]
+        public void A_counter_proposal_cannot_have_negative_victory_points()
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(() => Declared().ContestResult(Bob.Player, -1, 75, Noon));
+        }
+
+        [Fact]
+        public void Only_a_declared_result_can_be_contested()
+        {
+            Assert.Throws<InvalidOperationException>(() => Accepted().ContestResult(Bob.Player, 80, 75, Noon));
         }
 
         [Fact]
@@ -251,15 +311,6 @@ public class MatchTests
 
             Assert.Equal(Alice.Player, match.Declarer);
             Assert.Equal(85, match.VictoryPointsOf(Alice.Player));
-            Assert.Equal(70, match.VictoryPointsOf(Bob.Player));
-        }
-
-        [Fact]
-        public void A_disputed_result_stays_readable()
-        {
-            var match = Declared(aliceVp: 85, bobVp: 70);
-            match.DisputeResult(Bob.Player);
-
             Assert.Equal(70, match.VictoryPointsOf(Bob.Player));
         }
 
@@ -373,12 +424,25 @@ public class MatchTests
         }
 
         [Fact]
-        public void A_result_answered_by_the_opponent_is_not_confirmed_automatically()
+        public void A_counter_proposal_gives_another_24_hours_to_answer()
         {
             var match = Declared();
-            match.DisputeResult(Bob.Player);
+            match.ContestResult(Bob.Player, 80, 75, Noon.AddHours(10));
 
-            Assert.Throws<InvalidOperationException>(() => match.ConfirmAutomatically(Noon.AddDays(2)));
+            Assert.Equal(Noon.AddHours(34), match.ResultConfirmationDeadline);
+            Assert.Throws<InvalidOperationException>(() => match.ConfirmAutomatically(Noon.AddHours(25)));
+        }
+
+        [Fact]
+        public void Without_answer_the_last_proposal_is_confirmed_automatically()
+        {
+            var match = Declared(aliceVp: 85, bobVp: 70);
+            match.ContestResult(Bob.Player, 80, 75, Noon);
+
+            match.ConfirmAutomatically(Noon.AddHours(25));
+
+            Assert.Equal(MatchStatus.Completed, match.Status);
+            Assert.Equal(80, match.VictoryPointsOf(Bob.Player));
         }
 
         [Fact]

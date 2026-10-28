@@ -7,8 +7,9 @@ namespace Matchmaker.Domain.Matches;
 /// <summary>
 /// Cycle de vie d'un match : proposé → accepté par les deux joueurs → résultat déclaré → confirmé
 /// (par l'adversaire, ou automatiquement après 24 h sans réponse). Une partie en cours n'a pas de
-/// limite de durée. Un abandon donne la victoire 20-0 à l'adversaire. Un match refusé, expiré ou
-/// contesté n'impacte pas l'Elo.
+/// limite de durée. Contester un résultat, c'est proposer un autre score, que l'autre joueur confirme
+/// ou conteste à son tour, jusqu'à ce que les deux soient d'accord. Un abandon donne la victoire 20-0
+/// à l'adversaire. Un match refusé ou expiré n'impacte pas l'Elo.
 /// </summary>
 public sealed class Match
 {
@@ -54,6 +55,8 @@ public sealed class Match
     public DateTimeOffset? DeclaredAt { get; private set; }
     public bool ConfirmedAutomatically { get; private set; }
     public PlayerId? AbandonedBy { get; private set; }
+    /// <summary>Nombre de fois où le score proposé a été contesté par une contre-proposition.</summary>
+    public int Contestations { get; private set; }
 
     public DateTimeOffset AcceptanceDeadline => ScheduledFor is { } start
         ? Min(ProposedAt + ScheduledAcceptanceDelay, start - ScheduledAcceptanceNotice)
@@ -113,6 +116,31 @@ public sealed class Match
     {
         EnsureParticipant(declarer);
         EnsureStatus(MatchStatus.Accepted);
+        Propose(declarer, declarerVp, opponentVp, now);
+    }
+
+    public void ConfirmResult(PlayerId player)
+    {
+        EnsureAnswerer(player);
+        Status = MatchStatus.Completed;
+    }
+
+    /// <summary>
+    /// Conteste le score proposé en en proposant un autre : c'est à l'autre joueur de le confirmer ou de
+    /// le contester à son tour, avec un nouveau délai de 24 h.
+    /// </summary>
+    public void ContestResult(PlayerId player, int playerVp, int opponentVp, DateTimeOffset now)
+    {
+        EnsureAnswerer(player);
+        if (playerVp == VictoryPointsOf(player) && opponentVp == VictoryPointsOf(OpponentOf(player).Player))
+            throw new ArgumentException("C'est le score déjà proposé : confirmez-le plutôt.");
+
+        Propose(player, playerVp, opponentVp, now);
+        Contestations++;
+    }
+
+    private void Propose(PlayerId declarer, int declarerVp, int opponentVp, DateTimeOffset now)
+    {
         ArgumentOutOfRangeException.ThrowIfNegative(declarerVp);
         ArgumentOutOfRangeException.ThrowIfNegative(opponentVp);
 
@@ -123,10 +151,6 @@ public sealed class Match
             : (opponentVp, declarerVp);
         Status = MatchStatus.ResultDeclared;
     }
-
-    public void ConfirmResult(PlayerId player) => RespondToResult(player, MatchStatus.Completed);
-
-    public void DisputeResult(PlayerId player) => RespondToResult(player, MatchStatus.Disputed);
 
     /// <summary>L'adversaire n'a pas répondu dans les 24 h : le résultat déclaré est confirmé.</summary>
     public void ConfirmAutomatically(DateTimeOffset now)
@@ -149,7 +173,7 @@ public sealed class Match
         Status = MatchStatus.Abandoned;
     }
 
-    /// <summary>Points de victoire déclarés pour ce joueur (résultat déclaré, confirmé ou contesté).</summary>
+    /// <summary>Points de victoire déclarés pour ce joueur (dernier score proposé, ou score confirmé).</summary>
     public int VictoryPointsOf(PlayerId player)
     {
         var victoryPoints = IsFirst(player) ? _firstVictoryPoints : _secondVictoryPoints;
@@ -182,14 +206,12 @@ public sealed class Match
         else (_secondRatingBefore, _secondRatingChange) = (before, change);
     }
 
-    private void RespondToResult(PlayerId player, MatchStatus outcome)
+    private void EnsureAnswerer(PlayerId player)
     {
         EnsureParticipant(player);
         EnsureStatus(MatchStatus.ResultDeclared);
         if (player == Declarer)
-            throw new InvalidOperationException("Seul l'adversaire du déclarant peut répondre au résultat.");
-
-        Status = outcome;
+            throw new InvalidOperationException("Seul l'adversaire de celui qui a proposé le score peut y répondre.");
     }
 
     private bool IsFirst(PlayerId player)

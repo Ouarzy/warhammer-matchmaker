@@ -18,7 +18,7 @@ public class MatchRatingTests
         match.Accept(_bob.Id, Noon);
         match.DeclareResult(_alice.Id, aliceVp, bobVp, Noon);
         if (confirmed) match.ConfirmResult(_bob.Id);
-        else match.DisputeResult(_bob.Id);
+        else match.ContestResult(_bob.Id, bobVp + 1, aliceVp, Noon);
         return match;
     }
 
@@ -123,7 +123,7 @@ public class MatchRatingTests
     }
 
     [Fact]
-    public void A_disputed_match_changes_nothing()
+    public void A_contested_result_changes_nothing_until_a_score_is_accepted()
     {
         var applied = MatchRating.Apply(Played(100, 40, confirmed: false), _alice, _bob);
 

@@ -17,10 +17,6 @@
         {
             <text> · Partie prévue le <LocalTime Value="start" /></text>
         }
-        @if (Match.Status == MatchStatus.Disputed)
-        {
-            @(" · résultat contesté, sans effet sur l'Elo")
-        }
     </p>
 </header>
 
@@ -76,8 +72,7 @@
     private string StatusLabel => Match.Status switch
     {
         MatchStatus.Accepted => "Partie en cours",
-        MatchStatus.ResultDeclared => "En attente de confirmation",
-        MatchStatus.Disputed => "Résultat contesté",
+        MatchStatus.ResultDeclared => Match.Contestations == 0 ? "En attente de confirmation" : "Score contesté, en discussion",
         _ => "Partie terminée",
     };
 
@@ -95,8 +90,8 @@
                 var score = Match.ScoreOf(player);
                 return $"WTC {score.Points} · {ResultLabels.Of(score.Category)}{(Match.AbandonedBy == player ? " · Abandon" : "")}";
             }
-            case MatchStatus.ResultDeclared or MatchStatus.Disputed:
-                return $"{Match.VictoryPointsOf(player)} VP déclarés";
+            case MatchStatus.ResultDeclared:
+                return $"{Match.VictoryPointsOf(player)} VP proposés";
             default:
                 return "Pas encore de score";
         }

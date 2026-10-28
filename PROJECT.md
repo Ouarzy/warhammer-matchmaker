@@ -75,7 +75,7 @@ Catégorie du résultat selon le score WTC du joueur :
 | 8-9 | Petite défaite |
 | 5-7 | Défaite |
 | 0-4 | Grosse défaite |
-- Résultat contesté : la partie n'impacte pas l'Elo
+- Résultat contesté : le joueur qui conteste propose le score qui lui semble juste, que l'autre confirme ou conteste à son tour, jusqu'à ce que les deux soient d'accord (même délai de 24 h à chaque proposition)
 - Abandon : victoire 20-0 (score WTC) pour l'adversaire
 - Sans réponse de l'adversaire 24 h après la déclaration du résultat, celui-ci est confirmé automatiquement
 

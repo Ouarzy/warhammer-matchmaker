@@ -132,6 +132,7 @@ public sealed class MatchmakerDbContext(DbContextOptions<MatchmakerDbContext> op
             match.Property(m => m.Declarer).HasColumnName("declarer_steam_id").HasMaxLength(20).HasConversion(PlayerIdConverter);
             match.Property(m => m.DeclaredAt).HasColumnName("declared_at");
             match.Property(m => m.ConfirmedAutomatically).HasColumnName("confirmed_automatically");
+            match.Property(m => m.Contestations).HasColumnName("contestations");
             match.Property(m => m.AbandonedBy).HasColumnName("abandoned_by_steam_id").HasMaxLength(20).HasConversion(PlayerIdConverter);
             foreach (var side in new[] { "first", "second" })
             {

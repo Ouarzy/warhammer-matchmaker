@@ -227,19 +227,30 @@ public class MatchServiceTests(PostgresFixture postgres)
     }
 
     [Fact]
-    public async Task A_disputed_result_leaves_ratings_untouched()
+    public async Task A_contested_result_stays_in_progress_until_the_counter_proposal_is_confirmed()
     {
         var (alice, bob, matchId) = await StartedMatch();
 
         await using (var db = postgres.CreateDbContext())
             await Service(db).DeclareResultAsync(alice, matchId, 100, 40);
         await using (var db = postgres.CreateDbContext())
-            await Service(db).DisputeResultAsync(bob, matchId);
+            await Service(db).ContestResultAsync(bob, matchId, 45, 100);
 
         Assert.Equal(EloRating.Initial, (await Reload(alice)).Rating);
-        await using var reloaded = postgres.CreateDbContext();
-        Assert.Equal(MatchStatus.Disputed, (await reloaded.Matches.FindAsync(matchId))!.Status);
-        Assert.Empty(await Service(reloaded).ActiveMatchesOfAsync(bob));
+        await using (var db = postgres.CreateDbContext())
+        {
+            var contested = (await db.Matches.FindAsync(matchId))!;
+            Assert.Equal(MatchStatus.ResultDeclared, contested.Status);
+            Assert.Equal(bob, contested.Declarer);
+            Assert.Equal(1, contested.Contestations);
+            Assert.Single(await Service(db).ActiveMatchesOfAsync(bob));
+        }
+
+        await using (var db = postgres.CreateDbContext())
+            await Service(db).ConfirmResultAsync(alice, matchId);
+
+        Assert.Equal(1520, (await Reload(alice)).Rating.Value);
+        Assert.Equal(1480, (await Reload(bob)).Rating.Value);
     }
 
     [Fact]

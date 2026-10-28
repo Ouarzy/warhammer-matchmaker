@@ -26,6 +26,9 @@ public static class PushMessages
     public static PushMessage ResultToConfirm(Match match) => new(
         "Résultat à confirmer", "Votre adversaire a déclaré le score de votre partie.", $"/matches/{match.Id}", $"result-{match.Id}");
 
+    public static PushMessage ResultContested(Match match) => new(
+        "Score contesté", "Votre adversaire conteste le score et en propose un autre : acceptez-le ou contestez-le.", $"/matches/{match.Id}", $"result-{match.Id}");
+
     public static PushMessage OpponentAbandoned(Match match) => new(
         "Victoire par abandon", "Votre adversaire a abandonné la partie.", $"/matches/{match.Id}", $"result-{match.Id}");
 

@@ -129,8 +129,38 @@ public sealed class MatchPageTests(PostgresFixture postgres) : IDisposable
 
         var html = await Text(await alice.GetAsync($"/matches/{matchId}"));
 
-        Assert.Contains("En attente de la confirmation de votre adversaire", html);
+        Assert.Contains("En attente de la réponse de votre adversaire", html);
         Assert.DoesNotContain(">Confirmer<", html);
+    }
+
+    [Fact]
+    public async Task The_opponent_can_contest_by_proposing_another_score()
+    {
+        var (_, alice, bob, _, matchId) = await MatchInProgress();
+        await _factory.WithMatchesAsync(matches => matches.DeclareResultAsync(alice, matchId, 85, 70));
+
+        var html = await Text(await bob.GetAsync($"/matches/{matchId}"));
+
+        Assert.Contains("Contester et proposer un autre score", html);
+    }
+
+    [Fact]
+    public async Task A_counter_proposal_is_submitted_to_the_player_who_declared_first()
+    {
+        var (aliceClient, alice, _, bob, matchId) = await MatchInProgress();
+        await _factory.WithMatchesAsync(async matches =>
+        {
+            await matches.DeclareResultAsync(alice, matchId, 85, 70);
+            await matches.ContestResultAsync(bob, matchId, 80, 75);
+        });
+
+        var html = await Text(await aliceClient.GetAsync($"/matches/{matchId}"));
+
+        Assert.Contains("Votre adversaire conteste et propose un autre score", html);
+        Assert.Contains("Vous <strong>75</strong>", html);
+        Assert.Contains("Confirmer", html);
+        Assert.Contains("Contester et proposer un autre score", html);
+        Assert.Contains("Score contesté, en discussion", await AnonymousView(matchId));
     }
 
     [Fact]

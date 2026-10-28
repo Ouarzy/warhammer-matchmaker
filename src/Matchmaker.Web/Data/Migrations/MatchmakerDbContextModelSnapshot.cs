@@ -158,6 +158,10 @@ namespace Matchmaker.Web.Data.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("confirmed_automatically");
 
+                    b.Property<int>("Contestations")
+                        .HasColumnType("integer")
+                        .HasColumnName("contestations");
+
                     b.Property<DateTimeOffset?>("DeclaredAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("declared_at");

@@ -20,7 +20,6 @@ public static class ResultLabels
     public static string Of(MatchStatus status) => status switch
     {
         MatchStatus.Completed => "Confirmé",
-        MatchStatus.Disputed => "Contesté",
         MatchStatus.Abandoned => "Abandonné",
         MatchStatus.ResultDeclared => "En attente de confirmation",
         MatchStatus.Accepted => "En cours",

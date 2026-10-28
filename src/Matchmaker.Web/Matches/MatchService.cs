@@ -18,7 +18,7 @@ public sealed class MatchService(MatchmakerDbContext db, TimeProvider time, Push
     public const int MaxActiveMatches = 5;
 
     private static readonly MatchStatus[] InProgress = [MatchStatus.Accepted, MatchStatus.ResultDeclared];
-    private static readonly MatchStatus[] Finished = [MatchStatus.Completed, MatchStatus.Disputed, MatchStatus.Abandoned];
+    private static readonly MatchStatus[] Finished = [MatchStatus.Completed, MatchStatus.Abandoned];
 
     public async Task StartAsync(Match match, CancellationToken cancellationToken = default)
     {
@@ -87,8 +87,14 @@ public sealed class MatchService(MatchmakerDbContext db, TimeProvider time, Push
     public Task<Match> ConfirmResultAsync(PlayerId player, Guid matchId, CancellationToken cancellationToken = default) =>
         UpdateAsync(player, matchId, match => match.ConfirmResult(player), cancellationToken);
 
-    public Task<Match> DisputeResultAsync(PlayerId player, Guid matchId, CancellationToken cancellationToken = default) =>
-        UpdateAsync(player, matchId, match => match.DisputeResult(player), cancellationToken);
+    /// <summary>Conteste le score proposé en en proposant un autre, que l'adversaire doit à son tour confirmer ou contester.</summary>
+    public async Task<Match> ContestResultAsync(PlayerId player, Guid matchId, int myVictoryPoints, int opponentVictoryPoints,
+        CancellationToken cancellationToken = default)
+    {
+        var match = await UpdateAsync(player, matchId, match => match.ContestResult(player, myVictoryPoints, opponentVictoryPoints, time.GetUtcNow()), cancellationToken);
+        push.Send(match.OpponentOf(player).Player, PushMessages.ResultContested(match));
+        return match;
+    }
 
     /// <summary>Abandon : victoire 20-0 pour l'adversaire, Elo mis à jour pour un match classé.</summary>
     public async Task<Match> AbandonAsync(PlayerId player, Guid matchId, CancellationToken cancellationToken = default)
