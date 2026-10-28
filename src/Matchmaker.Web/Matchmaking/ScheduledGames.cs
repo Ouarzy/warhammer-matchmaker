@@ -41,7 +41,7 @@ public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches,
 
         return await SerializedAsync(async changed =>
         {
-            if (await CommitmentsOfAsync(player, cancellationToken) >= MatchService.MaxActiveMatches)
+            if (await matches.CommitmentsOfAsync(player, cancellationToken) >= MatchService.MaxActiveMatches)
                 throw new InvalidOperationException(
                     $"Vous avez déjà {MatchService.MaxActiveMatches} parties en cours, planifiées ou recherchées.");
 
@@ -132,12 +132,6 @@ public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches,
             .Where(m => m.First.Player == player || m.Second.Player == player)
             .OrderBy(m => m.ScheduledFor)
             .ToListAsync(cancellationToken);
-
-    // Parties en cours ou acceptées, propositions en attente et recherches ouvertes.
-    private async Task<int> CommitmentsOfAsync(PlayerId player, CancellationToken cancellationToken) =>
-        (await matches.ActiveMatchesOfAsync(player, cancellationToken)).Count
-        + (await ProposalsOfAsync(player, cancellationToken)).Count
-        + await db.ScheduledSearches.CountAsync(s => s.Ticket.Player == player && s.Status == Open, cancellationToken);
 
     private async Task<Match> ProposalAsync(PlayerId player, Guid matchId, CancellationToken cancellationToken)
     {

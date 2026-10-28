@@ -1,5 +1,6 @@
 using Matchmaker.Domain.ArmyLists;
 using Matchmaker.Domain.Matches;
+using Matchmaker.Domain.Matchmaking;
 using Matchmaker.Domain.Players;
 using Matchmaker.Domain.Ratings;
 using Matchmaker.Web.Data;
@@ -74,9 +75,17 @@ public sealed class MatchService(MatchmakerDbContext db, TimeProvider time, Push
             .ToListAsync(cancellationToken);
 
     public async Task<bool> CanLookForAnotherOpponentAsync(PlayerId player, CancellationToken cancellationToken = default) =>
+        await CommitmentsOfAsync(player, cancellationToken) < MaxActiveMatches;
+
+    /// <summary>
+    /// Ce qui compte dans la limite de <see cref="MaxActiveMatches"/>, pour une recherche immédiate comme planifiée :
+    /// parties en cours, parties planifiées proposées et recherches planifiées ouvertes.
+    /// </summary>
+    public async Task<int> CommitmentsOfAsync(PlayerId player, CancellationToken cancellationToken = default) =>
         await db.Matches
             .Where(m => m.First.Player == player || m.Second.Player == player)
-            .CountAsync(m => InProgress.Contains(m.Status), cancellationToken) < MaxActiveMatches;
+            .CountAsync(m => InProgress.Contains(m.Status) || (m.Status == MatchStatus.Proposed && m.ScheduledFor != null), cancellationToken)
+        + await db.ScheduledSearches.CountAsync(s => s.Ticket.Player == player && s.Status == ScheduledSearchStatus.Open, cancellationToken);
 
     public async Task<Match> DeclareResultAsync(PlayerId player, Guid matchId, int myVictoryPoints, int opponentVictoryPoints,
         CancellationToken cancellationToken = default)

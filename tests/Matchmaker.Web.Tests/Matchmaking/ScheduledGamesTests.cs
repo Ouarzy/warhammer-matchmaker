@@ -224,6 +224,16 @@ public sealed class ScheduledGamesTests(PostgresFixture postgres) : IDisposable
     }
 
     [Fact]
+    public async Task Planned_games_count_in_the_limit_of_immediate_searches_too()
+    {
+        var alice = await NewPlayer("Alice");
+        for (var i = 0; i < MatchService.MaxActiveMatches; i++)
+            await Plan(alice, _evening.AddDays(i * 7));
+
+        Assert.False(await Using((_, services) => services.GetRequiredService<MatchService>().CanLookForAnotherOpponentAsync(alice.Player)));
+    }
+
+    [Fact]
     public async Task A_player_can_only_plan_with_their_own_list()
     {
         var (alice, bob) = (await NewPlayer("Alice"), await NewPlayer("Bob"));

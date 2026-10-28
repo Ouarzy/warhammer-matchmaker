@@ -206,7 +206,7 @@
             await services.GetRequiredService<ArmyListService>().FindAsync(_selectedListId),
             await services.GetRequiredService<MatchService>().CanLookForAnotherOpponentAsync(_me)));
         if (!hasRoom)
-            throw new InvalidOperationException($"Vous avez déjà {MatchService.MaxActiveMatches} parties en cours.");
+            throw new InvalidOperationException($"Vous avez déjà {MatchService.MaxActiveMatches} parties en cours, planifiées ou recherchées.");
         if (player is null || list is null)
             throw new InvalidOperationException("Liste introuvable.");
 
