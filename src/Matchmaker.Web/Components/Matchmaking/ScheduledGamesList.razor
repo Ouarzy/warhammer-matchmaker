@@ -1,0 +1,52 @@
+@using Matchmaker.Domain.ArmyLists
+@using Matchmaker.Domain.Players
+@using Matchmaker.Web.Matchmaking
+
+@* Parties planifiées du joueur : propositions à accepter et recherches encore ouvertes. *@
+@if (Overview.Proposals.Count > 0 || Overview.OpenSearches.Count > 0)
+{
+    <section class="scheduled">
+        <h2><Icon Name="clock" /> Parties planifiées</h2>
+        @foreach (var proposal in Overview.Proposals)
+        {
+            var opponent = proposal.OpponentOf(Me);
+            <div class="card status proposed">
+                <h3>Adversaire trouvé pour le <LocalTime Value="proposal.ScheduledFor!.Value" /></h3>
+                <Opponent Ticket="opponent" Player="Players.GetValueOrDefault(opponent.Player)" List="ListLink.To(Lists.GetValueOrDefault(opponent.ArmyListId))" />
+                @if (proposal.HasAccepted(Me))
+                {
+                    <p>Vous avez accepté. En attente de votre adversaire, jusqu'au <LocalTime Value="proposal.AcceptanceDeadline" />.</p>
+                }
+                else
+                {
+                    <p>À accepter avant le <LocalTime Value="proposal.AcceptanceDeadline" />.</p>
+                    <div class="actions">
+                        <button class="button" @onclick="() => OnAccept.InvokeAsync(proposal.Id)" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="check" /> Accepter</button>
+                        <button class="button secondary" @onclick="() => OnDecline.InvokeAsync(proposal.Id)" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="close" /> Refuser</button>
+                    </div>
+                }
+            </div>
+        }
+        @foreach (var search in Overview.OpenSearches)
+        {
+            <div class="card status searching">
+                <h3>Recherche d'un adversaire pour le <LocalTime Value="search.PlannedFor" /></h3>
+                <p>@search.Ticket.Format.Name · @(search.Ticket.Ranked ? "classée" : "amicale") · à une heure près</p>
+                <p class="hint">Inutile de garder la page ouverte : la proposition vous attendra ici, signalée dans le menu. <a href="/profile">Activez les notifications</a> pour être prévenu même site fermé.</p>
+                <button class="button secondary" @onclick="() => OnCancel.InvokeAsync(search.Id)" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="close" /> Annuler</button>
+            </div>
+        }
+    </section>
+}
+
+@code {
+    [Parameter, EditorRequired] public ScheduledOverview Overview { get; set; } = new([], []);
+    [Parameter, EditorRequired] public PlayerId Me { get; set; }
+    [Parameter] public IReadOnlyDictionary<PlayerId, Player> Players { get; set; } = new Dictionary<PlayerId, Player>();
+    [Parameter] public IReadOnlyDictionary<Guid, ArmyList> Lists { get; set; } = new Dictionary<Guid, ArmyList>();
+    /// <summary>Identifiant du match proposé.</summary>
+    [Parameter, EditorRequired] public EventCallback<Guid> OnAccept { get; set; }
+    [Parameter, EditorRequired] public EventCallback<Guid> OnDecline { get; set; }
+    /// <summary>Identifiant de la recherche planifiée.</summary>
+    [Parameter, EditorRequired] public EventCallback<Guid> OnCancel { get; set; }
+}

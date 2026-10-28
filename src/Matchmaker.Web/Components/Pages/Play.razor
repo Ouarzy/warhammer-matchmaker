@@ -46,40 +46,7 @@
         break;
 
     case PlayerActivity.Idle:
-        <section class="card form">
-            <h2>Nouvelle partie</h2>
-            <label>
-                Liste
-                <select @bind="_selectedListId">
-                    @foreach (var list in _lists)
-                    {
-                        <option value="@list.Id">@list.Name (@list.Format.Name)</option>
-                    }
-                </select>
-            </label>
-            <label class="checkbox">
-                <input type="checkbox" @bind="_ranked" />
-                Partie classée <span class="hint">(compte pour l'Elo ; décochez pour une partie amicale)</span>
-            </label>
-            <fieldset class="when">
-                <legend>Quand ?</legend>
-                <label class="checkbox"><input type="radio" name="when" checked="@(!_planned)" @onchange="() => _planned = false" /> Maintenant</label>
-                <label class="checkbox"><input type="radio" name="when" checked="@_planned" @onchange="() => _planned = true" /> À une date et heure précises</label>
-            </fieldset>
-            @if (_planned)
-            {
-                <label>
-                    Date et heure de la partie <span class="hint">(votre heure locale)</span>
-                    <input type="datetime-local" @bind="_plannedLocal" step="900" />
-                </label>
-                <p class="hint">Vous serez mis en relation avec un joueur qui planifie une partie à une heure d'écart au plus. Il faudra l'accepter dans les 24 h, et au plus tard 1 h avant la partie.</p>
-                <button class="button call-to-action" @onclick="PlanAsync" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="clock" /> Planifier la partie</button>
-            }
-            else
-            {
-                <button class="button call-to-action" @onclick="SearchAsync" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="search" /> Rechercher un adversaire</button>
-            }
-        </section>
+        <NewGameForm Lists="_lists" OnSearch="SearchAsync" OnPlan="PlanAsync" />
         break;
 
     case PlayerActivity.Searching:
@@ -117,47 +84,13 @@
         break;
 }
 
-@if (_scheduled.Proposals.Count > 0 || _scheduled.OpenSearches.Count > 0)
-{
-    <section class="scheduled">
-        <h2><Icon Name="clock" /> Parties planifiées</h2>
-        @foreach (var proposal in _scheduled.Proposals)
-        {
-            var opponent = proposal.OpponentOf(_me);
-            <div class="card status proposed">
-                <h3>Adversaire trouvé pour le <LocalTime Value="proposal.ScheduledFor!.Value" /></h3>
-                <Opponent Ticket="opponent" Player="_scheduledPlayers.GetValueOrDefault(opponent.Player)" List="ListLink.To(_scheduledLists.GetValueOrDefault(opponent.ArmyListId))" />
-                @if (proposal.HasAccepted(_me))
-                {
-                    <p>Vous avez accepté. En attente de votre adversaire, jusqu'au <LocalTime Value="proposal.AcceptanceDeadline" />.</p>
-                }
-                else
-                {
-                    <p>À accepter avant le <LocalTime Value="proposal.AcceptanceDeadline" />.</p>
-                    <div class="actions">
-                        <button class="button" @onclick="() => AcceptPlannedAsync(proposal.Id)" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="check" /> Accepter</button>
-                        <button class="button secondary" @onclick="() => DeclinePlannedAsync(proposal.Id)" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="close" /> Refuser</button>
-                    </div>
-                }
-            </div>
-        }
-        @foreach (var search in _scheduled.OpenSearches)
-        {
-            <div class="card status searching">
-                <h3>Recherche d'un adversaire pour le <LocalTime Value="search.PlannedFor" /></h3>
-                <p>@search.Ticket.Format.Name · @(search.Ticket.Ranked ? "classée" : "amicale") · à une heure près</p>
-                <p class="hint">Inutile de garder la page ouverte : la proposition vous attendra ici, signalée dans le menu. <a href="/profile">Activez les notifications</a> pour être prévenu même site fermé.</p>
-                <button class="button secondary" @onclick="() => CancelPlannedAsync(search.Id)" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="close" /> Annuler</button>
-            </div>
-        }
-    </section>
-}
+<ScheduledGamesList Overview="_scheduled" Me="_me" Players="_scheduledPlayers" Lists="_scheduledLists"
+                    OnAccept="AcceptPlannedAsync" OnDecline="DeclinePlannedAsync" OnCancel="CancelPlannedAsync" />
 
 @if (_confirmedPlanned)
 {
     <p class="card status in-match">Partie planifiée confirmée ! Retrouvez-la dans <a href="/matches">Mes parties</a>.</p>
 }
-
 
 @code {
     [CascadingParameter] private Task<AuthenticationState> AuthenticationState { get; set; } = default!;
@@ -166,10 +99,6 @@
     private PlayerStatus _status = PlayerStatus.Idle;
     private IReadOnlyList<Match> _activeMatches = [];
     private IReadOnlyList<ArmyList> _lists = [];
-    private Guid _selectedListId;
-    private bool _ranked = true;
-    private bool _planned;
-    private DateTime _plannedLocal = DateTime.Today.AddDays(1).AddHours(21);
     private TimeZoneInfo _timeZone = TimeZoneInfo.Utc;
     private bool _confirmedPlanned;
     private ScheduledOverview _scheduled = new([], []);
@@ -188,7 +117,6 @@
     {
         _me = SteamAuthentication.PlayerIdOf((await AuthenticationState).User);
         _lists = await ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<ArmyListService>().ListOwnedByAsync(_me));
-        _selectedListId = _lists.FirstOrDefault()?.Id ?? Guid.Empty;
         await RefreshAsync();
 
         if (RendererInfo.IsInteractive)
@@ -198,30 +126,30 @@
         }
     }
 
-    private Task SearchAsync() => RunAsync(async () =>
+    private Task SearchAsync(NewGameForm.Request request) => RunAsync(async () =>
     {
         await RequestNotificationPermissionAsync();
         var (player, list, hasRoom) = await ScopeFactory.UsingScopeAsync(async services => (
             await services.GetRequiredService<PlayerAccounts>().FindAsync(_me),
-            await services.GetRequiredService<ArmyListService>().FindAsync(_selectedListId),
+            await services.GetRequiredService<ArmyListService>().FindAsync(request.ListId),
             await services.GetRequiredService<MatchService>().CanLookForAnotherOpponentAsync(_me)));
         if (!hasRoom)
             throw new InvalidOperationException($"Vous avez déjà {MatchService.MaxActiveMatches} parties en cours, planifiées ou recherchées.");
         if (player is null || list is null)
             throw new InvalidOperationException("Liste introuvable.");
 
-        Coordinator.Search(player, list, _ranked);
+        Coordinator.Search(player, list, request.Ranked);
     });
 
     private Task CancelSearch() => RunAsync(() => Coordinator.CancelSearch(_me));
 
-    private Task PlanAsync() => RunAsync(async () =>
+    private Task PlanAsync(NewGameForm.Request request) => RunAsync(async () =>
     {
-        var local = DateTime.SpecifyKind(_plannedLocal, DateTimeKind.Unspecified);
+        var local = DateTime.SpecifyKind(request.PlannedLocal!.Value, DateTimeKind.Unspecified);
         var plannedFor = new DateTimeOffset(local, _timeZone.GetUtcOffset(local));
         if (plannedFor < Time.GetUtcNow() + Match.ScheduledAcceptanceNotice)
             throw new InvalidOperationException("Choisissez une heure au moins 1 h à l'avance.");
-        await ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<ScheduledGames>().PlanAsync(_me, _selectedListId, _ranked, plannedFor));
+        await ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<ScheduledGames>().PlanAsync(_me, request.ListId, request.Ranked, plannedFor));
     });
 
     private Task CancelPlannedAsync(Guid searchId) =>
@@ -350,9 +278,6 @@
         {
         }
     }
-
-    // Composant interactif de longue durée : un scope (et donc un DbContext) par opération.
-
 
     private string Elapsed(DateTimeOffset since) => Format(Time.GetUtcNow() - since);
 

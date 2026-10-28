@@ -1,0 +1,57 @@
+@using Matchmaker.Domain.ArmyLists
+
+@* Choix de la liste, du type de partie et du moment : la page fait la recherche ou la planification. *@
+<section class="card form">
+    <h2>Nouvelle partie</h2>
+    <label>
+        Liste
+        <select @bind="_listId">
+            @foreach (var list in Lists)
+            {
+                <option value="@list.Id">@list.Name (@list.Format.Name)</option>
+            }
+        </select>
+    </label>
+    <label class="checkbox">
+        <input type="checkbox" @bind="_ranked" />
+        Partie classée <span class="hint">(compte pour l'Elo ; décochez pour une partie amicale)</span>
+    </label>
+    <fieldset class="when">
+        <legend>Quand ?</legend>
+        <label class="checkbox"><input type="radio" name="when" checked="@(!_planned)" @onchange="() => _planned = false" /> Maintenant</label>
+        <label class="checkbox"><input type="radio" name="when" checked="@_planned" @onchange="() => _planned = true" /> À une date et heure précises</label>
+    </fieldset>
+    @if (_planned)
+    {
+        <label>
+            Date et heure de la partie <span class="hint">(votre heure locale)</span>
+            <input type="datetime-local" @bind="_plannedLocal" step="900" />
+        </label>
+        <p class="hint">Vous serez mis en relation avec un joueur qui planifie une partie à une heure d'écart au plus. Il faudra l'accepter dans les 24 h, et au plus tard 1 h avant la partie.</p>
+        <button class="button call-to-action" @onclick="() => OnPlan.InvokeAsync(new(_listId, _ranked, _plannedLocal))" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="clock" /> Planifier la partie</button>
+    }
+    else
+    {
+        <button class="button call-to-action" @onclick="() => OnSearch.InvokeAsync(new(_listId, _ranked, null))" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="search" /> Rechercher un adversaire</button>
+    }
+</section>
+
+@code {
+    /// <summary>Partie demandée ; <paramref name="PlannedLocal"/> est l'heure locale du joueur, null pour une partie immédiate.</summary>
+    public sealed record Request(Guid ListId, bool Ranked, DateTime? PlannedLocal);
+
+    [Parameter, EditorRequired] public IReadOnlyList<ArmyList> Lists { get; set; } = [];
+    [Parameter, EditorRequired] public EventCallback<Request> OnSearch { get; set; }
+    [Parameter, EditorRequired] public EventCallback<Request> OnPlan { get; set; }
+
+    private Guid _listId;
+    private bool _ranked = true;
+    private bool _planned;
+    private DateTime _plannedLocal = DateTime.Today.AddDays(1).AddHours(21);
+
+    protected override void OnParametersSet()
+    {
+        if (Lists.All(l => l.Id != _listId))
+            _listId = Lists.FirstOrDefault()?.Id ?? Guid.Empty;
+    }
+}
