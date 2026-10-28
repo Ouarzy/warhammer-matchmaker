@@ -7,6 +7,7 @@
 @using Matchmaker.Web.Accounts
 @using Matchmaker.Web.Matches
 @using Matchmaker.Web.Matchmaking
+@using Microsoft.EntityFrameworkCore
 @using Matchmaker.Web.Tts
 @inject PlayerNotifier Notifier
 @inject IServiceScopeFactory ScopeFactory
@@ -231,6 +232,10 @@
         catch (Exception e) when (e is InvalidOperationException or ArgumentException)
         {
             _error = e.Message;
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            _error = MatchService.ConcurrentChangeMessage;
         }
         await RefreshAsync();
     }

@@ -17,6 +17,9 @@ public sealed class MatchService(MatchmakerDbContext db, TimeProvider time, Push
 {
     public const int MaxActiveMatches = 5;
 
+    /// <summary>Message affiché quand l'adversaire, ou la confirmation automatique, a modifié la partie au même moment.</summary>
+    public const string ConcurrentChangeMessage = "La partie vient de changer (votre adversaire a agi au même moment) : vérifiez son état, puis recommencez si besoin.";
+
     private static readonly MatchStatus[] InProgress = [MatchStatus.Accepted, MatchStatus.ResultDeclared];
     private static readonly MatchStatus[] Finished = [MatchStatus.Completed, MatchStatus.Abandoned];
 
