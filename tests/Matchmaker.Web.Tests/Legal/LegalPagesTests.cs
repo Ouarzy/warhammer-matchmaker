@@ -59,6 +59,15 @@ public sealed class LegalPagesTests(PostgresFixture postgres) : IDisposable
         Assert.Contains("github.com/Ouarzy/warhammer-matchmaker", html);
     }
 
+    [Fact]
+    public async Task The_support_page_points_to_the_tipeee_page()
+    {
+        var html = await AnonymousText("/me-soutenir");
+
+        Assert.Contains("Me soutenir", html);
+        Assert.Contains("href=\"https://fr.tipeee.com/ouarzy/\"", html);
+    }
+
     [Theory]
     [InlineData("/")]
     [InlineData("/ranking")]
@@ -66,7 +75,7 @@ public sealed class LegalPagesTests(PostgresFixture postgres) : IDisposable
     {
         var html = await AnonymousText(url);
 
-        foreach (var link in new[] { "/a-propos", "/cgu", "/confidentialite", "/mentions-legales" })
+        foreach (var link in new[] { "/a-propos", "/me-soutenir", "/cgu", "/confidentialite", "/mentions-legales" })
             Assert.Contains($"href=\"{link}\"", html);
     }
 
