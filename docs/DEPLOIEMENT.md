@@ -69,7 +69,21 @@ docker compose -f deploy/docker-compose.yml --env-file deploy/.env exec -T db \
 docker compose -f deploy/docker-compose.yml --env-file deploy/.env start web
 ```
 
-Les sauvegardes restent sur le serveur : pour s'en prémunir en cas de perte du serveur, copiez régulièrement `deploy/backups/` ailleurs (ex. `scp` ou l'option de sauvegarde de l'hébergeur).
+### Copie des sauvegardes sur un Mac
+
+Le serveur ne garde que 14 jours de sauvegardes, et les perdrait avec lui. `deploy/fetch-backups.sh` les copie dans `~/warhammer-matchmaker/backup` (seuls les nouveaux fichiers ; rien n'est supprimé côté Mac). Pour le lancer chaque jour à 13 h (et au réveil si le Mac dormait) :
+
+```bash
+deploy/install-mac-backups.sh        # à relancer après toute modification de fetch-backups.sh
+```
+
+- Journal : `~/Library/Logs/warhammer-matchmaker-backups.log`.
+- Le dossier est hors de `~/Documents` : macOS y interdit l'écriture aux tâches de fond.
+- La clé SSH est protégée par une phrase de passe : la tâche reprend l'agent SSH ouvert par le terminal (plugin `ssh-agent` d'oh-my-zsh). Après un redémarrage du Mac, il faut donc avoir ouvert un terminal une fois pour qu'elle réussisse.
+
+## Surveillance
+
+Le workflow GitHub Actions `Disponibilité` (`.github/workflows/uptime.yml`) interroge `/health` toutes les 15 minutes (trois essais) ; en cas d'échec, GitHub envoie un e-mail. Les tâches planifiées de GitHub peuvent être retardées de quelques minutes, et sont mises en pause après 60 jours sans activité sur le dépôt (les réactiver depuis l'onglet Actions).
 
 ## Répétition en local
 

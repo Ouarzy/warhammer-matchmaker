@@ -1,0 +1,29 @@
+# Vérifie toutes les 15 minutes que le site répond. En cas d'échec, GitHub envoie un e-mail
+# (notifications Actions du compte). GitHub peut retarder les tâches planifiées de quelques minutes,
+# et les met en pause après 60 jours sans activité sur le dépôt.
+name: Disponibilité
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  health:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: https://warhammer-matchmaker.com/health
+        run: |
+          # Trois essais espacés : un redémarrage du site (déploiement) ne déclenche pas d'alerte.
+          for attempt in 1 2 3; do
+            if [ "$(curl -fsS --max-time 15 https://warhammer-matchmaker.com/health)" = "Healthy" ]; then
+              echo "Site en ligne."
+              exit 0
+            fi
+            sleep 30
+          done
+          echo "::error::Le site ne répond pas correctement (https://warhammer-matchmaker.com/health)."
+          exit 1
