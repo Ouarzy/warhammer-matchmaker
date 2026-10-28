@@ -10,6 +10,7 @@ using Matchmaker.Web.Data;
 using Matchmaker.Web.Matches;
 using Matchmaker.Web.Tests.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Matchmaker.Web.Tests.Matches;
 
@@ -293,6 +294,48 @@ public class MatchServiceTests(PostgresFixture postgres)
         Assert.Equal(MatchStatus.Completed, match.Status);
         Assert.True(match.ConfirmedAutomatically);
         Assert.Equal(MatchStatus.ResultDeclared, (await reloaded.Matches.FindAsync(recent))!.Status);
+    }
+
+    [Fact]
+    public async Task A_conflict_on_one_overdue_result_does_not_count_the_others_twice()
+    {
+        var matches = new[] { await StartedMatch(), await StartedMatch() };
+        await using (var db = postgres.CreateDbContext())
+            foreach (var (alice, _, matchId) in matches)
+                await Service(db).DeclareResultAsync(alice, matchId, 100, 40);
+        _time.Now = Noon.AddHours(24).AddMinutes(1);
+
+        // Premier enregistrement en conflit, comme si un joueur avait été modifié entre-temps.
+        var options = new DbContextOptionsBuilder<MatchmakerDbContext>()
+            .UseNpgsql(postgres.ConnectionString)
+            .AddInterceptors(new FirstSaveConflicts())
+            .Options;
+        await using (var db = new MatchmakerDbContext(options))
+            await Service(db).ConfirmOverdueResultsAsync();
+        await using (var db = postgres.CreateDbContext())
+            await Service(db).ConfirmOverdueResultsAsync();
+
+        foreach (var (alice, bob, matchId) in matches)
+        {
+            Assert.Equal(1, (await Reload(alice)).RankedGamesPlayed);
+            Assert.Equal(1520, (await Reload(alice)).Rating.Value);
+            Assert.Equal(1480, (await Reload(bob)).Rating.Value);
+            await using var reloaded = postgres.CreateDbContext();
+            Assert.Equal(MatchStatus.Completed, (await reloaded.Matches.FindAsync(matchId))!.Status);
+        }
+    }
+
+    private sealed class FirstSaveConflicts : SaveChangesInterceptor
+    {
+        private bool _conflicted;
+
+        public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData,
+            InterceptionResult<int> result, CancellationToken cancellationToken = default)
+        {
+            if (_conflicted) return ValueTask.FromResult(result);
+            _conflicted = true;
+            throw new DbUpdateConcurrencyException("Conflit simulé.");
+        }
     }
 
     [Fact]

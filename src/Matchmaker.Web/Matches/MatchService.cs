@@ -112,11 +112,18 @@ public sealed class MatchService(MatchmakerDbContext db, TimeProvider time, Push
         var declaredBefore = now - Match.ResultConfirmationDelay;
         var overdue = await db.Matches
             .Where(m => m.Status == MatchStatus.ResultDeclared && m.DeclaredAt < declaredBefore)
+            .Select(m => m.Id)
             .ToListAsync(cancellationToken);
 
+        // Chaque match est relu et enregistré seul : un conflit sur l'un ne laisse rien en suspens pour les suivants
+        // (sinon l'Elo d'un match pouvait être enregistré sans son statut, puis appliqué une seconde fois).
         var confirmed = new List<Match>();
-        foreach (var match in overdue)
+        foreach (var matchId in overdue)
         {
+            db.ChangeTracker.Clear();
+            var match = await db.Matches.FindAsync([matchId], cancellationToken);
+            if (match is not { Status: MatchStatus.ResultDeclared } || now <= match.ResultConfirmationDeadline)
+                continue;
             try
             {
                 match.ConfirmAutomatically(now);
@@ -126,10 +133,10 @@ public sealed class MatchService(MatchmakerDbContext db, TimeProvider time, Push
             }
             catch (DbUpdateConcurrencyException)
             {
-                // L'adversaire a répondu entre-temps : sa réponse l'emporte.
-                db.ChangeTracker.Clear();
+                // Un joueur a agi entre-temps : son action l'emporte, le match sera revu au prochain passage.
             }
         }
+        db.ChangeTracker.Clear();
         return confirmed;
     }
 
