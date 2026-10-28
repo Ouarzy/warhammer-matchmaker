@@ -5,6 +5,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Pas utilisé directement : force une version corrigée de la dépendance de AspNet.Security.OpenId (1.3.0, vulnérable). -->
+    <PackageReference Include="AngleSharp" Version="1.5.0" />
     <PackageReference Include="AspNet.Security.OpenId.Steam" Version="10.0.0" />
     <PackageReference Include="Lib.Net.Http.WebPush" Version="3.3.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.4">

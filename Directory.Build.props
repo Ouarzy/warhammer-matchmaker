@@ -1,0 +1,8 @@
+<Project>
+  <!-- Réglages communs à tous les projets : un avertissement (dont un paquet vulnérable, NU190x) bloque la compilation. -->
+  <PropertyGroup>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>
+  </PropertyGroup>
+</Project>

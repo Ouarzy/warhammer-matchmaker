@@ -20,25 +20,25 @@
 
         <label>
             Code YellowScribe
-            <InputText @bind-Value="Import.Code" placeholder="0c6cfa93" autocomplete="off" />
+            <InputText @bind-Value="Import!.Code" placeholder="0c6cfa93" autocomplete="off" />
         </label>
-        <ValidationMessage For="() => Import.Code" class="error" />
+        <ValidationMessage For="() => Import!.Code" class="error" />
 
         <label>
             Nom de la liste <span class="hint">(facultatif : faction et format par défaut)</span>
-            <InputText @bind-Value="Import.Name" placeholder="Adeptus Custodes – Strike Force" maxlength="@ArmyList.NameMaxLength" />
+            <InputText @bind-Value="Import!.Name" placeholder="Adeptus Custodes – Strike Force" maxlength="@ArmyList.NameMaxLength" />
         </label>
-        <ValidationMessage For="() => Import.Name" class="error" />
+        <ValidationMessage For="() => Import!.Name" class="error" />
 
         <label>
             Détachement <span class="hint">(facultatif : YellowScribe ne le transmet pas)</span>
-            <InputText @bind-Value="Import.Detachment" placeholder="Shield Host" maxlength="@ArmyList.DetachmentMaxLength" />
+            <InputText @bind-Value="Import!.Detachment" placeholder="Shield Host" maxlength="@ArmyList.DetachmentMaxLength" />
         </label>
-        <ValidationMessage For="() => Import.Detachment" class="error" />
+        <ValidationMessage For="() => Import!.Detachment" class="error" />
 
         <label>
             Format
-            <InputSelect @bind-Value="Import.Format">
+            <InputSelect @bind-Value="Import!.Format">
                 @foreach (var format in GameFormats.Of(GameSystem.Warhammer40k))
                 {
                     <option value="@format.Name">@format.Name</option>
@@ -87,19 +87,21 @@ else
     [CascadingParameter] private Task<AuthenticationState> AuthenticationState { get; set; } = default!;
 
     [SupplyParameterFromForm(FormName = "import")]
-    private ImportModel Import { get; set; } = new();
+    private ImportModel? Import { get; set; }
 
     private IReadOnlyList<ArmyList> _lists = [];
     private string? _importError;
 
     protected override async Task OnInitializedAsync()
     {
+        // Pas d'initialiseur sur la propriété : un envoi du formulaire la remplacerait par null.
+        Import ??= new ImportModel();
         _lists = await Lists.ListOwnedByAsync(await CurrentPlayerAsync());
     }
 
     private async Task ImportAsync()
     {
-        var format = GameFormats.Find(GameSystem.Warhammer40k, Import.Format);
+        var format = GameFormats.Find(GameSystem.Warhammer40k, Import!.Format);
         if (format is null)
         {
             _importError = "Format inconnu.";

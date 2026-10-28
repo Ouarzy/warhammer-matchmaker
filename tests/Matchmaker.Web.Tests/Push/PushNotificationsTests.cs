@@ -125,7 +125,7 @@ public sealed class PushNotificationsTests(PostgresFixture postgres) : IDisposab
         await client.PostAsync("/api/push/test", null);
 
         await Task.Delay(300);
-        Assert.Empty(_factory.Push.Sent.Where(s => s.Player == alice));
+        Assert.DoesNotContain(_factory.Push.Sent, s => s.Player == alice);
     }
 
     [Fact]
@@ -189,7 +189,7 @@ public sealed class PushNotificationsTests(PostgresFixture postgres) : IDisposab
         Assert.Equal("Résultat à confirmer", message.Title);
         Assert.Equal($"/matches/{matchId}", message.Url);
         await Task.Delay(200);
-        Assert.Empty(_factory.Push.Sent.Where(s => s.Player == alice));
+        Assert.DoesNotContain(_factory.Push.Sent, s => s.Player == alice);
     }
 
     [Fact]

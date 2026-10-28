@@ -4,6 +4,7 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Restauration des paquets dans une couche à part : elle reste en cache tant que les projets ne changent pas.
+COPY Directory.Build.props ./
 COPY src/Matchmaker.Domain/Matchmaker.Domain.csproj src/Matchmaker.Domain/
 COPY src/Matchmaker.Web/Matchmaker.Web.csproj src/Matchmaker.Web/
 RUN dotnet restore src/Matchmaker.Web/Matchmaker.Web.csproj
