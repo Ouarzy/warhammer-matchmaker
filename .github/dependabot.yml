@@ -1,0 +1,25 @@
+# Mises à jour proposées chaque semaine en pull request : paquets NuGet, actions GitHub et images Docker.
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      # Les paquets Microsoft (ASP.NET Core, EF Core…) sortent ensemble : une seule pull request.
+      microsoft:
+        patterns: ["Microsoft.*", "System.*"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  # Image de base du Dockerfile.
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+  # Images de production (Caddy, PostgreSQL).
+  - package-ecosystem: docker-compose
+    directory: /deploy
+    schedule:
+      interval: weekly
