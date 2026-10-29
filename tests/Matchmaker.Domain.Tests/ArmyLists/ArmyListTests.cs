@@ -80,9 +80,10 @@ public class ArmyListTests
     }
 
     [Fact]
-    public void The_name_is_limited_to_60_characters()
+    public void The_name_is_limited_to_512_characters()
     {
-        Assert.Throws<ArgumentException>(() => Imported(new string('x', 61)));
+        Assert.Equal(512, Imported(new string('x', 512)).Name.Length);
+        Assert.Throws<ArgumentException>(() => Imported(new string('x', 513)));
     }
 
     [Fact]
@@ -147,8 +148,11 @@ public class ArmyListTests
     }
 
     [Fact]
-    public void A_detachment_name_is_limited_in_length()
+    public void A_detachment_name_is_limited_to_128_characters()
     {
-        Assert.Throws<ArgumentException>(() => Imported().ChangeDetachment(new string('x', ArmyList.DetachmentMaxLength + 1)));
+        var list = Imported();
+        list.ChangeDetachment(new string('x', 128));
+        Assert.Equal(128, list.Detachment!.Length);
+        Assert.Throws<ArgumentException>(() => list.ChangeDetachment(new string('x', 129)));
     }
 }

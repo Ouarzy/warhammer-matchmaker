@@ -63,6 +63,20 @@ public sealed class ArmyListPagesTests(PostgresFixture postgres) : IDisposable
     }
 
     [Fact]
+    public async Task A_long_name_of_512_characters_is_accepted_when_importing()
+    {
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+        var longName = new string('x', 512);
+
+        await client.SubmitAsync("/lists", "import", ImportForm(Samples.CustodesCode, longName));
+
+        using var scope = _factory.Services.CreateScope();
+        var stored = Assert.Single(await scope.ServiceProvider.GetRequiredService<ArmyListService>().ListOwnedByAsync(me));
+        Assert.Equal(longName, stored.Name);
+    }
+
+    [Fact]
     public async Task The_name_is_optional_when_importing()
     {
         var me = MatchmakerWebFactory.NewPlayerId();

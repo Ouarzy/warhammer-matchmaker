@@ -83,10 +83,10 @@
     private sealed class EditModel
     {
         [Required(ErrorMessage = "Donnez un nom à votre liste.")]
-        [MaxLength(ArmyList.NameMaxLength, ErrorMessage = "Le nom est limité à 60 caractères.")]
+        [MaxLength(ArmyList.NameMaxLength, ErrorMessage = "Le nom est limité à 512 caractères.")]
         public string Name { get; set; } = "";
 
-        [MaxLength(ArmyList.DetachmentMaxLength, ErrorMessage = "Le détachement est limité à 60 caractères.")]
+        [MaxLength(ArmyList.DetachmentMaxLength, ErrorMessage = "Le détachement est limité à 128 caractères.")]
         public string? Detachment { get; set; }
     }
 }

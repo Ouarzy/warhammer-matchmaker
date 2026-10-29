@@ -34,8 +34,8 @@ namespace Matchmaker.Web.Data.Migrations
                         .HasColumnName("archived_at");
 
                     b.Property<string>("Detachment")
-                        .HasMaxLength(60)
-                        .HasColumnType("character varying(60)")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
                         .HasColumnName("detachment");
 
                     b.Property<Guid>("MatchId")
@@ -44,8 +44,8 @@ namespace Matchmaker.Web.Data.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(60)
-                        .HasColumnType("character varying(60)")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
                         .HasColumnName("name");
 
                     b.Property<Guid>("OriginalListId")
@@ -94,8 +94,8 @@ namespace Matchmaker.Web.Data.Migrations
                         .HasColumnName("id");
 
                     b.Property<string>("Detachment")
-                        .HasMaxLength(60)
-                        .HasColumnType("character varying(60)")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
                         .HasColumnName("detachment");
 
                     b.Property<DateTimeOffset>("ImportedAt")
@@ -104,8 +104,8 @@ namespace Matchmaker.Web.Data.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(60)
-                        .HasColumnType("character varying(60)")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
                         .HasColumnName("name");
 
                     b.Property<string>("Owner")

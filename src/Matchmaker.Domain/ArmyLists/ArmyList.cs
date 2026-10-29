@@ -9,8 +9,8 @@ namespace Matchmaker.Domain.ArmyLists;
 /// </summary>
 public sealed class ArmyList
 {
-    public const int NameMaxLength = 60;
-    public const int DetachmentMaxLength = 60;
+    public const int NameMaxLength = 512;
+    public const int DetachmentMaxLength = 128;
 
     private ArmyList(Guid id, PlayerId owner, string name, GameFormat format, Roster roster, DateTimeOffset importedAt)
     {
