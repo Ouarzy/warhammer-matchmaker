@@ -37,5 +37,16 @@ public sealed class SteamLoginTests(PostgresFixture postgres) : IDisposable
         Assert.Contains("Se connecter avec Steam", html);
     }
 
+    [Fact]
+    public async Task Sign_in_links_load_a_full_page_so_the_browser_can_follow_the_redirect_to_steam()
+    {
+        // La navigation améliorée de Blazor suivrait la redirection par fetch, bloqué par la CSP (connect-src 'self').
+        var html = await Client().GetStringAsync("/");
+
+        var loginLinks = System.Text.RegularExpressions.Regex.Matches(html, "<a [^>]*href=\"/login\"[^>]*>");
+        Assert.NotEmpty(loginLinks);
+        Assert.All(loginLinks, link => Assert.Contains("data-enhance-nav=\"false\"", link.Value));
+    }
+
     public void Dispose() => _factory.Dispose();
 }
