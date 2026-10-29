@@ -54,6 +54,22 @@ public sealed class TtsLiveScoreApiTests(PostgresFixture postgres) : IDisposable
     }
 
     [Fact]
+    public async Task A_player_finds_the_live_score_in_the_result_form_ready_to_declare()
+    {
+        var (alice, bob, matchId, code) = await MatchInProgress();
+        await SendLive(Report(code, red: bob, redVp: 42, blue: alice, blueVp: 37, roundsPlayed: 3));
+
+        var client = await _factory.CreateClientAsAsync(alice, "Alice");
+        var html = WebUtility.HtmlDecode(await client.GetStringAsync($"/matches/{matchId}"));
+
+        Assert.DoesNotContain("live-value", html);
+        Assert.Contains("Déclarer le résultat", html);
+        Assert.Contains("value=\"37\"", html);
+        Assert.Contains("value=\"42\"", html);
+        Assert.Contains("round 3", html);
+    }
+
+    [Fact]
     public async Task The_live_score_does_not_declare_any_result()
     {
         var (alice, bob, matchId, code) = await MatchInProgress();

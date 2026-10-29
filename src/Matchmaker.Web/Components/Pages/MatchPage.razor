@@ -21,7 +21,8 @@
 {
     <MatchSheet Match="_match" Players="_players" Archives="_archives" />
 
-    @if (_match.Status == MatchStatus.Accepted && LiveScores.Of(Id) is { } live)
+    @* Les joueurs retrouvent le score en direct dans leur formulaire de déclaration. *@
+    @if (_me is null && _match.Status == MatchStatus.Accepted && LiveScores.Of(Id) is { } live)
     {
         <section class="card live-score" aria-live="polite">
             <h2><Icon Name="swords" /> Score en direct</h2>
@@ -53,7 +54,7 @@
                         </li>
                         <li>Lancez Tabletop Simulator avec le mod LCT et invitez-le. La partie peut se jouer en plusieurs fois.</li>
                         <li>Consultez sa liste ci-dessus avant de commencer.</li>
-                        <li>À la fin de la partie, l'un de vous déclare le score, depuis l'objet TTS ou à la main ci-dessous, et l'autre le confirme.</li>
+                        <li>À la fin de la partie, l'un de vous déclare le score, depuis l'objet TTS ou ci-dessous, et l'autre le confirme.</li>
                     </ol>
 
                     @if (_reportCode is not null)
@@ -61,7 +62,19 @@
                         <TtsReportCode Code="@_reportCode" />
                     }
 
-                    <ScoreForm Title="Déclarer le résultat" SubmitLabel="Déclarer le résultat" OnSubmit="DeclareResult" />
+                    @if (LiveScores.Of(Id) is { } liveScore)
+                    {
+                        var (mine, theirs) = me == _match.First.Player
+                            ? (liveScore.FirstVictoryPoints, liveScore.SecondVictoryPoints)
+                            : (liveScore.SecondVictoryPoints, liveScore.FirstVictoryPoints);
+                        <ScoreForm Title="Déclarer le résultat" SubmitLabel="Déclarer le résultat" OnSubmit="DeclareResult"
+                                   InitialMine="mine" InitialTheirs="theirs"
+                                   Hint="@($"Score en direct lu sur la feuille de score LCT, round {liveScore.RoundsPlayed} · mis à jour {Ago(liveScore.At)}. Corrigez-le si besoin avant de le déclarer.")" />
+                    }
+                    else
+                    {
+                        <ScoreForm Title="Déclarer le résultat" SubmitLabel="Déclarer le résultat" OnSubmit="DeclareResult" />
+                    }
                     break;
 
                 case MatchStatus.ResultDeclared when _match.Declarer == me:

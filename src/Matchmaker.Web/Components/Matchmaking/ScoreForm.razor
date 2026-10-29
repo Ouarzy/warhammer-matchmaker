@@ -31,12 +31,21 @@
     [Parameter, EditorRequired] public EventCallback<(int Mine, int Theirs)> OnSubmit { get; set; }
     [Parameter] public EventCallback OnCancel { get; set; }
     [Parameter] public string? Hint { get; set; }
-    /// <summary>Score de départ du formulaire (le score proposé, pour une contre-proposition).</summary>
+    /// <summary>
+    /// Score de départ du formulaire (le score proposé pour une contre-proposition, le score en direct de TTS
+    /// pour une déclaration). S'il change, il remplace la saisie en cours.
+    /// </summary>
     [Parameter] public int InitialMine { get; set; }
     [Parameter] public int InitialTheirs { get; set; }
 
     private int _mine;
     private int _theirs;
+    private (int, int)? _initial;
 
-    protected override void OnInitialized() => (_mine, _theirs) = (InitialMine, InitialTheirs);
+    protected override void OnParametersSet()
+    {
+        if (_initial == (InitialMine, InitialTheirs)) return;
+        _initial = (InitialMine, InitialTheirs);
+        (_mine, _theirs) = (InitialMine, InitialTheirs);
+    }
 }
