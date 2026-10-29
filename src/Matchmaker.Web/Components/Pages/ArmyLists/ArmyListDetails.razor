@@ -13,34 +13,42 @@
 
     <header class="list-header">
         <h1>@_list.Name</h1>
-        <p>@(_list.Faction ?? "Faction inconnue")@(_list.Detachment is { } detachment ? $" · Détachement {detachment}" : "") · @_list.Format.Name@(_list.IsTeamList ? " · Liste d'équipe" : "") · @_list.Roster.Units.Count unités · édition @_list.Roster.Edition</p>
+        <p>@(_list.Faction ?? "Faction inconnue")@(_list.Detachment is { } detachment ? $" · Détachement {detachment}" : "") · @_list.Format.Name · @_list.Type.Label() · @_list.Roster.Units.Count unités · édition @_list.Roster.Edition</p>
     </header>
 
     @if (_isOwner)
     {
-        <section class="card owner-actions">
-            <EditForm Model="Edit" FormName="edit" OnValidSubmit="UpdateAsync" Enhance class="inline-form">
+        <section class="card">
+            <EditForm Model="Edit" FormName="edit" OnValidSubmit="UpdateAsync" Enhance class="list-settings">
                 <DataAnnotationsValidator />
-                <label>
+                <label class="wide">
                     Nom
                     <InputText @bind-Value="Edit!.Name" maxlength="@ArmyList.NameMaxLength" />
+                    <ValidationMessage For="() => Edit.Name" class="error" />
                 </label>
                 <label>
                     Détachement
                     <InputText @bind-Value="Edit!.Detachment" maxlength="@ArmyList.DetachmentMaxLength" placeholder="Facultatif" />
+                    <ValidationMessage For="() => Edit.Detachment" class="error" />
                 </label>
-                <label class="checkbox">
-                    <InputCheckbox @bind-Value="Edit!.IsTeamList" />
-                    Liste d'équipe
+                <label>
+                    Type de liste
+                    <InputSelect @bind-Value="Edit!.Type">
+                        @foreach (var type in ArmyListTypes.Offered)
+                        {
+                            <option value="@type">@type.Label()</option>
+                        }
+                    </InputSelect>
                 </label>
-                <button type="submit" class="button secondary"><Icon Name="edit" /> Enregistrer</button>
-                <ValidationMessage For="() => Edit.Name" class="error" />
-                <ValidationMessage For="() => Edit.Detachment" class="error" />
+                <div class="actions wide">
+                    <button type="submit" class="button"><Icon Name="edit" /> Enregistrer</button>
+                    @* Le bouton envoie le formulaire de suppression, à part : deux formulaires ne s'imbriquent pas. *@
+                    <button type="submit" form="delete-list" class="button danger" onclick="return confirm('Supprimer définitivement cette liste ?')"><Icon Name="trash" /> Supprimer</button>
+                </div>
             </EditForm>
 
-            <form method="post" @formname="delete" @onsubmit="DeleteAsync">
+            <form id="delete-list" method="post" @formname="delete" @onsubmit="DeleteAsync">
                 <AntiforgeryToken />
-                <button type="submit" class="button danger" onclick="return confirm('Supprimer définitivement cette liste ?')"><Icon Name="trash" /> Supprimer</button>
             </form>
         </section>
     }
@@ -70,12 +78,12 @@
         }
 
         _isOwner = _list.IsOwnedBy(_me);
-        Edit ??= new EditModel { Name = _list.Name, Detachment = _list.Detachment, IsTeamList = _list.IsTeamList };
+        Edit ??= new EditModel { Name = _list.Name, Detachment = _list.Detachment, Type = _list.Type };
     }
 
     private async Task UpdateAsync()
     {
-        if (await Lists.UpdateAsync(_me, Id, Edit!.Name, Edit.Detachment, Edit.IsTeamList))
+        if (await Lists.UpdateAsync(_me, Id, Edit!.Name, Edit.Detachment, Edit.Type))
             _list = await Lists.FindAsync(Id);
     }
 
@@ -93,6 +101,6 @@
         [MaxLength(ArmyList.DetachmentMaxLength, ErrorMessage = "Le détachement est limité à 128 caractères.")]
         public string? Detachment { get; set; }
 
-        public bool IsTeamList { get; set; }
+        public ArmyListType Type { get; set; }
     }
 }

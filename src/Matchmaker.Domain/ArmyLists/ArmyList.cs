@@ -38,8 +38,7 @@ public sealed class ArmyList
     public string Name { get; private set; }
     /// <summary>Saisi par le joueur : YellowScribe ne transmet pas le détachement.</summary>
     public string? Detachment { get; private set; }
-    /// <summary>Déclaré par le joueur : liste préparée pour un tournoi par équipes.</summary>
-    public bool IsTeamList { get; private set; }
+    public ArmyListType Type { get; private set; }
     /// <summary>Choisie par défaut pour une nouvelle partie. Une seule par joueur : voir ArmyListService.</summary>
     public bool IsFavorite { get; private set; }
     public GameFormat Format { get; }
@@ -50,13 +49,13 @@ public sealed class ArmyList
     /// <param name="name">Facultatif : YellowScribe ne transmet pas le nom de la liste.
     /// Par défaut, la liste porte le nom de sa faction et de son format.</param>
     public static ArmyList Import(PlayerId owner, string? name, GameFormat format, Roster roster, DateTimeOffset now, string? detachment = null,
-        bool isTeamList = false)
+        ArmyListType type = ArmyListType.Hybrid)
     {
         if (roster.Units.Count == 0)
             throw new ArgumentException("La liste importée ne contient aucune unité.", nameof(roster));
 
         var chosenName = string.IsNullOrWhiteSpace(name) ? $"{roster.Faction ?? "Liste"} – {format.Name}" : name;
-        return new ArmyList(Guid.NewGuid(), owner, ValidName(chosenName), format, roster, now) { Detachment = ValidDetachment(detachment), IsTeamList = isTeamList };
+        return new ArmyList(Guid.NewGuid(), owner, ValidName(chosenName), format, roster, now) { Detachment = ValidDetachment(detachment), Type = type };
     }
 
     public void Rename(string name) => Name = ValidName(name);
@@ -64,7 +63,7 @@ public sealed class ArmyList
     /// <param name="detachment">Vide pour retirer le détachement.</param>
     public void ChangeDetachment(string? detachment) => Detachment = ValidDetachment(detachment);
 
-    public void ChangeTeamList(bool isTeamList) => IsTeamList = isTeamList;
+    public void ChangeType(ArmyListType type) => Type = type;
 
     public void MarkAsFavorite() => IsFavorite = true;
 

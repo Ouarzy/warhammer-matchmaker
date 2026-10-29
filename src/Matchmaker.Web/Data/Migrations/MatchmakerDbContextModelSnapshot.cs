@@ -38,10 +38,6 @@ namespace Matchmaker.Web.Data.Migrations
                         .HasColumnType("character varying(128)")
                         .HasColumnName("detachment");
 
-                    b.Property<bool>("IsTeamList")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_team_list");
-
                     b.Property<Guid>("MatchId")
                         .HasColumnType("uuid")
                         .HasColumnName("match_id");
@@ -66,6 +62,12 @@ namespace Matchmaker.Web.Data.Migrations
                         .IsRequired()
                         .HasColumnType("jsonb")
                         .HasColumnName("roster");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("type");
 
                     b.ComplexProperty(typeof(Dictionary<string, object>), "Format", "Matchmaker.Domain.ArmyLists.ArchivedArmyList.Format#GameFormat", b1 =>
                         {
@@ -110,10 +112,6 @@ namespace Matchmaker.Web.Data.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("is_favorite");
 
-                    b.Property<bool>("IsTeamList")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_team_list");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(512)
@@ -130,6 +128,12 @@ namespace Matchmaker.Web.Data.Migrations
                         .IsRequired()
                         .HasColumnType("jsonb")
                         .HasColumnName("roster");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("type");
 
                     b.ComplexProperty(typeof(Dictionary<string, object>), "Format", "Matchmaker.Domain.ArmyLists.ArmyList.Format#GameFormat", b1 =>
                         {

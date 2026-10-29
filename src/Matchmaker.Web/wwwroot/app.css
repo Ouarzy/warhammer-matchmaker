@@ -171,11 +171,14 @@ body > main { margin: 0 auto; }
     cursor: pointer;
     transition: background 0.15s, border-color 0.15s;
 }
+/* Boutons : doré pour l'action principale, neutre pour les actions secondaires (annuler, refuser, copier…),
+   rouge pour ce qui supprime ou abandonne. Chaque variante garde sa couleur au survol. */
 .button:hover { background: var(--accent-strong); color: var(--on-accent); }
 .button:disabled { opacity: 0.55; cursor: progress; }
 .button.secondary { background: var(--surface-2); border-color: var(--border); color: var(--text); }
-.button.secondary:hover { border-color: var(--accent); }
-.button.danger { background: var(--danger); color: #fff; }
+.button.secondary:hover { background: var(--surface-2); border-color: var(--accent); color: var(--text); }
+.button.danger { background: transparent; border-color: var(--danger); color: var(--danger); }
+.button.danger:hover { background: var(--danger); border-color: var(--danger); color: #fff; }
 .button.call-to-action { font-size: 1.1rem; padding: 0.8rem 1.4rem; }
 .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
 
@@ -276,8 +279,10 @@ tbody tr:hover td { background: var(--surface); }
 
 /* Listes d'armée --------------------------------------------------------- */
 .list-header p { color: var(--muted); margin-top: 0; }
-.owner-actions { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: end; }
-.owner-actions form { margin: 0; }
+.list-settings { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1rem; }
+.list-settings label { display: grid; gap: 0.3rem; align-content: start; }
+.list-settings .wide { grid-column: 1 / -1; }
+.list-settings .actions { justify-content: space-between; }
 .unit { border-top: 1px solid var(--border); padding-block: 1rem; }
 .unit h2 { margin: 0.5rem 0; }
 .unit .count { font-size: 0.9rem; font-weight: 400; color: var(--muted); margin-left: 0.5rem; }

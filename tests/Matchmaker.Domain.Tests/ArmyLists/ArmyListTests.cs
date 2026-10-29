@@ -35,22 +35,22 @@ public class ArmyListTests
     }
 
     [Fact]
-    public void A_list_is_not_a_team_list_unless_the_player_says_so()
+    public void A_list_is_hybrid_unless_the_player_says_otherwise()
     {
-        Assert.False(Imported().IsTeamList);
-        Assert.True(ArmyList.Import(Owner, "Custodes ETC", StrikeForce, Custodes(), Noon, isTeamList: true).IsTeamList);
+        Assert.Equal(ArmyListType.Hybrid, Imported().Type);
+        Assert.Equal(ArmyListType.Team, ArmyList.Import(Owner, "Custodes ETC", StrikeForce, Custodes(), Noon, type: ArmyListType.Team).Type);
     }
 
     [Fact]
-    public void The_owner_can_mark_or_unmark_a_team_list()
+    public void The_owner_can_change_the_type_of_a_list()
     {
         var list = Imported();
 
-        list.ChangeTeamList(true);
-        Assert.True(list.IsTeamList);
+        list.ChangeType(ArmyListType.Solo);
+        Assert.Equal(ArmyListType.Solo, list.Type);
 
-        list.ChangeTeamList(false);
-        Assert.False(list.IsTeamList);
+        list.ChangeType(ArmyListType.Team);
+        Assert.Equal(ArmyListType.Team, list.Type);
     }
 
     [Fact]

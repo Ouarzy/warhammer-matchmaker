@@ -1,4 +1,5 @@
 using System.Net;
+using Matchmaker.Domain.ArmyLists;
 using Matchmaker.Domain.Matchmaking;
 using Matchmaker.Domain.Players;
 using Matchmaker.Web.ArmyLists;
@@ -206,35 +207,46 @@ public sealed class ArmyListPagesTests(PostgresFixture postgres) : IDisposable
     }
 
     [Fact]
+    public async Task The_import_form_offers_the_three_list_types_with_hybrid_by_default()
+    {
+        var client = await _factory.CreateClientAsAsync(MatchmakerWebFactory.NewPlayerId());
+
+        var html = WebUtility.HtmlDecode(await client.GetStringAsync("/lists"));
+
+        Assert.Contains("Type de liste", html);
+        var offered = System.Text.RegularExpressions.Regex.Matches(html, "<option value=\"(Team|Solo|Hybrid)\"[^>]*>([^<]+)</option>")
+            .Select(m => m.Groups[2].Value);
+        Assert.Equal(["Liste d'équipe", "Liste solo", "Liste hybride"], offered);
+        Assert.Matches("<option value=\"Hybrid\" selected", html);
+    }
+
+    [Fact]
     public async Task A_list_imported_as_a_team_list_is_shown_as_such()
     {
         var me = MatchmakerWebFactory.NewPlayerId();
         var client = await _factory.CreateClientAsAsync(me);
         var form = ImportForm(Samples.CustodesCode, "Custodes ETC");
-        form["Import.IsTeamList"] = "true";
+        form["Import.Type"] = "Team";
 
         var response = await client.SubmitAsync("/lists", "import", form);
 
-        Assert.Contains("Liste d'équipe", WebUtility.HtmlDecode(await client.GetStringAsync(response.Headers.Location!.AbsolutePath)));
+        Assert.Contains("· Liste d'équipe ·", WebUtility.HtmlDecode(await client.GetStringAsync(response.Headers.Location!.AbsolutePath)));
         using var scope = _factory.Services.CreateScope();
-        Assert.True(Assert.Single(await scope.ServiceProvider.GetRequiredService<ArmyListService>().ListOwnedByAsync(me)).IsTeamList);
+        Assert.Equal(ArmyListType.Team, Assert.Single(await scope.ServiceProvider.GetRequiredService<ArmyListService>().ListOwnedByAsync(me)).Type);
     }
 
     [Fact]
-    public async Task The_owner_can_mark_a_list_as_a_team_list_then_unmark_it()
+    public async Task The_owner_can_change_the_type_of_a_list()
     {
         var me = MatchmakerWebFactory.NewPlayerId();
         var client = await _factory.CreateClientAsAsync(me);
         var listId = await ImportCustodes(me);
-        Assert.DoesNotContain("· Liste d'équipe", WebUtility.HtmlDecode(await client.GetStringAsync($"/lists/{listId}")));
+        Assert.Contains("· Liste hybride ·", WebUtility.HtmlDecode(await client.GetStringAsync($"/lists/{listId}")));
 
         await client.SubmitAsync($"/lists/{listId}", "edit",
-            new Dictionary<string, string> { ["Edit.Name"] = "Custodes", ["Edit.IsTeamList"] = "true" });
-        Assert.Contains("· Liste d'équipe", WebUtility.HtmlDecode(await client.GetStringAsync($"/lists/{listId}")));
+            new Dictionary<string, string> { ["Edit.Name"] = "Custodes", ["Edit.Type"] = "Solo" });
 
-        // Une case décochée n'est pas envoyée par le navigateur.
-        await client.SubmitAsync($"/lists/{listId}", "edit", new Dictionary<string, string> { ["Edit.Name"] = "Custodes" });
-        Assert.DoesNotContain("· Liste d'équipe", WebUtility.HtmlDecode(await client.GetStringAsync($"/lists/{listId}")));
+        Assert.Contains("· Liste solo ·", WebUtility.HtmlDecode(await client.GetStringAsync($"/lists/{listId}")));
     }
 
     [Fact]

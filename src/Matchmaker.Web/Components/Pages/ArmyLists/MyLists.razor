@@ -46,9 +46,14 @@
             </InputSelect>
         </label>
 
-        <label class="checkbox">
-            <InputCheckbox @bind-Value="Import!.IsTeamList" />
-            Liste d'équipe
+        <label>
+            Type de liste
+            <InputSelect @bind-Value="Import!.Type">
+                @foreach (var type in ArmyListTypes.Offered)
+                {
+                    <option value="@type">@type.Label()</option>
+                }
+            </InputSelect>
         </label>
 
         @if (_importError is not null)
@@ -68,7 +73,7 @@ else
 {
     <form method="get" action="/lists" class="list-search" role="search">
         <input type="search" name="q" value="@Query" placeholder="Rechercher une liste par son nom" aria-label="Rechercher une liste par son nom" />
-        <button type="submit" class="button secondary"><Icon Name="search" /> Rechercher</button>
+        <button type="submit" class="button"><Icon Name="search" /> Rechercher</button>
         @if (!string.IsNullOrWhiteSpace(Query))
         {
             <a href="/lists">Tout afficher</a>
@@ -85,7 +90,7 @@ else
             <AntiforgeryToken />
             <table>
                 <thead>
-                    <tr><th><span class="visually-hidden">Favori</span></th><th>Nom</th><th>Faction</th><th>Détachement</th><th>Format</th><th>Équipe</th><th>Unités</th><th>Importée le</th></tr>
+                    <tr><th><span class="visually-hidden">Favori</span></th><th>Nom</th><th>Faction</th><th>Détachement</th><th>Format</th><th>Type</th><th>Unités</th><th>Importée le</th></tr>
                 </thead>
                 <tbody>
                     @foreach (var list in Shown)
@@ -102,7 +107,7 @@ else
                             <td>@(list.Faction ?? "Inconnue")</td>
                             <td>@(list.Detachment ?? "–")</td>
                             <td>@list.Format.Name</td>
-                            <td>@(list.IsTeamList ? "Oui" : "–")</td>
+                            <td>@list.Type.Label()</td>
                             <td>@list.Roster.Units.Count</td>
                             <td>@list.ImportedAt.ToString("dd/MM/yyyy")</td>
                         </tr>
@@ -151,7 +156,7 @@ else
         ArmyList list;
         try
         {
-            list = await Lists.ImportAsync(await CurrentPlayerAsync(), Import.Code, Import.Name, format, Import.Detachment, Import.IsTeamList);
+            list = await Lists.ImportAsync(await CurrentPlayerAsync(), Import.Code, Import.Name, format, Import.Detachment, Import.Type);
         }
         catch (RosterImportException e)
         {
@@ -186,6 +191,6 @@ else
 
         public string Format { get; set; } = GameFormats.StrikeForce.Name;
 
-        public bool IsTeamList { get; set; }
+        public ArmyListType Type { get; set; } = ArmyListType.Hybrid;
     }
 }
