@@ -15,7 +15,7 @@
     <header class="list-header">
         <p class="badge">Liste archivée</p>
         <h1>@_archive.Name</h1>
-        <p>@(_archive.Faction ?? "Faction inconnue")@(_archive.Detachment is { } detachment ? $" · Détachement {detachment}" : "") · @_archive.Format.Name · @_archive.Roster.Units.Count unités · édition @_archive.Roster.Edition</p>
+        <p>@(_archive.Faction ?? "Faction inconnue")@(_archive.Detachment is { } detachment ? $" · Détachement {detachment}" : "") · @_archive.Format.Name@(_archive.IsTeamList ? " · Liste d'équipe" : "") · @_archive.Roster.Units.Count unités · édition @_archive.Roster.Edition</p>
         <p>
             Jouée par
             @if (_owner is not null)

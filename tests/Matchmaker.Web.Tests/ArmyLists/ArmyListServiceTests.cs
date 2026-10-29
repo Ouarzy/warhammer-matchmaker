@@ -28,6 +28,35 @@ public class ArmyListServiceTests(PostgresFixture postgres)
     }
 
     [Fact]
+    public async Task A_player_has_at_most_one_favorite_list_and_can_remove_it()
+    {
+        var owner = await NewPlayer();
+        await using var db = postgres.CreateDbContext();
+        var service = Service(db);
+        var first = await service.ImportAsync(owner, "0c6cfa93", "Première", GameFormats.StrikeForce);
+        var second = await service.ImportAsync(owner, "0c6cfa93", "Seconde", GameFormats.StrikeForce);
+
+        Assert.True(await service.ToggleFavoriteAsync(owner, first.Id));
+        Assert.True(await service.ToggleFavoriteAsync(owner, second.Id));
+        Assert.Equal(["Seconde"], (await service.ListOwnedByAsync(owner)).Where(l => l.IsFavorite).Select(l => l.Name));
+
+        Assert.True(await service.ToggleFavoriteAsync(owner, second.Id));
+        Assert.DoesNotContain(await service.ListOwnedByAsync(owner), l => l.IsFavorite);
+    }
+
+    [Fact]
+    public async Task Only_the_owner_can_choose_their_favorite_list()
+    {
+        var owner = await NewPlayer();
+        var intruder = await NewPlayer();
+        await using var db = postgres.CreateDbContext();
+        var list = await Service(db).ImportAsync(owner, "0c6cfa93", "Custodes", GameFormats.StrikeForce);
+
+        Assert.False(await Service(db).ToggleFavoriteAsync(intruder, list.Id));
+        Assert.False((await Service(db).FindAsync(list.Id))!.IsFavorite);
+    }
+
+    [Fact]
     public async Task An_imported_list_is_stored_with_its_full_content()
     {
         var owner = await NewPlayer();
@@ -137,7 +166,7 @@ public class ArmyListServiceTests(PostgresFixture postgres)
         await using var db = postgres.CreateDbContext();
         var list = await Service(db).ImportAsync(owner, "0c6cfa93", "Custodes", GameFormats.StrikeForce);
 
-        Assert.True(await Service(db).UpdateAsync(owner, list.Id, "Custodes tournoi", null));
+        Assert.True(await Service(db).UpdateAsync(owner, list.Id, "Custodes tournoi", null, false));
 
         await using var reloaded = postgres.CreateDbContext();
         Assert.Equal("Custodes tournoi", (await Service(reloaded).FindAsync(list.Id))!.Name);
@@ -164,7 +193,7 @@ public class ArmyListServiceTests(PostgresFixture postgres)
         await using var db = postgres.CreateDbContext();
         var list = await Service(db).ImportAsync(owner, "0c6cfa93", "Custodes", GameFormats.StrikeForce);
 
-        Assert.False(await Service(db).UpdateAsync(intruder, list.Id, "Volée", null));
+        Assert.False(await Service(db).UpdateAsync(intruder, list.Id, "Volée", null, false));
         Assert.False(await Service(db).DeleteAsync(intruder, list.Id));
 
         await using var reloaded = postgres.CreateDbContext();

@@ -79,6 +79,8 @@ hr { border: none; border-top: 1px solid var(--border); margin: 0.75rem 0; width
 a:has(> .icon) { display: inline-flex; gap: 0.35em; align-items: center; }
 .sidebar a, .button, .match-line { gap: 0.6rem; }
 .icon.trailing { margin-left: auto; color: var(--muted); }
+.icon.filled { fill: currentColor; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 /* En-tête ---------------------------------------------------------------- */
 .topbar {
@@ -190,6 +192,10 @@ input:focus-visible, select:focus-visible, a:focus-visible, button:focus-visible
 .form label, .inline-form label { display: grid; gap: 0.3rem; }
 .inline-form { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: end; }
 .checkbox { display: flex !important; gap: 0.5rem; align-items: center; }
+.list-search { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-block: 1rem 0.5rem; }
+.list-search input { flex: 1 1 14rem; max-width: 24rem; }
+.favorite-toggle { background: none; border: 0; padding: 0.15rem; cursor: pointer; color: var(--muted); font: inherit; }
+.favorite-toggle:hover, .favorite-toggle.active { color: var(--accent); }
 
 .table-scroll { overflow-x: auto; margin-block: 0.5rem; }
 table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }

@@ -46,6 +46,11 @@
             </InputSelect>
         </label>
 
+        <label class="checkbox">
+            <InputCheckbox @bind-Value="Import!.IsTeamList" />
+            Liste d'équipe
+        </label>
+
         @if (_importError is not null)
         {
             <p class="error" role="alert">@_importError</p>
@@ -61,26 +66,51 @@
 }
 else
 {
-    <div class="table-scroll">
-        <table>
-            <thead>
-                <tr><th>Nom</th><th>Faction</th><th>Détachement</th><th>Format</th><th>Unités</th><th>Importée le</th></tr>
-            </thead>
-            <tbody>
-                @foreach (var list in _lists)
-                {
-                    <tr>
-                        <td><a href="/lists/@list.Id"><Icon Name="eye" /> @list.Name</a></td>
-                        <td>@(list.Faction ?? "Inconnue")</td>
-                        <td>@(list.Detachment ?? "–")</td>
-                        <td>@list.Format.Name</td>
-                        <td>@list.Roster.Units.Count</td>
-                        <td>@list.ImportedAt.ToString("dd/MM/yyyy")</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+    <form method="get" action="/lists" class="list-search" role="search">
+        <input type="search" name="q" value="@Query" placeholder="Rechercher une liste par son nom" aria-label="Rechercher une liste par son nom" />
+        <button type="submit" class="button secondary"><Icon Name="search" /> Rechercher</button>
+        @if (!string.IsNullOrWhiteSpace(Query))
+        {
+            <a href="/lists">Tout afficher</a>
+        }
+    </form>
+
+    @if (Shown.Count == 0)
+    {
+        <p>Aucune liste ne contient « @Query ».</p>
+    }
+    else
+    {
+        <form method="post" @formname="favorite" @onsubmit="ToggleFavoriteAsync" class="table-scroll">
+            <AntiforgeryToken />
+            <table>
+                <thead>
+                    <tr><th><span class="visually-hidden">Favori</span></th><th>Nom</th><th>Faction</th><th>Détachement</th><th>Format</th><th>Équipe</th><th>Unités</th><th>Importée le</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var list in Shown)
+                    {
+                        <tr>
+                            <td>
+                                <button type="submit" name="FavoriteListId" value="@list.Id" class="favorite-toggle @(list.IsFavorite ? "active" : "")"
+                                        title="@(list.IsFavorite ? "Retirer des favoris" : "Choisir comme favorite (proposée par défaut pour une partie)")"
+                                        aria-label="@(list.IsFavorite ? "Retirer des favoris" : "Choisir comme favorite")" aria-pressed="@(list.IsFavorite ? "true" : "false")">
+                                    <Icon Name="star" Class="@(list.IsFavorite ? "filled" : null)" />
+                                </button>
+                            </td>
+                            <td><a href="/lists/@list.Id"><Icon Name="eye" /> @list.Name</a></td>
+                            <td>@(list.Faction ?? "Inconnue")</td>
+                            <td>@(list.Detachment ?? "–")</td>
+                            <td>@list.Format.Name</td>
+                            <td>@(list.IsTeamList ? "Oui" : "–")</td>
+                            <td>@list.Roster.Units.Count</td>
+                            <td>@list.ImportedAt.ToString("dd/MM/yyyy")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </form>
+    }
 }
 
 @code {
@@ -88,6 +118,16 @@ else
 
     [SupplyParameterFromForm(FormName = "import")]
     private ImportModel? Import { get; set; }
+
+    [SupplyParameterFromForm(FormName = "favorite")]
+    private Guid? FavoriteListId { get; set; }
+
+    [SupplyParameterFromQuery(Name = "q")]
+    private string? Query { get; set; }
+
+    private IReadOnlyList<ArmyList> Shown => string.IsNullOrWhiteSpace(Query)
+        ? _lists
+        : [.. _lists.Where(l => l.Name.Contains(Query.Trim(), StringComparison.CurrentCultureIgnoreCase))];
 
     private IReadOnlyList<ArmyList> _lists = [];
     private string? _importError;
@@ -111,7 +151,7 @@ else
         ArmyList list;
         try
         {
-            list = await Lists.ImportAsync(await CurrentPlayerAsync(), Import.Code, Import.Name, format, Import.Detachment);
+            list = await Lists.ImportAsync(await CurrentPlayerAsync(), Import.Code, Import.Name, format, Import.Detachment, Import.IsTeamList);
         }
         catch (RosterImportException e)
         {
@@ -120,6 +160,13 @@ else
         }
 
         Navigation.NavigateTo($"/lists/{list.Id}");
+    }
+
+    private async Task ToggleFavoriteAsync()
+    {
+        var me = await CurrentPlayerAsync();
+        if (FavoriteListId is { } id && await Lists.ToggleFavoriteAsync(me, id))
+            _lists = await Lists.ListOwnedByAsync(me);
     }
 
     private async Task<Matchmaker.Domain.Players.PlayerId> CurrentPlayerAsync() =>
@@ -138,5 +185,7 @@ else
         public string? Detachment { get; set; }
 
         public string Format { get; set; } = GameFormats.StrikeForce.Name;
+
+        public bool IsTeamList { get; set; }
     }
 }

@@ -6,7 +6,7 @@
     <label>
         Liste
         <select @bind="_listId">
-            @foreach (var list in Lists)
+            @foreach (var list in _offered)
             {
                 <option value="@list.Id">@list.Name (@list.Format.Name)</option>
             }
@@ -44,6 +44,7 @@
     [Parameter, EditorRequired] public EventCallback<Request> OnSearch { get; set; }
     [Parameter, EditorRequired] public EventCallback<Request> OnPlan { get; set; }
 
+    private IReadOnlyList<ArmyList> _offered = [];
     private Guid _listId;
     private bool _ranked = true;
     private bool _planned;
@@ -51,7 +52,8 @@
 
     protected override void OnParametersSet()
     {
-        if (Lists.All(l => l.Id != _listId))
-            _listId = Lists.FirstOrDefault()?.Id ?? Guid.Empty;
+        _offered = ArmyList.FavoriteFirstThenByName(Lists);
+        if (_offered.All(l => l.Id != _listId))
+            _listId = _offered.FirstOrDefault()?.Id ?? Guid.Empty;
     }
 }

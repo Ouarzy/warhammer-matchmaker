@@ -35,6 +35,52 @@ public class ArmyListTests
     }
 
     [Fact]
+    public void A_list_is_not_a_team_list_unless_the_player_says_so()
+    {
+        Assert.False(Imported().IsTeamList);
+        Assert.True(ArmyList.Import(Owner, "Custodes ETC", StrikeForce, Custodes(), Noon, isTeamList: true).IsTeamList);
+    }
+
+    [Fact]
+    public void The_owner_can_mark_or_unmark_a_team_list()
+    {
+        var list = Imported();
+
+        list.ChangeTeamList(true);
+        Assert.True(list.IsTeamList);
+
+        list.ChangeTeamList(false);
+        Assert.False(list.IsTeamList);
+    }
+
+    [Fact]
+    public void A_list_can_be_marked_as_favorite_then_unmarked()
+    {
+        var list = Imported();
+        Assert.False(list.IsFavorite);
+
+        list.MarkAsFavorite();
+        Assert.True(list.IsFavorite);
+
+        list.UnmarkAsFavorite();
+        Assert.False(list.IsFavorite);
+    }
+
+    [Fact]
+    public void Lists_are_offered_favorite_first_then_in_alphabetical_order()
+    {
+        var zealots = Imported("zélotes");
+        var custodes = Imported("Custodes");
+        var favorite = Imported("Sœurs");
+        favorite.MarkAsFavorite();
+        var aeldari = Imported("Aeldari");
+
+        Assert.Equal(
+            ["Sœurs", "Aeldari", "Custodes", "zélotes"],
+            ArmyList.FavoriteFirstThenByName([zealots, custodes, favorite, aeldari]).Select(l => l.Name));
+    }
+
+    [Fact]
     public void The_faction_is_the_most_represented_faction_keyword()
     {
         Assert.Equal("Adeptus Custodes", Imported().Faction);

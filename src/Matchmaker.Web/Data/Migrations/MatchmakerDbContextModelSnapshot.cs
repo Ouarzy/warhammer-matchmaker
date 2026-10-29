@@ -38,6 +38,10 @@ namespace Matchmaker.Web.Data.Migrations
                         .HasColumnType("character varying(128)")
                         .HasColumnName("detachment");
 
+                    b.Property<bool>("IsTeamList")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_team_list");
+
                     b.Property<Guid>("MatchId")
                         .HasColumnType("uuid")
                         .HasColumnName("match_id");
@@ -101,6 +105,14 @@ namespace Matchmaker.Web.Data.Migrations
                     b.Property<DateTimeOffset>("ImportedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("imported_at");
+
+                    b.Property<bool>("IsFavorite")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_favorite");
+
+                    b.Property<bool>("IsTeamList")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_team_list");
 
                     b.Property<string>("Name")
                         .IsRequired()

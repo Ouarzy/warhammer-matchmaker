@@ -48,6 +48,26 @@ public sealed class PlayPageTests(PostgresFixture postgres) : IDisposable
     }
 
     [Fact]
+    public async Task The_favorite_list_is_offered_first_then_the_others_in_alphabetical_order()
+    {
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var lists = scope.ServiceProvider.GetRequiredService<ArmyListService>();
+            await lists.ImportAsync(me, Samples.CustodesCode, "Zélotes", GameFormats.StrikeForce);
+            var favorite = await lists.ImportAsync(me, Samples.CustodesCode, "Mes Custodes", GameFormats.StrikeForce);
+            await lists.ImportAsync(me, Samples.CustodesCode, "Aeldari", GameFormats.Incursion);
+            await lists.ToggleFavoriteAsync(me, favorite.Id);
+        }
+
+        var html = await client.GetStringAsync("/play");
+
+        var offered = System.Text.RegularExpressions.Regex.Matches(html, "<option [^>]*>([^<(]+) \\(").Select(m => m.Groups[1].Value);
+        Assert.Equal(["Mes Custodes", "Aeldari", "Zélotes"], offered);
+    }
+
+    [Fact]
     public async Task With_games_in_progress_the_player_can_still_search_and_reach_them()
     {
         var me = MatchmakerWebFactory.NewPlayerId();

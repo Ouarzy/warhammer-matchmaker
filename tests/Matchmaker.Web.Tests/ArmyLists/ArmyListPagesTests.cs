@@ -47,6 +47,35 @@ public sealed class ArmyListPagesTests(PostgresFixture postgres) : IDisposable
     }
 
     [Fact]
+    public async Task My_lists_can_be_filtered_by_name()
+    {
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+        await ImportCustodes(me, "Custodes tournoi");
+        await ImportCustodes(me, "Liste du club");
+
+        var html = await client.GetStringAsync("/lists?q=TOURNOI");
+
+        Assert.Contains("Custodes tournoi", html);
+        Assert.DoesNotContain("Liste du club", html);
+        Assert.Contains("value=\"TOURNOI\"", html);
+    }
+
+    [Fact]
+    public async Task A_list_is_marked_as_favorite_from_my_lists()
+    {
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+        var listId = await ImportCustodes(me);
+
+        await client.SubmitAsync("/lists", "favorite", new Dictionary<string, string> { ["FavoriteListId"] = listId.ToString() });
+
+        using var scope = _factory.Services.CreateScope();
+        Assert.True((await scope.ServiceProvider.GetRequiredService<ArmyListService>().FindAsync(listId))!.IsFavorite);
+        Assert.Contains("Retirer des favoris", await client.GetStringAsync("/lists"));
+    }
+
+    [Fact]
     public async Task Importing_a_valid_code_stores_the_list_and_opens_it()
     {
         var me = MatchmakerWebFactory.NewPlayerId();
@@ -174,6 +203,38 @@ public sealed class ArmyListPagesTests(PostgresFixture postgres) : IDisposable
             new Dictionary<string, string> { ["Edit.Name"] = "Custodes", ["Edit.Detachment"] = "Talons of the Emperor" });
 
         Assert.Contains("Détachement Talons of the Emperor", WebUtility.HtmlDecode(await client.GetStringAsync($"/lists/{listId}")));
+    }
+
+    [Fact]
+    public async Task A_list_imported_as_a_team_list_is_shown_as_such()
+    {
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+        var form = ImportForm(Samples.CustodesCode, "Custodes ETC");
+        form["Import.IsTeamList"] = "true";
+
+        var response = await client.SubmitAsync("/lists", "import", form);
+
+        Assert.Contains("Liste d'équipe", WebUtility.HtmlDecode(await client.GetStringAsync(response.Headers.Location!.AbsolutePath)));
+        using var scope = _factory.Services.CreateScope();
+        Assert.True(Assert.Single(await scope.ServiceProvider.GetRequiredService<ArmyListService>().ListOwnedByAsync(me)).IsTeamList);
+    }
+
+    [Fact]
+    public async Task The_owner_can_mark_a_list_as_a_team_list_then_unmark_it()
+    {
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+        var listId = await ImportCustodes(me);
+        Assert.DoesNotContain("· Liste d'équipe", WebUtility.HtmlDecode(await client.GetStringAsync($"/lists/{listId}")));
+
+        await client.SubmitAsync($"/lists/{listId}", "edit",
+            new Dictionary<string, string> { ["Edit.Name"] = "Custodes", ["Edit.IsTeamList"] = "true" });
+        Assert.Contains("· Liste d'équipe", WebUtility.HtmlDecode(await client.GetStringAsync($"/lists/{listId}")));
+
+        // Une case décochée n'est pas envoyée par le navigateur.
+        await client.SubmitAsync($"/lists/{listId}", "edit", new Dictionary<string, string> { ["Edit.Name"] = "Custodes" });
+        Assert.DoesNotContain("· Liste d'équipe", WebUtility.HtmlDecode(await client.GetStringAsync($"/lists/{listId}")));
     }
 
     [Fact]
