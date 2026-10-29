@@ -41,7 +41,7 @@
             <InputSelect @bind-Value="Import!.Format">
                 @foreach (var format in GameFormats.Of(GameSystem.Warhammer40k))
                 {
-                    <option value="@format.Name">@format.Name</option>
+                    <option value="@format.Name">@format.Name (@GameFormats.PointsOf(format) pts)</option>
                 }
             </InputSelect>
         </label>

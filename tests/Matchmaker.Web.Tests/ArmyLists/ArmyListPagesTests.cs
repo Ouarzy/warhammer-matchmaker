@@ -43,6 +43,7 @@ public sealed class ArmyListPagesTests(PostgresFixture postgres) : IDisposable
         Assert.Contains("Mes Custodes", html);
         Assert.Contains("Adeptus Custodes", html);
         Assert.Contains("Code YellowScribe", html);
+        Assert.Contains("Strike Force (2000 pts)", html);
     }
 
     [Fact]

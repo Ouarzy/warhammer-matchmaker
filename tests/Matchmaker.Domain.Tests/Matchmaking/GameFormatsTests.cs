@@ -18,4 +18,12 @@ public class GameFormatsTests
         Assert.Equal(GameFormats.StrikeForce, GameFormats.Find(GameSystem.Warhammer40k, "Strike Force"));
         Assert.Null(GameFormats.Find(GameSystem.Warhammer40k, "Apocalypse"));
     }
+
+    [Fact]
+    public void Each_format_has_its_points_limit()
+    {
+        Assert.Equal(1000, GameFormats.PointsOf(GameFormats.Incursion));
+        Assert.Equal(2000, GameFormats.PointsOf(GameFormats.StrikeForce));
+        Assert.Equal(3000, GameFormats.PointsOf(GameFormats.Onslaught));
+    }
 }
