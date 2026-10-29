@@ -244,7 +244,7 @@ tbody tr:hover td { background: var(--surface); }
 .empty { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; }
 .empty p { margin: 0; }
 
-.status h2 { margin-top: 0; }
+.status h2, .live-score h2 { margin-top: 0; }
 .status.proposed { border-color: var(--accent); }
 .status.in-match { border-color: var(--success); }
 .opponent { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-block: 0.75rem; }
@@ -303,6 +303,11 @@ body > .site-footer { max-width: 64rem; margin-inline: auto; }
 .tts-code { border: 1px dashed var(--accent); border-radius: var(--radius); padding: 0.75rem 1rem; margin-block: 1rem; }
 .tts-code p { margin: 0.3rem 0; }
 .live-score .live-value { font-size: 1.5rem; font-weight: 700; margin: 0.25rem 0; }
+.result-form.prominent { border-top: none; margin-top: 0; padding-top: 0; }
+.result-form.prominent .vp-inputs { align-items: end; gap: 0.75rem; }
+.result-form.prominent .vp-inputs input { width: 5.5rem; font-size: 1.5rem; font-weight: 700; text-align: center; }
+.result-form.prominent .vp-dash { font-size: 1.5rem; font-weight: 700; padding-bottom: 0.3rem; }
+.abandon-confirmation { margin-top: 1rem; }
 .code-value { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; }
 .code-value code { font-size: 1.5rem; letter-spacing: 0.2em; padding: 0.2rem 0.6rem; }
 

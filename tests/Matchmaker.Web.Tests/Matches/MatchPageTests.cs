@@ -104,7 +104,7 @@ public sealed class MatchPageTests(PostgresFixture postgres) : IDisposable
 
         var html = await Text(await alice.GetAsync($"/matches/{matchId}"));
 
-        Assert.Contains("Déclarer le résultat", html);
+        Assert.Contains("Valider la partie", html);
         Assert.Contains("Abandonner", html);
     }
 
@@ -172,7 +172,7 @@ public sealed class MatchPageTests(PostgresFixture postgres) : IDisposable
         var html = await Text(await spectator.GetAsync($"/matches/{matchId}"));
 
         Assert.Contains("Partie en cours", html);
-        Assert.DoesNotContain("Déclarer le résultat", html);
+        Assert.DoesNotContain("Valider la partie", html);
         Assert.DoesNotContain("Abandonner", html);
     }
 

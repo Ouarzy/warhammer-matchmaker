@@ -21,8 +21,34 @@
 {
     <MatchSheet Match="_match" Players="_players" Archives="_archives" />
 
-    @* Les joueurs retrouvent le score en direct dans leur formulaire de déclaration. *@
-    @if (_me is null && _match.Status == MatchStatus.Accepted && LiveScores.Of(Id) is { } live)
+    @if (_match.Status == MatchStatus.Accepted && _me is { } player)
+    {
+        @* Pour les joueurs, le score en direct est le formulaire de déclaration : modifiable si TTS se trompe ou n'est pas utilisé. *@
+        var live = LiveScores.Of(Id);
+        var (mine, theirs) = live is null ? (0, 0)
+            : player == _match.First.Player ? (live.FirstVictoryPoints, live.SecondVictoryPoints)
+            : (live.SecondVictoryPoints, live.FirstVictoryPoints);
+        var opponentPlayer = _match.OpponentOf(player).Player;
+        <section class="card live-score">
+            <h2><Icon Name="swords" /> @(live is null ? "Score" : "Score en direct")</h2>
+            <ScoreForm Prominent SubmitLabel="Valider la partie" OnSubmit="DeclareResult"
+                       MineLabel="@NameOf(player)" TheirsLabel="@NameOf(opponentPlayer)"
+                       InitialMine="mine" InitialTheirs="theirs"
+                       Hint="@(live is null
+                           ? "À déclarer en fin de partie, ici ou depuis l'objet TTS, qui remplit ce score au fil des rounds."
+                           : $"Lu sur la feuille de score LCT, round {live.RoundsPlayed} · mis à jour {Ago(live.At)}. Corrigez-le si besoin avant de le déclarer.")">
+                @if (!_confirmingAbandon)
+                {
+                    @AbandonButton
+                }
+            </ScoreForm>
+            @if (_confirmingAbandon)
+            {
+                @AbandonConfirmation(NameOf(opponentPlayer))
+            }
+        </section>
+    }
+    else if (_match.Status == MatchStatus.Accepted && LiveScores.Of(Id) is { } live)
     {
         <section class="card live-score" aria-live="polite">
             <h2><Icon Name="swords" /> Score en direct</h2>
@@ -54,7 +80,7 @@
                         </li>
                         <li>Lancez Tabletop Simulator avec le mod LCT et invitez-le. La partie peut se jouer en plusieurs fois.</li>
                         <li>Consultez sa liste ci-dessus avant de commencer.</li>
-                        <li>À la fin de la partie, l'un de vous déclare le score, depuis l'objet TTS ou ci-dessous, et l'autre le confirme.</li>
+                        <li>À la fin de la partie, l'un de vous déclare le score, depuis l'objet TTS ou ci-dessus, et l'autre le confirme.</li>
                     </ol>
 
                     @if (_reportCode is not null)
@@ -62,19 +88,6 @@
                         <TtsReportCode Code="@_reportCode" />
                     }
 
-                    @if (LiveScores.Of(Id) is { } liveScore)
-                    {
-                        var (mine, theirs) = me == _match.First.Player
-                            ? (liveScore.FirstVictoryPoints, liveScore.SecondVictoryPoints)
-                            : (liveScore.SecondVictoryPoints, liveScore.FirstVictoryPoints);
-                        <ScoreForm Title="Déclarer le résultat" SubmitLabel="Déclarer le résultat" OnSubmit="DeclareResult"
-                                   InitialMine="mine" InitialTheirs="theirs"
-                                   Hint="@($"Score en direct lu sur la feuille de score LCT, round {liveScore.RoundsPlayed} · mis à jour {Ago(liveScore.At)}. Corrigez-le si besoin avant de le déclarer.")" />
-                    }
-                    else
-                    {
-                        <ScoreForm Title="Déclarer le résultat" SubmitLabel="Déclarer le résultat" OnSubmit="DeclareResult" />
-                    }
                     break;
 
                 case MatchStatus.ResultDeclared when _match.Declarer == me:
@@ -109,20 +122,19 @@
                     break;
             }
 
-            <div class="abandon">
-                @if (_confirmingAbandon)
-                {
-                    <p><strong>Abandonner donne la victoire 20-0 à @opponentName@(_match.First.Ranked ? " et compte pour l'Elo" : "").</strong></p>
-                    <div class="actions">
-                        <button class="button danger" @onclick="Abandon"><Icon Name="flag" /> Confirmer l'abandon</button>
-                        <button class="button secondary" @onclick="() => _confirmingAbandon = false">Annuler</button>
-                    </div>
-                }
-                else
-                {
-                    <button class="button danger" @onclick="() => _confirmingAbandon = true" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="flag" /> Abandonner la partie</button>
-                }
-            </div>
+            @if (_match.Status == MatchStatus.ResultDeclared)
+            {
+                <div class="abandon">
+                    @if (_confirmingAbandon)
+                    {
+                        @AbandonConfirmation(opponentName)
+                    }
+                    else
+                    {
+                        @AbandonButton
+                    }
+                </div>
+            }
         </section>
     }
 }
@@ -228,6 +240,17 @@
         var elapsed = Time.GetUtcNow() - at;
         return elapsed.TotalMinutes < 1 ? "à l'instant" : elapsed.TotalHours >= 1 ? $"il y a {(int)elapsed.TotalHours} h" : $"il y a {(int)elapsed.TotalMinutes} min";
     }
+
+    private RenderFragment AbandonButton => @<button class="button danger" @onclick="() => _confirmingAbandon = true" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="flag" /> Abandonner la partie</button>;
+
+    private RenderFragment AbandonConfirmation(string opponentName) =>
+        @<div class="abandon-confirmation">
+            <p><strong>Abandonner donne la victoire 20-0 à @opponentName@(_match!.First.Ranked ? " et compte pour l'Elo" : "").</strong></p>
+            <div class="actions">
+                <button class="button danger" @onclick="Abandon"><Icon Name="flag" /> Confirmer l'abandon</button>
+                <button class="button secondary" @onclick="() => _confirmingAbandon = false">Annuler</button>
+            </div>
+        </div>;
 
     public void Dispose() => Notifier.PlayerChanged -= OnPlayerChanged;
 }

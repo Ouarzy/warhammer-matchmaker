@@ -1,16 +1,27 @@
 @using Matchmaker.Domain.Results
 
 @* Saisie des points de victoire des deux camps, avec l'aperçu du score WTC : déclaration ou contre-proposition. *@
-<div class="result-form">
-    <h2>@Title</h2>
+<div class="result-form @(Prominent ? "prominent" : "")">
+    @if (Title is not null)
+    {
+        <h2>@Title</h2>
+    }
     <div class="vp-inputs">
-        <label>Mes points de victoire <input type="number" min="0" max="100" @bind="_mine" @bind:event="oninput" /></label>
-        <label>Ses points de victoire <input type="number" min="0" max="100" @bind="_theirs" @bind:event="oninput" /></label>
+        <label>@MineLabel <input type="number" min="0" max="100" @bind="_mine" @bind:event="oninput" /></label>
+        @if (Prominent)
+        {
+            <span class="vp-dash">–</span>
+        }
+        <label>@TheirsLabel <input type="number" min="0" max="100" @bind="_theirs" @bind:event="oninput" /></label>
     </div>
     @if (_mine >= 0 && _theirs >= 0)
     {
         var preview = WtcScore.FromVictoryPoints(_mine, _theirs);
         <p>Score WTC : <strong>@preview.Points – @preview.Opponent.Points</strong> · @ResultLabels.Of(preview.Category)</p>
+    }
+    @if (Hint is not null)
+    {
+        <p class="hint">@Hint</p>
     }
     <div class="actions">
         <button class="button" @onclick="() => OnSubmit.InvokeAsync((_mine, _theirs))" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="send" /> @SubmitLabel</button>
@@ -18,19 +29,22 @@
         {
             <button class="button secondary" @onclick="OnCancel">Annuler</button>
         }
+        @ChildContent
     </div>
-    @if (Hint is not null)
-    {
-        <p class="hint">@Hint</p>
-    }
 </div>
 
 @code {
-    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public string? Title { get; set; }
     [Parameter, EditorRequired] public string SubmitLabel { get; set; } = "";
     [Parameter, EditorRequired] public EventCallback<(int Mine, int Theirs)> OnSubmit { get; set; }
     [Parameter] public EventCallback OnCancel { get; set; }
     [Parameter] public string? Hint { get; set; }
+    [Parameter] public string MineLabel { get; set; } = "Mes points de victoire";
+    [Parameter] public string TheirsLabel { get; set; } = "Ses points de victoire";
+    /// <summary>Score affiché en gros, champs face à face : le formulaire tient lieu de score de la partie.</summary>
+    [Parameter] public bool Prominent { get; set; }
+    /// <summary>Boutons ajoutés sur la ligne du bouton d'envoi.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
     /// <summary>
     /// Score de départ du formulaire (le score proposé pour une contre-proposition, le score en direct de TTS
     /// pour une déclaration). S'il change, il remplace la saisie en cours.

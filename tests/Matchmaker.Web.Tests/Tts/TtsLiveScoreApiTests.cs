@@ -63,7 +63,7 @@ public sealed class TtsLiveScoreApiTests(PostgresFixture postgres) : IDisposable
         var html = WebUtility.HtmlDecode(await client.GetStringAsync($"/matches/{matchId}"));
 
         Assert.DoesNotContain("live-value", html);
-        Assert.Contains("Déclarer le résultat", html);
+        Assert.Contains("Valider la partie", html);
         Assert.Contains("value=\"37\"", html);
         Assert.Contains("value=\"42\"", html);
         Assert.Contains("round 3", html);
