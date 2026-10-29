@@ -47,6 +47,7 @@ public sealed class LegalPagesTests(PostgresFixture postgres) : IDisposable
         Assert.Contains("Conditions générales d'utilisation", html);
         Assert.Contains("fair-play", html);
         Assert.Contains("droit français", html);
+        Assert.Contains("Munitorum Field Manual", html);
     }
 
     [Fact]
