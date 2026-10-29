@@ -37,4 +37,15 @@ public class RosterUnitTests
 
         Assert.Equal(["Shield-Captain", "Custodian Warden"], unit.DistinctProfiles.Select(p => p.Name));
     }
+
+    [Fact]
+    public void The_tabletop_simulator_script_appended_by_yellowscribe_is_removed_from_faction_keywords()
+    {
+        const string injected = "Leagues of Votann\"..(function() local n = 0 Wait.frames(f, 1) return \"\" end)()..\"";
+
+        var unit = new RosterUnit("Hearthkyn Warriors", [injected, "Leagues of Votann"], [], 10, [], [], [], []);
+
+        Assert.Equal(["Leagues of Votann", "Leagues of Votann"], unit.FactionKeywords);
+        Assert.Equal("Leagues of Votann", new Roster("11e", [unit]).Faction);
+    }
 }

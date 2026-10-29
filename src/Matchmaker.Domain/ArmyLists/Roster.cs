@@ -23,6 +23,13 @@ public sealed record RosterUnit(
     IReadOnlyList<Ability> Abilities)
 {
     /// <summary>
+    /// Pour certaines listes, YellowScribe colle à un mot-clé de faction un script Lua destiné à Tabletop Simulator
+    /// (<c>Leagues of Votann"..(function() … end)().."</c>). Un mot-clé ne contient jamais de guillemet : on coupe au
+    /// premier. Fait ici plutôt qu'à l'import pour nettoyer aussi les listes déjà enregistrées, relues par ce constructeur.
+    /// </summary>
+    public IReadOnlyList<string> FactionKeywords { get; } = [.. FactionKeywords.Select(keyword => keyword.Split('"')[0].Trim())];
+
+    /// <summary>
     /// Un profil par jeu de caractéristiques. YellowScribe envoie souvent un profil au nom de l'unité en plus de
     /// celui de la figurine, avec les mêmes caractéristiques : on garde le nom de la figurine.
     /// </summary>

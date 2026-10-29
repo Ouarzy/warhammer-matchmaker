@@ -5,6 +5,7 @@ using Matchmaker.Web.Accounts;
 using Matchmaker.Web.ArmyLists;
 using Matchmaker.Web.Data;
 using Matchmaker.Web.Tests.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 
 namespace Matchmaker.Web.Tests.ArmyLists;
 
@@ -46,6 +47,24 @@ public class ArmyListServiceTests(PostgresFixture postgres)
         Assert.Equal(Custodes.Units.Select(u => u.Name), list.Roster.Units.Select(u => u.Name));
         Assert.Equal(Custodes.Units[4].Weapons, list.Roster.Units[4].Weapons);
         Assert.Equal(Custodes.Units[0].Abilities, list.Roster.Units[0].Abilities);
+    }
+
+    [Fact]
+    public async Task A_list_stored_with_the_yellowscribe_script_in_its_faction_is_cleaned_when_read()
+    {
+        var owner = await NewPlayer();
+        Guid id;
+        await using (var db = postgres.CreateDbContext())
+            id = (await Service(db).ImportAsync(owner, "0c6cfa93", "Custodes 2000", GameFormats.StrikeForce)).Id;
+        await using (var db = postgres.CreateDbContext())
+            await db.Database.ExecuteSqlAsync(
+                $"UPDATE army_lists SET roster = replace(roster::text, '\"Adeptus Custodes\"', '\"Adeptus Custodes\\\"..(function() return \\\"\\\" end)()..\\\"\"')::jsonb WHERE id = {id}");
+
+        await using var reloaded = postgres.CreateDbContext();
+        var list = await Service(reloaded).FindAsync(id);
+
+        Assert.Equal("Adeptus Custodes", list!.Faction);
+        Assert.DoesNotContain(list.Roster.Units.SelectMany(u => u.FactionKeywords), keyword => keyword.Contains("function"));
     }
 
     [Fact]
