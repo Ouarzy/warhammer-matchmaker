@@ -61,6 +61,18 @@ public sealed class LegalPagesTests(PostgresFixture postgres) : IDisposable
     }
 
     [Fact]
+    public async Task The_about_page_links_to_the_community_tools_and_credits_their_authors()
+    {
+        var html = await AnonymousText("/a-propos");
+
+        Assert.Contains("href=\"https://github.com/Las0mbra/lct\"", html);
+        Assert.Contains("href=\"https://yellowscribe.link\"", html);
+        foreach (var author in new[] { "Las0mbra", "Hutber", "Yellow Man", "ThePants999", "Raikoh" })
+            Assert.Contains(author, html);
+        Assert.DoesNotContain("New Recruit", html);
+    }
+
+    [Fact]
     public async Task The_support_page_points_to_the_tipeee_page()
     {
         var html = await AnonymousText("/me-soutenir");
