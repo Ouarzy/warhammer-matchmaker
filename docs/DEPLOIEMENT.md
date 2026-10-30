@@ -28,8 +28,7 @@ Une seule instance du site : la file d'attente est gardée en mémoire. Les clé
 # 1. Sur le serveur : Docker, swap de 1 Go, pare-feu, code, deploy/.env
 ssh ubuntu@<ip> 'sudo bash -s' < deploy/bootstrap.sh
 
-# 2. Compléter les secrets sur le serveur (ACME_EMAIL, STEAM_API_KEY, et VAPID_* pour les notifications push :
-#    commande de génération dans deploy/.env.example ; ne jamais changer les clés VAPID, sinon les abonnements existants cessent de fonctionner)
+# 2. Compléter les secrets sur le serveur (ACME_EMAIL, STEAM_API_KEY)
 ssh -t ubuntu@<ip> 'nano /opt/matchmaker/deploy/.env'
 
 # 3. Démarrer

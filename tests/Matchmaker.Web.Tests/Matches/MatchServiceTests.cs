@@ -1,4 +1,3 @@
-using Matchmaker.Web.Push;
 using Matchmaker.Domain.ArmyLists;
 using Matchmaker.Domain.Matches;
 using Matchmaker.Domain.Matchmaking;
@@ -21,7 +20,7 @@ public class MatchServiceTests(PostgresFixture postgres)
 
     private readonly FixedTime _time = new(Noon);
 
-    private MatchService Service(MatchmakerDbContext db) => new(db, _time, new PushOutbox());
+    private MatchService Service(MatchmakerDbContext db) => new(db, _time);
 
     private async Task<PlayerId> NewPlayer()
     {

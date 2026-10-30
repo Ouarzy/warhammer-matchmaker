@@ -4,7 +4,6 @@ using Matchmaker.Domain.Matchmaking;
 using Matchmaker.Domain.Players;
 using Matchmaker.Domain.Ratings;
 using Matchmaker.Web.Data;
-using Matchmaker.Web.Push;
 using Matchmaker.Web.Tts;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,7 +13,7 @@ namespace Matchmaker.Web.Matches;
 /// Matchs acceptés, enregistrés en base : déclaration et confirmation du résultat, abandon, Elo,
 /// historique, classement. Un joueur peut avoir plusieurs matchs en cours, sans limite de durée.
 /// </summary>
-public sealed class MatchService(MatchmakerDbContext db, TimeProvider time, PushOutbox push)
+public sealed class MatchService(MatchmakerDbContext db, TimeProvider time)
 {
     public const int MaxActiveMatches = 5;
 
@@ -87,34 +86,22 @@ public sealed class MatchService(MatchmakerDbContext db, TimeProvider time, Push
             .CountAsync(m => InProgress.Contains(m.Status) || (m.Status == MatchStatus.Proposed && m.ScheduledFor != null), cancellationToken)
         + await db.ScheduledSearches.CountAsync(s => s.Ticket.Player == player && s.Status == ScheduledSearchStatus.Open, cancellationToken);
 
-    public async Task<Match> DeclareResultAsync(PlayerId player, Guid matchId, int myVictoryPoints, int opponentVictoryPoints,
-        CancellationToken cancellationToken = default)
-    {
-        var match = await UpdateAsync(player, matchId, match => match.DeclareResult(player, myVictoryPoints, opponentVictoryPoints, time.GetUtcNow()), cancellationToken);
-        push.Send(match.OpponentOf(player).Player, PushMessages.ResultToConfirm(match));
-        return match;
-    }
+    public Task<Match> DeclareResultAsync(PlayerId player, Guid matchId, int myVictoryPoints, int opponentVictoryPoints,
+        CancellationToken cancellationToken = default) =>
+        UpdateAsync(player, matchId, match => match.DeclareResult(player, myVictoryPoints, opponentVictoryPoints, time.GetUtcNow()), cancellationToken);
 
     /// <summary>Confirme le résultat et, pour un match classé, met à jour l'Elo des deux joueurs dans la même transaction.</summary>
     public Task<Match> ConfirmResultAsync(PlayerId player, Guid matchId, CancellationToken cancellationToken = default) =>
         UpdateAsync(player, matchId, match => match.ConfirmResult(player), cancellationToken);
 
     /// <summary>Conteste le score proposé en en proposant un autre, que l'adversaire doit à son tour confirmer ou contester.</summary>
-    public async Task<Match> ContestResultAsync(PlayerId player, Guid matchId, int myVictoryPoints, int opponentVictoryPoints,
-        CancellationToken cancellationToken = default)
-    {
-        var match = await UpdateAsync(player, matchId, match => match.ContestResult(player, myVictoryPoints, opponentVictoryPoints, time.GetUtcNow()), cancellationToken);
-        push.Send(match.OpponentOf(player).Player, PushMessages.ResultContested(match));
-        return match;
-    }
+    public Task<Match> ContestResultAsync(PlayerId player, Guid matchId, int myVictoryPoints, int opponentVictoryPoints,
+        CancellationToken cancellationToken = default) =>
+        UpdateAsync(player, matchId, match => match.ContestResult(player, myVictoryPoints, opponentVictoryPoints, time.GetUtcNow()), cancellationToken);
 
     /// <summary>Abandon : victoire 20-0 pour l'adversaire, Elo mis à jour pour un match classé.</summary>
-    public async Task<Match> AbandonAsync(PlayerId player, Guid matchId, CancellationToken cancellationToken = default)
-    {
-        var match = await UpdateAsync(player, matchId, match => match.Abandon(player), cancellationToken);
-        push.Send(match.OpponentOf(player).Player, PushMessages.OpponentAbandoned(match));
-        return match;
-    }
+    public Task<Match> AbandonAsync(PlayerId player, Guid matchId, CancellationToken cancellationToken = default) =>
+        UpdateAsync(player, matchId, match => match.Abandon(player), cancellationToken);
 
     /// <summary>Confirme les résultats restés sans réponse plus de 24 h.</summary>
     /// <returns>Les matchs confirmés automatiquement.</returns>

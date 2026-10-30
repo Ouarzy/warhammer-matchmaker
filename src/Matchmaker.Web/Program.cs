@@ -9,7 +9,6 @@ using Matchmaker.Web.Components;
 using Matchmaker.Web.Data;
 using Matchmaker.Web.Matches;
 using Matchmaker.Web.Matchmaking;
-using Matchmaker.Web.Push;
 using Matchmaker.Web.Tts;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
@@ -41,7 +40,6 @@ builder.Services.AddSingleton<MatchmakingCoordinator>();
 builder.Services.AddScoped<MatchService>();
 builder.Services.AddScoped<ScheduledGames>();
 builder.Services.AddTtsReporting(builder.Configuration);
-builder.Services.AddPushNotifications(builder.Configuration);
 builder.Services.AddHostedService<MatchExpiryService>();
 builder.Services.AddHostedService<ResultConfirmationService>();
 builder.Services.AddHostedService<ScheduledGamesExpiryService>();
@@ -81,7 +79,6 @@ app.MapHealthChecks("/health");
 app.MapSteamAuthentication();
 app.MapDevelopmentLogin();
 app.MapTtsReporting();
-app.MapPushNotifications();
 app.MapRazorComponents<App>()
     // Blazor n'ajoute pas sa propre politique frame-ancestors : celle de SecurityHeaders, plus stricte, s'applique.
     .AddInteractiveServerRenderMode(options => options.ContentSecurityFrameAncestorsPolicy = null);

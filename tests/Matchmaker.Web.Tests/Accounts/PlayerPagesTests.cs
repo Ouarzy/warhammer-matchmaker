@@ -126,5 +126,16 @@ public sealed class PlayerPagesTests(PostgresFixture postgres) : IDisposable
         Assert.Contains($"href=\"/players/{winner.SteamId}\"", html);
     }
 
+    [Fact]
+    public async Task My_account_no_longer_offers_browser_notifications()
+    {
+        var client = await _factory.CreateClientAsAsync(await NewPlayer("Alice"));
+
+        var html = await Text(await client.GetAsync("/profile"));
+
+        Assert.DoesNotContain("push-settings", html);
+        Assert.DoesNotContain("js/push.js", html);
+    }
+
     public void Dispose() => _factory.Dispose();
 }
