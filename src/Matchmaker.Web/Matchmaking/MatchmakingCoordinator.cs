@@ -33,6 +33,12 @@ public sealed class MatchmakingCoordinator(TimeProvider time, PlayerNotifier not
         }
     }
 
+    public IReadOnlyList<QueueTicket> OpenSearches()
+    {
+        lock (_gate)
+            return [.. _searches.Values];
+    }
+
     public void Search(Player player, ArmyList list, bool ranked)
     {
         if (!list.IsOwnedBy(player.Id))

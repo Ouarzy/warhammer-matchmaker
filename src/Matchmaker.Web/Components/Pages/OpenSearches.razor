@@ -1,0 +1,157 @@
+@page "/searches"
+@rendermode InteractiveServer
+@implements IDisposable
+@using Matchmaker.Domain.ArmyLists
+@using Matchmaker.Domain.Matches
+@using Matchmaker.Domain.Matchmaking
+@using Matchmaker.Domain.Players
+@using Matchmaker.Web.Accounts
+@using Matchmaker.Web.ArmyLists
+@using Matchmaker.Web.Matches
+@using Matchmaker.Web.Matchmaking
+@using Microsoft.EntityFrameworkCore
+@inject PlayerNotifier Notifier
+@inject IServiceScopeFactory ScopeFactory
+@inject NavigationManager Navigation
+
+<PageTitle>Recherches en cours</PageTitle>
+
+<h1><Icon Name="search" /> Recherches en cours</h1>
+
+<label class="search-kind">
+    Type de partie
+    <select @bind="_kind" @bind:after="RefreshAsync">
+        <option value="@SearchKind.All">Les 2</option>
+        <option value="@SearchKind.Live">Partie live</option>
+        <option value="@SearchKind.Planned">Partie programmée</option>
+    </select>
+</label>
+
+@if (_error is not null)
+{
+    <p class="error" role="alert">@_error</p>
+}
+
+@if (_searches.Count == 0)
+{
+    <p class="card">Aucune recherche en cours pour le moment.</p>
+}
+else
+{
+    <p class="hint">@_searches.Count @(_searches.Count > 1 ? "recherches" : "recherche") en cours, les plus anciennes d'abord.</p>
+    <ul class="active-matches">
+        @foreach (var search in _searches)
+        {
+            var player = _players.GetValueOrDefault(search.Ticket.Player);
+            <li @key="search" class="card open-search">
+                <span class="active-match-info">
+                    <strong>
+                        @if (player is not null)
+                        {
+                            <a href="/players/@player.Id.SteamId">@player.DisplayName</a>
+                        }
+                        else
+                        {
+                            @("Joueur")
+                        }
+                    </strong>
+                    <span class="hint">@search.Ticket.Format.Name · @(search.Ticket.Ranked ? "classée" : "amicale") · Elo @(player?.Rating.Value ?? search.Ticket.Rating.Value)</span>
+                    <span class="state">
+                        @if (search.PlannedFor is { } plannedFor)
+                        {
+                            <Icon Name="clock" /><text>Prévue le <LocalTime Value="plannedFor" /></text>
+                        }
+                        else
+                        {
+                            <Icon Name="swords" /><text>Live, maintenant</text>
+                        }
+                    </span>
+                    <span class="hint">Recherche depuis le <LocalTime Value="search.Ticket.EnqueuedAt" /></span>
+                </span>
+                @if (_me is not { } me)
+                {
+                    <a href="/login" class="button secondary" data-enhance-nav="false"><Icon Name="login" /> Se connecter pour jouer</a>
+                }
+                else if (search.Ticket.Player == me)
+                {
+                    <a href="/play" class="button secondary"><Icon Name="search" /> Votre recherche</a>
+                }
+                else if (ListsFor(search.Ticket.Format) is { Count: > 0 } lists)
+                {
+                    <JoinSearchForm Lists="lists" Icon="@(search.PlannedFor is null ? "search" : "clock")" OnJoin="listId => JoinAsync(search, listId)" />
+                }
+                else
+                {
+                    <a href="/lists" class="button secondary"><Icon Name="import" /> Importer une liste @search.Ticket.Format.Name</a>
+                }
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> AuthenticationState { get; set; } = default!;
+
+    private PlayerId? _me;
+    private SearchKind _kind = SearchKind.All;
+    private IReadOnlyList<OpenSearch> _searches = [];
+    private IReadOnlyDictionary<PlayerId, Player> _players = new Dictionary<PlayerId, Player>();
+    private IReadOnlyList<ArmyList> _myLists = [];
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await AuthenticationState).User;
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var me = SteamAuthentication.PlayerIdOf(user);
+            _me = me;
+            _myLists = ArmyList.FavoriteFirstThenByName(
+                await ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<ArmyListService>().ListOwnedByAsync(me)));
+        }
+        await RefreshAsync();
+
+        if (RendererInfo.IsInteractive)
+            Notifier.PlayerChanged += OnPlayerChanged;
+    }
+
+    private IReadOnlyList<ArmyList> ListsFor(GameFormat format) => [.. _myLists.Where(l => l.IsCompatibleWith(format))];
+
+    private async Task JoinAsync(OpenSearch search, Guid listId)
+    {
+        _error = null;
+        try
+        {
+            await ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<GameSearches>().JoinAsync(_me!.Value, listId, search));
+            Navigation.NavigateTo("/play");
+        }
+        catch (Exception e) when (e is InvalidOperationException or ArgumentException)
+        {
+            _error = e.Message;
+            await RefreshAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            _error = MatchService.ConcurrentChangeMessage;
+            await RefreshAsync();
+        }
+    }
+
+    private void OnPlayerChanged(PlayerId player) =>
+        _ = InvokeAsync(async () =>
+        {
+            await RefreshAsync();
+            StateHasChanged();
+        });
+
+    private async Task RefreshAsync()
+    {
+        (_searches, _players) = await ScopeFactory.UsingScopeAsync(async services =>
+        {
+            var searches = await services.GetRequiredService<GameSearches>().OpenAsync(_kind);
+            return (searches, await services.GetRequiredService<PlayerAccounts>().FindManyAsync(searches.Select(s => s.Ticket.Player)));
+        });
+    }
+
+    public void Dispose() => Notifier.PlayerChanged -= OnPlayerChanged;
+}

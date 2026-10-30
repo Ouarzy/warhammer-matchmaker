@@ -117,6 +117,15 @@ public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches,
         return new ScheduledOverview(searches, await ProposalsOfAsync(player, cancellationToken));
     }
 
+    /// <summary>Recherches de tous les joueurs qu'il est encore temps de rejoindre.</summary>
+    public async Task<IReadOnlyList<ScheduledSearch>> OpenSearchesAsync(CancellationToken cancellationToken = default)
+    {
+        var latest = time.GetUtcNow() + Match.ScheduledAcceptanceNotice;
+        return await db.ScheduledSearches
+            .Where(s => s.Status == Open && s.PlannedFor >= latest)
+            .ToListAsync(cancellationToken);
+    }
+
     /// <summary>Propositions que le joueur n'a pas encore acceptées : pastille du menu.</summary>
     public async Task<int> ProposalsToAnswerAsync(PlayerId player, CancellationToken cancellationToken = default) =>
         (await ProposalsOfAsync(player, cancellationToken)).Count(m => !m.HasAccepted(player));

@@ -1,0 +1,30 @@
+@using Matchmaker.Domain.ArmyLists
+
+@* Bouton « même recherche » : la liste n'est demandée que si le joueur a le choix. *@
+<div class="join-search">
+    @if (Lists.Count > 1)
+    {
+        <select @bind="_listId" aria-label="Liste à jouer">
+            @foreach (var list in Lists)
+            {
+                <option value="@list.Id">@list.Name</option>
+            }
+        </select>
+    }
+    <button class="button" @onclick="() => OnJoin.InvokeAsync(_listId)" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="@Icon" /> Faire la même recherche</button>
+</div>
+
+@code {
+    /// <summary>Listes du joueur au bon format, la favorite d'abord.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<ArmyList> Lists { get; set; } = [];
+    [Parameter, EditorRequired] public string Icon { get; set; } = "";
+    [Parameter, EditorRequired] public EventCallback<Guid> OnJoin { get; set; }
+
+    private Guid _listId;
+
+    protected override void OnParametersSet()
+    {
+        if (Lists.All(l => l.Id != _listId))
+            _listId = Lists.FirstOrDefault()?.Id ?? Guid.Empty;
+    }
+}

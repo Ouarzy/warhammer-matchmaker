@@ -129,16 +129,7 @@
     private Task SearchAsync(NewGameForm.Request request) => RunAsync(async () =>
     {
         await RequestNotificationPermissionAsync();
-        var (player, list, hasRoom) = await ScopeFactory.UsingScopeAsync(async services => (
-            await services.GetRequiredService<PlayerAccounts>().FindAsync(_me),
-            await services.GetRequiredService<ArmyListService>().FindAsync(request.ListId),
-            await services.GetRequiredService<MatchService>().CanLookForAnotherOpponentAsync(_me)));
-        if (!hasRoom)
-            throw new InvalidOperationException($"Vous avez déjà {MatchService.MaxActiveMatches} parties en cours, planifiées ou recherchées.");
-        if (player is null || list is null)
-            throw new InvalidOperationException("Liste introuvable.");
-
-        Coordinator.Search(player, list, request.Ranked);
+        await ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<GameSearches>().SearchNowAsync(_me, request.ListId, request.Ranked));
     });
 
     private Task CancelSearch() => RunAsync(() => Coordinator.CancelSearch(_me));

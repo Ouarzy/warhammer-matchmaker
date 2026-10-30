@@ -20,6 +20,7 @@ Tous les joueurs jouent via le mod LCT (11e édition) de TTS et enregistrent leu
   - le format (ex : Incursion 1000 pts, Strike Force 2000 pts)
   - une de ses listes compatible avec ce format
   - partie classée (impacte l'Elo, compétitive) ou non classée (fun)
+- voir toutes les recherches en cours (immédiates et planifiées) et lancer la même en un clic
 - être notifié dans le navigateur quand un adversaire est trouvé
 - accepter / refuser le match proposé
 - une fois accepté : voir l'identifiant steam de son adversaire et pouvoir parcourir sa liste d'armée

@@ -39,6 +39,7 @@ builder.Services.AddSingleton<PlayerNotifier>();
 builder.Services.AddSingleton<MatchmakingCoordinator>();
 builder.Services.AddScoped<MatchService>();
 builder.Services.AddScoped<ScheduledGames>();
+builder.Services.AddScoped<GameSearches>();
 builder.Services.AddTtsReporting(builder.Configuration);
 builder.Services.AddHostedService<MatchExpiryService>();
 builder.Services.AddHostedService<ResultConfirmationService>();

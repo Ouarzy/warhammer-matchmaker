@@ -248,6 +248,10 @@ tbody tr:hover td { background: var(--surface); }
 .active-matches a.card:hover { border-color: var(--accent); }
 .active-matches a.to-do { border-color: var(--accent); }
 .active-match-info { display: grid; gap: 0.15rem; }
+.search-kind { display: inline-grid; gap: 0.25rem; margin-bottom: 1rem; }
+.open-search { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; margin: 0; }
+.join-search { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.join-search select { max-width: 16rem; }
 .state { display: inline-flex; gap: 0.35rem; align-items: center; }
 .to-do .state { color: var(--accent); font-weight: 600; }
 .empty { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; }
