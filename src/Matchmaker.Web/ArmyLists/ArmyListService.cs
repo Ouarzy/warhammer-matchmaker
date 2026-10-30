@@ -33,6 +33,12 @@ public sealed class ArmyListService(MatchmakerDbContext db, IRosterProvider rost
     public async Task<ArmyList?> FindAsync(Guid id, CancellationToken cancellationToken = default) =>
         await db.ArmyLists.FindAsync([id], cancellationToken);
 
+    public async Task<IReadOnlyDictionary<Guid, ArmyList>> FindManyAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
+    {
+        var wanted = ids.Distinct().ToList();
+        return await db.ArmyLists.Where(l => wanted.Contains(l.Id)).ToDictionaryAsync(l => l.Id, cancellationToken);
+    }
+
     public async Task<IReadOnlyList<ArmyList>> ListOwnedByAsync(PlayerId owner, CancellationToken cancellationToken = default) =>
         await db.ArmyLists
             .Where(l => l.Owner == owner)

@@ -154,6 +154,19 @@ public sealed class OpenSearchesTests(PostgresFixture postgres) : IDisposable
     }
 
     [Fact]
+    public async Task A_search_shows_the_faction_and_the_points()
+    {
+        var ((alice, _), (bob, _)) = (await NewPlayer("Alice"), await NewPlayer("Bob"));
+        await Plan(alice, _evening, GameFormats.StrikeForce);
+        await SearchNow(bob, GameFormats.Incursion);
+
+        var html = await Html(_factory.CreateAnonymousClient(), "/searches");
+
+        Assert.Contains("Adeptus Custodes · Strike Force (2000 pts)", html);
+        Assert.Contains("Adeptus Custodes · Incursion (1000 pts)", html);
+    }
+
+    [Fact]
     public async Task The_page_offers_the_kinds_of_game_to_choose_from()
     {
         var html = await Html(_factory.CreateAnonymousClient(), "/searches");

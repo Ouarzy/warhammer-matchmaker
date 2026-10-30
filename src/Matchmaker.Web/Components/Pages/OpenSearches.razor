@@ -55,7 +55,7 @@ else
                             @("Joueur")
                         }
                     </strong>
-                    <span class="hint">@search.Ticket.Format.Name · @(search.Ticket.Ranked ? "classée" : "amicale") · Elo @(player?.Rating.Value ?? search.Ticket.Rating.Value)</span>
+                    <span class="hint">@(_lists.GetValueOrDefault(search.Ticket.ArmyListId)?.Faction ?? "Faction inconnue") · @search.Ticket.Format.Name (@GameFormats.PointsOf(search.Ticket.Format) pts) · @(search.Ticket.Ranked ? "classée" : "amicale") · Elo @(player?.Rating.Value ?? search.Ticket.Rating.Value)</span>
                     <span class="state">
                         @if (search.PlannedFor is { } plannedFor)
                         {
@@ -96,6 +96,7 @@ else
     private SearchKind _kind = SearchKind.All;
     private IReadOnlyList<OpenSearch> _searches = [];
     private IReadOnlyDictionary<PlayerId, Player> _players = new Dictionary<PlayerId, Player>();
+    private IReadOnlyDictionary<Guid, ArmyList> _lists = new Dictionary<Guid, ArmyList>();
     private IReadOnlyList<ArmyList> _myLists = [];
     private string? _error;
 
@@ -146,10 +147,12 @@ else
 
     private async Task RefreshAsync()
     {
-        (_searches, _players) = await ScopeFactory.UsingScopeAsync(async services =>
+        (_searches, _players, _lists) = await ScopeFactory.UsingScopeAsync(async services =>
         {
             var searches = await services.GetRequiredService<GameSearches>().OpenAsync(_kind);
-            return (searches, await services.GetRequiredService<PlayerAccounts>().FindManyAsync(searches.Select(s => s.Ticket.Player)));
+            return (searches,
+                await services.GetRequiredService<PlayerAccounts>().FindManyAsync(searches.Select(s => s.Ticket.Player)),
+                await services.GetRequiredService<ArmyListService>().FindManyAsync(searches.Select(s => s.Ticket.ArmyListId)));
         });
     }
 
