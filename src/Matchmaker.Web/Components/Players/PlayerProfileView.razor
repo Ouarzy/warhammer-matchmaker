@@ -11,7 +11,7 @@
 
 @if (_player is not null)
 {
-    <PageTitle>@_player.DisplayName</PageTitle>
+    <PageMeta Title="@_player.DisplayName" Description="@ProfileSummary" Path="@ProfilePath" NoIndex Image="@_player.AvatarUrl" />
 
     <section class="profile card">
         @if (_player.AvatarUrl is not null)
@@ -28,6 +28,7 @@
                 Steam ID : <code>@_player.Id.SteamId</code>
                 · <a href="https://steamcommunity.com/profiles/@_player.Id.SteamId" target="_blank" rel="noopener"><Icon Name="external" /> Profil Steam</a>
             </p>
+            <ShareLink Path="@ProfilePath" Label="Partager ce profil" />
         </div>
         @if (Actions is not null)
         {
@@ -88,6 +89,10 @@
 }
 
 @code {
+    private string ProfilePath => $"/players/{_player!.Id.SteamId}";
+
+    private string ProfileSummary => $"Elo {_player!.Rating.Value} · {_player.RankedGamesPlayed} {(_player.RankedGamesPlayed > 1 ? "parties classées" : "partie classée")} sur Warhammer Matchmaker, le matchmaking de Warhammer 40 000 sur Tabletop Simulator.";
+
     [Parameter, EditorRequired] public PlayerId PlayerId { get; set; }
     [Parameter] public int Page { get; set; } = 1;
     /// <summary>Adresse de la page, à laquelle on ajoute ?page=N.</summary>

@@ -1,36 +1,121 @@
 ﻿@page "/"
+@using Matchmaker.Domain.Players
+@using Matchmaker.Web.Accounts
+@using Matchmaker.Web.Matches
+@using Matchmaker.Web.Matchmaking
 @inject NavigationManager Navigation
+@inject PlayerAccounts Accounts
+@inject MatchService Matches
+@inject GameSearches Searches
 
-<PageTitle>Warhammer Matchmaker</PageTitle>
+<PageMeta Title="Warhammer Matchmaker : trouvez un adversaire 40k sur Tabletop Simulator" Standalone
+          Description="Matchmaking automatique et classement Elo pour Warhammer 40 000 sur Tabletop Simulator (mod LCT). Jouez maintenant ou à une date précise, en partie classée ou amicale. Gratuit, connexion avec Steam." Path="" />
 
 <section class="hero">
     <h1>Trouvez un adversaire à votre niveau</h1>
-    <p>Matchmaking automatique pour Warhammer 40 000 sur Tabletop Simulator, avec classement Elo.</p>
-    <p><a href="/login" class="button call-to-action" data-enhance-nav="false"><Icon Name="login" /> Se connecter avec Steam</a></p>
+    <p>Matchmaking automatique pour Warhammer 40 000 sur Tabletop Simulator, avec classement Elo.<br />Gratuit, sans mot de passe à créer : votre compte Steam suffit.</p>
+    <p class="hero-actions">
+        <a href="/login" class="button call-to-action" data-enhance-nav="false"><Icon Name="login" /> Se connecter avec Steam</a>
+        <a href="/searches" class="button secondary call-to-action"><Icon Name="search" /> Voir les recherches en cours</a>
+    </p>
     <p class="hint">En vous connectant, vous acceptez les <a href="/cgu">conditions d'utilisation</a> et la <a href="/confidentialite">politique de confidentialité</a>.</p>
 </section>
 
-<section class="features">
-    <div class="card">
-        <h2><Icon Name="import" /> Importez vos listes</h2>
+@if (_players + _games + _searches > 0)
+{
+    @* Un chiffre à zéro n'apprend rien au visiteur : seuls ceux qui comptent sont affichés. *@
+    <nav class="home-stats" aria-label="Activité du site">
+        @if (_players > 0)
+        {
+            <a class="home-stat" href="/players"><strong>@_players</strong> @(_players > 1 ? "joueurs" : "joueur")</a>
+        }
+        @if (_games > 0)
+        {
+            <a class="home-stat" href="/live"><strong>@_games</strong> @(_games > 1 ? "parties" : "partie") en cours</a>
+        }
+        @if (_searches > 0)
+        {
+            <a class="home-stat" href="/searches"><strong>@_searches</strong> @(_searches > 1 ? "recherches" : "recherche") en cours</a>
+        }
+    </nav>
+}
+
+<h2>Comment ça marche</h2>
+<ol class="features home-steps">
+    <li class="card">
+        <h3><Icon Name="import" /> 1. Importez vos listes</h3>
         <p>Collez le code YellowScribe de votre liste ForceOrg : elle est copiée sur le site.</p>
+    </li>
+    <li class="card">
+        <h3><Icon Name="search" /> 2. Trouvez un adversaire</h3>
+        <p>Choisissez votre liste et le moment de jouer : vous êtes mis en relation avec un joueur du même format.</p>
+    </li>
+    <li class="card">
+        <h3><Icon Name="trophy" /> 3. Jouez et grimpez</h3>
+        <p>Retrouvez-vous sur Tabletop Simulator avec le mod LCT, déclarez le score : l'Elo est mis à jour.</p>
+    </li>
+</ol>
+
+<h2>Jouez comme ça vous arrange</h2>
+<section class="features home-perks">
+    <div class="card">
+        <h3><Icon Name="clock" /> Maintenant ou à une date précise</h3>
+        <p><strong>À une date précise</strong> : pas besoin de rester connecté, un joueur qui vise le même créneau à une heure près vous est proposé. Sinon, lancez une recherche tout de suite.</p>
     </div>
     <div class="card">
-        <h2><Icon Name="search" /> Trouvez un adversaire</h2>
-        <p>Partie classée ou amicale, au format de votre choix : vous êtes prévenu dès qu'un adversaire est trouvé.</p>
+        <h3><Icon Name="swords" /> Classée ou amicale</h3>
+        <p>En Incursion, Strike Force ou Onslaught. Score WTC sur 20 et Elo inspiré des échecs pour les parties classées ; les amicales ne comptent pas.</p>
     </div>
     <div class="card">
-        <h2><Icon Name="trophy" /> Grimpez au classement</h2>
-        <p>Score WTC sur 20 et Elo inspiré des échecs. <a href="/ranking">Voir le classement</a></p>
+        <h3><Icon Name="matches" /> Plusieurs parties à la fois</h3>
+        <p>Jusqu'à @MatchService.MaxActiveMatches parties en parallèle : une partie peut se jouer en plusieurs fois, sur plusieurs semaines.</p>
+    </div>
+    <div class="card">
+        <h3><Icon Name="send" /> Le score depuis votre table</h3>
+        <p>Facultatif et en bêta : <a href="/tts">l'objet TTS</a> envoie le score au site et votre partie se suit en direct.</p>
     </div>
 </section>
 
+@if (_top.Count > 0)
+{
+    <h2>Meilleurs joueurs</h2>
+    <div class="table-scroll">
+        <table class="ranking">
+            <thead>
+                <tr><th>#</th><th>Joueur</th><th>Elo</th><th>Parties classées</th></tr>
+            </thead>
+            <tbody>
+                @for (var i = 0; i < _top.Count; i++)
+                {
+                    <tr><td>@(i + 1)</td><td><PlayerLink Player="_top[i]" /></td><td><strong>@_top[i].Rating.Value</strong></td><td>@_top[i].RankedGamesPlayed</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <p><a href="/ranking"><Icon Name="trophy" /> Voir le classement complet</a></p>
+}
+
 @code {
+    private const int TopPlayers = 5;
+
     [CascadingParameter] private Task<AuthenticationState> AuthenticationState { get; set; } = default!;
+
+    private int _players;
+    private int _games;
+    private int _searches;
+    private IReadOnlyList<Player> _top = [];
 
     protected override async Task OnInitializedAsync()
     {
         if ((await AuthenticationState).User.Identity?.IsAuthenticated == true)
+        {
             Navigation.NavigateTo("/profile");
+            return;
+        }
+
+        _players = (await Accounts.DirectoryPageAsync(1)).Total;
+        _games = (await Matches.InProgressPageAsync(1)).Total;
+        _searches = (await Searches.OpenAsync()).Count;
+        _top = await Matches.RankingAsync(TopPlayers);
     }
 }

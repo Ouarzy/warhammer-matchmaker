@@ -8,6 +8,8 @@
     <ResourcePreloader />
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
     <meta name="theme-color" content="#121317" />
     <link rel="stylesheet" href="@Assets["Matchmaker.Web.styles.css"]" />
     <ImportMap />
@@ -23,6 +25,19 @@
         document.addEventListener("click", (event) => {
             const toggle = document.getElementById("menu-toggle");
             if (toggle && event.target.closest(".sidebar a, .sidebar button")) toggle.checked = false;
+        });
+
+        // Boutons de partage (<ShareLink>) : on n'ajoute qu'un attribut, le texte reste à Blazor.
+        document.addEventListener("click", async (event) => {
+            const button = event.target.closest("[data-share-url]");
+            if (!button) return;
+            try {
+                await navigator.clipboard.writeText(button.dataset.shareUrl);
+                button.dataset.copied = "";
+                setTimeout(() => delete button.dataset.copied, 2000);
+            } catch {
+                window.prompt("Copiez ce lien :", button.dataset.shareUrl);
+            }
         });
 
         window.matchmakerTimeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone;

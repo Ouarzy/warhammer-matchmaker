@@ -1,0 +1,13 @@
+User-agent: *
+Disallow: /play
+Disallow: /profile
+Disallow: /login
+Disallow: /logout
+Disallow: /dev/
+Disallow: /api/
+Disallow: /lists
+Disallow: /archived-lists
+Disallow: /matches
+Disallow: /players?q=
+
+Sitemap: https://warhammer-matchmaker.com/sitemap.xml

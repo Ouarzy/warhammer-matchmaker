@@ -1,4 +1,5 @@
 @page "/searches"
+@page "/searches/{Id:guid}"
 @rendermode InteractiveServer
 @implements IDisposable
 @using Matchmaker.Domain.ArmyLists
@@ -9,36 +10,54 @@
 @using Matchmaker.Web.ArmyLists
 @using Matchmaker.Web.Matches
 @using Matchmaker.Web.Matchmaking
+@using System.Globalization
 @using Microsoft.EntityFrameworkCore
 @inject PlayerNotifier Notifier
 @inject IServiceScopeFactory ScopeFactory
 @inject NavigationManager Navigation
 
-<PageTitle>Recherches en cours</PageTitle>
+@if (Id is null)
+{
+    <PageMeta Title="Recherches en cours" Description="Les joueurs de Warhammer 40 000 qui cherchent un adversaire sur Tabletop Simulator, maintenant ou à une date précise : lancez la même recherche en un clic." Path="/searches" />
 
-<h1><Icon Name="search" /> Recherches en cours</h1>
+    <h1><Icon Name="search" /> Recherches en cours</h1>
 
-<label class="search-kind">
-    Type de partie
-    <select @bind="_kind" @bind:after="RefreshAsync">
-        <option value="@SearchKind.All">Les 2</option>
-        <option value="@SearchKind.Live">Partie live</option>
-        <option value="@SearchKind.Planned">Partie programmée</option>
-    </select>
-</label>
+    <label class="search-kind">
+        Type de partie
+        <select @bind="_kind" @bind:after="RefreshAsync">
+            <option value="@SearchKind.All">Les 2</option>
+            <option value="@SearchKind.Live">Partie live</option>
+            <option value="@SearchKind.Planned">Partie programmée</option>
+        </select>
+    </label>
+}
+else
+{
+    <PageMeta Title="@SharedTitle" Description="@SharedDescription" Path="@($"/searches/{Id}")" NoIndex />
+
+    <h1><Icon Name="search" /> Recherche d'un adversaire</h1>
+    <p><a href="/searches"><Icon Name="back" /> Voir toutes les recherches</a></p>
+}
 
 @if (_error is not null)
 {
     <p class="error" role="alert">@_error</p>
 }
 
-@if (_searches.Count == 0)
+@if (!_loaded)
 {
-    <p class="card">Aucune recherche en cours pour le moment.</p>
+    @* Démarrage du circuit Blazor : les recherches ne sont pas encore rechargées, ne pas annoncer qu'il n'y en a plus. *@
+}
+else if (_searches.Count == 0)
+{
+    <p class="card">@(Id is null ? "Aucune recherche en cours pour le moment." : "Cette recherche n'est plus ouverte : un adversaire l'a peut-être déjà rejointe.")</p>
 }
 else
 {
-    <p class="hint">@_searches.Count @(_searches.Count > 1 ? "recherches" : "recherche") en cours, les plus anciennes d'abord.</p>
+    @if (Id is null)
+    {
+        <p class="hint">@_searches.Count @(_searches.Count > 1 ? "recherches" : "recherche") en cours, les plus anciennes d'abord.</p>
+    }
     <ul class="active-matches">
         @foreach (var search in _searches)
         {
@@ -55,7 +74,7 @@ else
                             @("Joueur")
                         }
                     </strong>
-                    <span class="hint">@(_lists.GetValueOrDefault(search.Ticket.ArmyListId)?.Faction ?? "Faction inconnue") · @search.Ticket.Format.Name (@GameFormats.PointsOf(search.Ticket.Format) pts) · @(search.Ticket.Ranked ? "classée" : "amicale") · Elo @(player?.Rating.Value ?? search.Ticket.Rating.Value)</span>
+                    <span class="hint">@Summary(search)</span>
                     <span class="state">
                         @if (search.PlannedFor is { } plannedFor)
                         {
@@ -68,30 +87,42 @@ else
                     </span>
                     <span class="hint">Recherche depuis le <LocalTime Value="search.Ticket.EnqueuedAt" /></span>
                 </span>
-                @if (_me is not { } me)
-                {
-                    <a href="/login" class="button secondary" data-enhance-nav="false"><Icon Name="login" /> Se connecter pour jouer</a>
-                }
-                else if (search.Ticket.Player == me)
-                {
-                    <a href="/play" class="button secondary"><Icon Name="search" /> Votre recherche</a>
-                }
-                else if (ListsFor(search.Ticket.Format) is { Count: > 0 } lists)
-                {
-                    <JoinSearchForm Lists="lists" Icon="@(search.PlannedFor is null ? "search" : "clock")" OnJoin="listId => JoinAsync(search, listId)" />
-                }
-                else
-                {
-                    <a href="/lists" class="button secondary"><Icon Name="import" /> Importer une liste @search.Ticket.Format.Name</a>
-                }
+                <div class="open-search-actions">
+                    @if (_me is not { } me)
+                    {
+                        <a href="/login?returnUrl=@ReturnUrl" class="button secondary" data-enhance-nav="false"><Icon Name="login" /> Se connecter pour jouer</a>
+                    }
+                    else if (search.Ticket.Player == me)
+                    {
+                        <a href="/play" class="button secondary"><Icon Name="search" /> Votre recherche</a>
+                    }
+                    else if (ListsFor(search.Ticket.Format) is { Count: > 0 } lists)
+                    {
+                        <JoinSearchForm Lists="lists" Icon="@(search.PlannedFor is null ? "search" : "clock")" OnJoin="listId => JoinAsync(search, listId)" />
+                    }
+                    else
+                    {
+                        <a href="/lists" class="button secondary"><Icon Name="import" /> Importer une liste @search.Ticket.Format.Name</a>
+                    }
+                    @if (search.PlannedSearchId is { } plannedId)
+                    {
+                        <ShareLink Path="@($"/searches/{plannedId}")" Label="Partager" />
+                    }
+                </div>
             </li>
         }
     </ul>
 }
 
 @code {
-    [CascadingParameter] private Task<AuthenticationState> AuthenticationState { get; set; } = default!;
+    private static readonly CultureInfo French = CultureInfo.GetCultureInfo("fr-FR");
+    private static readonly TimeZoneInfo Paris = TimeZoneInfo.FindSystemTimeZoneById("Europe/Paris");
 
+    [CascadingParameter] private Task<AuthenticationState> AuthenticationState { get; set; } = default!;
+    /// <summary>Une seule recherche planifiée, ouverte depuis le lien partagé par un joueur.</summary>
+    [Parameter] public Guid? Id { get; set; }
+
+    private bool _loaded;
     private PlayerId? _me;
     private SearchKind _kind = SearchKind.All;
     private IReadOnlyList<OpenSearch> _searches = [];
@@ -110,11 +141,27 @@ else
             _myLists = ArmyList.FavoriteFirstThenByName(
                 await ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<ArmyListService>().ListOwnedByAsync(me)));
         }
-        await RefreshAsync();
 
         if (RendererInfo.IsInteractive)
             Notifier.PlayerChanged += OnPlayerChanged;
     }
+
+    // Passer d'une recherche partagée à toutes les recherches garde le composant : à recharger à chaque fois.
+    protected override Task OnParametersSetAsync() => RefreshAsync();
+
+    private string ReturnUrl => Id is null ? "/searches" : $"/searches/{Id}";
+
+    private string Summary(OpenSearch search) =>
+        $"{_lists.GetValueOrDefault(search.Ticket.ArmyListId)?.Faction ?? "Faction inconnue"} · {search.Ticket.Format.Name} ({GameFormats.PointsOf(search.Ticket.Format)} pts) · {(search.Ticket.Ranked ? "classée" : "amicale")} · Elo {_players.GetValueOrDefault(search.Ticket.Player)?.Rating.Value ?? search.Ticket.Rating.Value}";
+
+    // L'aperçu d'un lien est le même pour tous : on ne connaît pas le fuseau du lecteur, et le site est francophone.
+    private string SharedTitle => _searches.FirstOrDefault() is { PlannedFor: { } plannedFor } search
+        ? $"{_players.GetValueOrDefault(search.Ticket.Player)?.DisplayName ?? "Un joueur"} cherche un adversaire pour {TimeZoneInfo.ConvertTime(plannedFor, Paris).ToString("ddd d MMM 'à' HH'h'mm", French)}"
+        : "Recherche d'un adversaire";
+
+    private string SharedDescription => _searches.FirstOrDefault() is { } search
+        ? $"{Summary(search)} · heure de Paris. Lancez la même recherche pour jouer cette partie sur Tabletop Simulator."
+        : "Cette recherche n'est plus ouverte. Voyez les autres joueurs qui cherchent un adversaire sur Warhammer Matchmaker.";
 
     private IReadOnlyList<ArmyList> ListsFor(GameFormat format) => [.. _myLists.Where(l => l.IsCompatibleWith(format))];
 
@@ -149,11 +196,15 @@ else
     {
         (_searches, _players, _lists) = await ScopeFactory.UsingScopeAsync(async services =>
         {
-            var searches = await services.GetRequiredService<GameSearches>().OpenAsync(_kind);
+            var games = services.GetRequiredService<GameSearches>();
+            var searches = Id is { } id
+                ? await games.FindPlannedAsync(id) is { } shared ? [shared] : []
+                : await games.OpenAsync(_kind);
             return (searches,
                 await services.GetRequiredService<PlayerAccounts>().FindManyAsync(searches.Select(s => s.Ticket.Player)),
                 await services.GetRequiredService<ArmyListService>().FindManyAsync(searches.Select(s => s.Ticket.ArmyListId)));
         });
+        _loaded = true;
     }
 
     public void Dispose() => Notifier.PlayerChanged -= OnPlayerChanged;

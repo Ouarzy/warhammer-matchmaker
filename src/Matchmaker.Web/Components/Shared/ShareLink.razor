@@ -1,0 +1,8 @@
+@* Copie le lien d'une page : le script de App.razor s'en charge, pour marcher aussi sur les pages sans circuit Blazor. *@
+<button type="button" class="button secondary share-link" data-share-url="@SiteAddress.Of(Path)"><Icon Name="copy" /> <span class="share-label">@Label</span></button>
+
+@code {
+    /// <summary>Adresse de la page, sans son domaine.</summary>
+    [Parameter, EditorRequired] public string Path { get; set; } = "";
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+}

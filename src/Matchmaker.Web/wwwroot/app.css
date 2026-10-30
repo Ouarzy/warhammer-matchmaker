@@ -212,7 +212,14 @@ tbody tr:hover td { background: var(--surface); }
 .hero h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); }
 .hero p { color: var(--muted); font-size: 1.1rem; }
 .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; }
-.features h2 { margin-top: 0; }
+.features h2, .features h3 { margin-top: 0; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; }
+.home-stats { display: flex; flex-wrap: wrap; gap: 0.5rem 2rem; justify-content: center; margin: 1rem 0 2rem; }
+.home-stat { color: var(--muted); text-decoration: none; }
+.home-stat:hover { color: var(--accent); }
+.home-stat strong { color: var(--text); font-size: 1.5rem; }
+.home-steps { list-style: none; padding: 0; }
+.home-perks { grid-template-columns: repeat(auto-fit, minmax(min(22rem, 100%), 1fr)); }
 
 /* Profil ----------------------------------------------------------------- */
 .profile { display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: center; }
@@ -252,6 +259,9 @@ tbody tr:hover td { background: var(--surface); }
 .open-search { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; margin: 0; }
 .join-search { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
 .join-search select { max-width: 16rem; }
+.open-search-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.share-link[data-copied] .share-label { display: none; }
+.share-link[data-copied]::after { content: "Lien copié !"; }
 .state { display: inline-flex; gap: 0.35rem; align-items: center; }
 .to-do .state { color: var(--accent); font-weight: 600; }
 .empty { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; }

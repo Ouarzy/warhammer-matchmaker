@@ -14,8 +14,11 @@ public enum SearchKind
     Planned,
 }
 
-/// <summary>Recherche en cours d'un joueur ; <paramref name="PlannedFor"/> est null pour une partie immédiate.</summary>
-public sealed record OpenSearch(QueueTicket Ticket, DateTimeOffset? PlannedFor);
+/// <summary>Recherche en cours d'un joueur ; <paramref name="PlannedFor"/> et <paramref name="PlannedSearchId"/> sont null pour une partie immédiate.</summary>
+public sealed record OpenSearch(QueueTicket Ticket, DateTimeOffset? PlannedFor, Guid? PlannedSearchId = null)
+{
+    public static OpenSearch Planned(ScheduledSearch search) => new(search.Ticket, search.PlannedFor, search.Id);
+}
 
 /// <summary>Recherches immédiates (en mémoire) et planifiées (en base), vues ensemble.</summary>
 public sealed class GameSearches(MatchmakingCoordinator coordinator, ScheduledGames scheduled, MatchService matches,
@@ -29,9 +32,12 @@ public sealed class GameSearches(MatchmakingCoordinator coordinator, ScheduledGa
             : coordinator.OpenSearches().Select(ticket => new OpenSearch(ticket, null));
         var planned = kind == SearchKind.Live
             ? []
-            : (await scheduled.OpenSearchesAsync(cancellationToken)).Select(search => new OpenSearch(search.Ticket, search.PlannedFor));
+            : (await scheduled.OpenSearchesAsync(cancellationToken)).Select(OpenSearch.Planned);
         return [.. live.Concat(planned).OrderBy(search => search.Ticket.EnqueuedAt)];
     }
+
+    public async Task<OpenSearch?> FindPlannedAsync(Guid id, CancellationToken cancellationToken = default) =>
+        await scheduled.FindOpenSearchAsync(id, cancellationToken) is { } search ? OpenSearch.Planned(search) : null;
 
     public async Task SearchNowAsync(PlayerId player, Guid armyListId, bool ranked, CancellationToken cancellationToken = default)
     {

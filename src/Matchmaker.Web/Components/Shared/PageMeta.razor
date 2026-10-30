@@ -1,0 +1,33 @@
+@* Titre, description et aperçu de la page pour les moteurs de recherche et les liens partagés (Discord, réseaux sociaux…). *@
+<PageTitle>@(Standalone ? Title : $"{Title} – {SiteAddress.Name}")</PageTitle>
+<HeadContent>
+    <meta name="description" content="@Description" />
+    @if (NoIndex)
+    {
+        <meta name="robots" content="noindex" />
+    }
+    <link rel="canonical" href="@Url" />
+    <meta property="og:site_name" content="@SiteAddress.Name" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:url" content="@Url" />
+    <meta property="og:title" content="@Title" />
+    <meta property="og:description" content="@Description" />
+    <meta property="og:image" content="@(Image ?? SiteAddress.Of("/og-image.png"))" />
+    <meta name="twitter:card" content="@(Image is null ? "summary_large_image" : "summary")" />
+</HeadContent>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter, EditorRequired] public string Description { get; set; } = "";
+    /// <summary>Adresse de la page sans son domaine ni ses paramètres, vide pour l'accueil.</summary>
+    [Parameter, EditorRequired] public string Path { get; set; } = "";
+    /// <summary>Le titre porte déjà le nom du site.</summary>
+    [Parameter] public bool Standalone { get; set; }
+    /// <summary>Partageable, mais à garder hors des moteurs de recherche.</summary>
+    [Parameter] public bool NoIndex { get; set; }
+    /// <summary>Par défaut, l'image du site.</summary>
+    [Parameter] public string? Image { get; set; }
+
+    private string Url => SiteAddress.Of(Path);
+}
