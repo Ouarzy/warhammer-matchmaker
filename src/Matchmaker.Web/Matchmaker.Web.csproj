@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <!-- Pas utilisé directement : force une version corrigée de la dépendance de AspNet.Security.OpenId (1.3.0, vulnérable). -->
-    <PackageReference Include="AngleSharp" Version="1.5.0" />
+    <PackageReference Include="AngleSharp" Version="1.8.6" />
     <PackageReference Include="AspNet.Security.OpenId.Steam" Version="10.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.4">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
