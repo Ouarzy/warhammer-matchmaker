@@ -105,6 +105,7 @@
     private IReadOnlyDictionary<PlayerId, Player> _scheduledPlayers = new Dictionary<PlayerId, Player>();
     private Dictionary<Guid, ArmyList> _scheduledLists = [];
     private string? _error;
+    private bool _startingSearch;
 
     private Guid? _proposalLoadedFor;
     private Player? _proposedOpponent;
@@ -126,11 +127,18 @@
         }
     }
 
-    private Task SearchAsync(NewGameForm.Request request) => RunAsync(async () =>
+    private async Task SearchAsync(NewGameForm.Request request)
     {
-        await RequestNotificationPermissionAsync();
-        await ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<GameSearches>().SearchNowAsync(_me, request.ListId, request.Ranked));
-    });
+        if (_startingSearch) return;
+
+        _startingSearch = true;
+        await RunAsync(() => ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<GameSearches>().SearchNowAsync(_me, request.ListId, request.Ranked)));
+        _startingSearch = false;
+
+        // Surtout pas avant la recherche, ni en l'attendant : le joueur peut laisser la question du navigateur sans réponse,
+        // et un clic resté en attente relancerait une recherche après son annulation.
+        if (_error is null) _ = RequestNotificationPermissionAsync();
+    }
 
     private Task CancelSearch() => RunAsync(() => Coordinator.CancelSearch(_me));
 
@@ -252,9 +260,9 @@
             _notifications ??= await JS.InvokeAsync<IJSObjectReference>("import", "./js/notifications.js");
             await _notifications.InvokeVoidAsync("requestPermission");
         }
-        catch (JSException)
+        catch (Exception e) when (e is JSException or JSDisconnectedException or OperationCanceledException)
         {
-            // Pas de notification système : la page se met quand même à jour.
+            // Pas de notification système, question sans réponse ou page quittée : la page se met quand même à jour.
         }
     }
 
