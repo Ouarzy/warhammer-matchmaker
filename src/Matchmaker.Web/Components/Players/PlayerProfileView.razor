@@ -37,7 +37,14 @@
     </section>
 
     <section>
-        <h2><Icon Name="lists" /> Listes</h2>
+        @if (ListsUrl is not null)
+        {
+            <h2><a href="@ListsUrl"><Icon Name="lists" /> Listes</a></h2>
+        }
+        else
+        {
+            <h2><Icon Name="lists" /> Listes</h2>
+        }
         @if (_lists.Count == 0)
         {
             <p class="hint">Aucune liste importée.</p>
@@ -99,6 +106,9 @@
     [Parameter, EditorRequired] public string BaseUrl { get; set; } = "";
     /// <summary>Boutons affichés dans l'en-tête du profil (ex. « Rechercher une partie » sur son propre compte).</summary>
     [Parameter] public RenderFragment? Actions { get; set; }
+
+    /// <summary>Page vers laquelle mène le titre « Listes » (ex. « Mes listes » sur son propre compte).</summary>
+    [Parameter] public string? ListsUrl { get; set; }
 
     private Player? _player;
     private IReadOnlyList<ArmyList> _lists = [];

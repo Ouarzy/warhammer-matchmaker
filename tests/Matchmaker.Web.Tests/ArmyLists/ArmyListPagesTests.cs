@@ -20,8 +20,8 @@ public sealed class ArmyListPagesTests(PostgresFixture postgres) : IDisposable
         return (await lists.ImportAsync(owner, Samples.CustodesCode, name, GameFormats.StrikeForce)).Id;
     }
 
-    private static Dictionary<string, string> ImportForm(string code, string name = "Custodes 2000", string format = "Strike Force", string detachment = "") =>
-        new() { ["Import.Code"] = code, ["Import.Name"] = name, ["Import.Format"] = format, ["Import.Detachment"] = detachment };
+    private static Dictionary<string, string> ImportForm(string code, string name = "Custodes 2000", string format = "Strike Force", string detachment = "", string mfmVersion = "") =>
+        new() { ["Import.Code"] = code, ["Import.Name"] = name, ["Import.Format"] = format, ["Import.Detachment"] = detachment, ["Import.MfmVersion"] = mfmVersion };
 
     [Fact]
     public async Task My_lists_require_to_be_signed_in()
@@ -242,6 +242,42 @@ public sealed class ArmyListPagesTests(PostgresFixture postgres) : IDisposable
     }
 
     [Fact]
+    public async Task The_mfm_version_given_at_import_is_shown_on_the_list()
+    {
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+        Assert.Contains("Version du MFM", await client.GetStringAsync("/lists?import=1"));
+
+        var response = await client.SubmitAsync("/lists?import=1", "import", ImportForm(Samples.CustodesCode, mfmVersion: "3.4"));
+
+        Assert.Contains("· MFM 3.4 ·", WebUtility.HtmlDecode(await client.GetStringAsync(response.Headers.Location!.AbsolutePath)));
+    }
+
+    [Fact]
+    public async Task A_list_imported_without_mfm_version_does_not_mention_it()
+    {
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+
+        var response = await client.SubmitAsync("/lists?import=1", "import", ImportForm(Samples.CustodesCode));
+
+        Assert.DoesNotContain("· MFM", WebUtility.HtmlDecode(await client.GetStringAsync(response.Headers.Location!.AbsolutePath)));
+    }
+
+    [Fact]
+    public async Task The_owner_can_change_the_mfm_version_of_a_list()
+    {
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+        var listId = await ImportCustodes(me);
+
+        await client.SubmitAsync($"/lists/{listId}", "edit",
+            new Dictionary<string, string> { ["Edit.Name"] = "Custodes", ["Edit.MfmVersion"] = "3.5" });
+
+        Assert.Contains("· MFM 3.5 ·", WebUtility.HtmlDecode(await client.GetStringAsync($"/lists/{listId}")));
+    }
+
+    [Fact]
     public async Task The_owner_can_set_the_detachment_of_a_list_imported_without_it()
     {
         var me = MatchmakerWebFactory.NewPlayerId();
@@ -264,7 +300,7 @@ public sealed class ArmyListPagesTests(PostgresFixture postgres) : IDisposable
         Assert.Contains("Type de liste", html);
         var offered = System.Text.RegularExpressions.Regex.Matches(html, "<option value=\"(Team|Solo|Hybrid)\"[^>]*>([^<]+)</option>")
             .Select(m => m.Groups[2].Value);
-        Assert.Equal(["Liste d'équipe", "Liste solo", "Liste hybride"], offered);
+        Assert.Equal(["Liste d'équipe", "Liste solo", "Liste mixte"], offered);
         Assert.Matches("<option value=\"Hybrid\" selected", html);
     }
 
@@ -289,7 +325,7 @@ public sealed class ArmyListPagesTests(PostgresFixture postgres) : IDisposable
         var me = MatchmakerWebFactory.NewPlayerId();
         var client = await _factory.CreateClientAsAsync(me);
         var listId = await ImportCustodes(me);
-        Assert.Contains("· Liste hybride ·", WebUtility.HtmlDecode(await client.GetStringAsync($"/lists/{listId}")));
+        Assert.Contains("· Liste mixte ·", WebUtility.HtmlDecode(await client.GetStringAsync($"/lists/{listId}")));
 
         await client.SubmitAsync($"/lists/{listId}", "edit",
             new Dictionary<string, string> { ["Edit.Name"] = "Custodes", ["Edit.Type"] = "Solo" });

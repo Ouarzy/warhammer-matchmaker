@@ -42,6 +42,11 @@ namespace Matchmaker.Web.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("match_id");
 
+                    b.Property<string>("MfmVersion")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("mfm_version");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(512)
@@ -111,6 +116,11 @@ namespace Matchmaker.Web.Data.Migrations
                     b.Property<bool>("IsFavorite")
                         .HasColumnType("boolean")
                         .HasColumnName("is_favorite");
+
+                    b.Property<string>("MfmVersion")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("mfm_version");
 
                     b.Property<string>("Name")
                         .IsRequired()

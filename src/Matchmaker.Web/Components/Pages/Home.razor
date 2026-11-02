@@ -3,7 +3,6 @@
 @using Matchmaker.Web.Accounts
 @using Matchmaker.Web.Matches
 @using Matchmaker.Web.Matchmaking
-@inject NavigationManager Navigation
 @inject PlayerAccounts Accounts
 @inject MatchService Matches
 @inject GameSearches Searches
@@ -15,10 +14,20 @@
     <h1>Trouvez un adversaire à votre niveau</h1>
     <p>Matchmaking automatique pour Warhammer 40 000 sur Tabletop Simulator, avec classement Elo.<br />Gratuit, sans mot de passe à créer : votre compte Steam suffit.</p>
     <p class="hero-actions">
-        <a href="/login" class="button call-to-action" data-enhance-nav="false"><Icon Name="login" /> Se connecter avec Steam</a>
+        @if (_signedIn)
+        {
+            <a href="/play" class="button call-to-action"><Icon Name="search" /> Rechercher une partie</a>
+        }
+        else
+        {
+            <a href="/login" class="button call-to-action" data-enhance-nav="false"><Icon Name="login" /> Se connecter avec Steam</a>
+        }
         <a href="/searches" class="button secondary call-to-action"><Icon Name="search" /> Voir les recherches en cours</a>
     </p>
-    <p class="hint">En vous connectant, vous acceptez les <a href="/cgu">conditions d'utilisation</a> et la <a href="/confidentialite">politique de confidentialité</a>.</p>
+    @if (!_signedIn)
+    {
+        <p class="hint">En vous connectant, vous acceptez les <a href="/cgu">conditions d'utilisation</a> et la <a href="/confidentialite">politique de confidentialité</a>.</p>
+    }
 </section>
 
 @if (_players + _games + _searches > 0)
@@ -100,6 +109,7 @@
 
     [CascadingParameter] private Task<AuthenticationState> AuthenticationState { get; set; } = default!;
 
+    private bool _signedIn;
     private int _players;
     private int _games;
     private int _searches;
@@ -107,11 +117,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if ((await AuthenticationState).User.Identity?.IsAuthenticated == true)
-        {
-            Navigation.NavigateTo("/profile");
-            return;
-        }
+        _signedIn = (await AuthenticationState).User.Identity?.IsAuthenticated == true;
 
         _players = (await Accounts.DirectoryPageAsync(1)).Total;
         _games = (await Matches.InProgressPageAsync(1)).Total;

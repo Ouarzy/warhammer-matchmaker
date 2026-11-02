@@ -12,7 +12,7 @@ public sealed class ArmyListService(MatchmakerDbContext db, IRosterProvider rost
 
     /// <exception cref="RosterImportException">La liste n'a pas pu être récupérée, ou le joueur a atteint une limite.</exception>
     public async Task<ArmyList> ImportAsync(PlayerId owner, string code, string? name, GameFormat format, string? detachment = null,
-        ArmyListType type = ArmyListType.Hybrid, CancellationToken cancellationToken = default)
+        ArmyListType type = ArmyListType.Hybrid, string? mfmVersion = null, CancellationToken cancellationToken = default)
     {
         if (await db.ArmyLists.CountAsync(l => l.Owner == owner, cancellationToken) >= MaxListsPerPlayer)
             throw new RosterImportException(RosterImportError.LimitReached,
@@ -23,7 +23,7 @@ public sealed class ArmyListService(MatchmakerDbContext db, IRosterProvider rost
                 $"Trop d'imports à la suite : réessayez dans quelques minutes ({ImportLimiter.MaxImports} imports par tranche de {ImportLimiter.Window.TotalMinutes} minutes).");
 
         var roster = await rosters.FetchAsync(code, cancellationToken);
-        var list = ArmyList.Import(owner, name, format, roster, time.GetUtcNow(), detachment, type);
+        var list = ArmyList.Import(owner, name, format, roster, time.GetUtcNow(), detachment, type, mfmVersion);
 
         db.ArmyLists.Add(list);
         await db.SaveChangesAsync(cancellationToken);
@@ -47,7 +47,8 @@ public sealed class ArmyListService(MatchmakerDbContext db, IRosterProvider rost
 
     /// <returns>false si la liste n'existe pas ou n'appartient pas à ce joueur.</returns>
     /// <param name="detachment">Vide pour retirer le détachement.</param>
-    public async Task<bool> UpdateAsync(PlayerId owner, Guid id, string name, string? detachment, ArmyListType type,
+    /// <param name="mfmVersion">Vide pour retirer la version du MFM.</param>
+    public async Task<bool> UpdateAsync(PlayerId owner, Guid id, string name, string? detachment, string? mfmVersion, ArmyListType type,
         CancellationToken cancellationToken = default)
     {
         var list = await FindOwnedAsync(owner, id, cancellationToken);
@@ -55,6 +56,7 @@ public sealed class ArmyListService(MatchmakerDbContext db, IRosterProvider rost
 
         list.Rename(name);
         list.ChangeDetachment(detachment);
+        list.ChangeMfmVersion(mfmVersion);
         list.ChangeType(type);
         await db.SaveChangesAsync(cancellationToken);
         return true;

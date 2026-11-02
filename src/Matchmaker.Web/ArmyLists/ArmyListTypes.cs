@@ -11,6 +11,6 @@ public static class ArmyListTypes
     {
         ArmyListType.Team => "Liste d'équipe",
         ArmyListType.Solo => "Liste solo",
-        _ => "Liste hybride",
+        _ => "Liste mixte",
     };
 }

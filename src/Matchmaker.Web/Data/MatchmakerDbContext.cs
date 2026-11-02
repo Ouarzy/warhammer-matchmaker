@@ -57,6 +57,7 @@ public sealed class MatchmakerDbContext(DbContextOptions<MatchmakerDbContext> op
             list.HasIndex(l => l.Owner);
             list.Property(l => l.Name).HasColumnName("name").HasMaxLength(ArmyList.NameMaxLength);
             list.Property(l => l.Detachment).HasColumnName("detachment").HasMaxLength(ArmyList.DetachmentMaxLength);
+            list.Property(l => l.MfmVersion).HasColumnName("mfm_version").HasMaxLength(ArmyList.MfmVersionMaxLength);
             list.Property(l => l.Type).HasColumnName("type").HasConversion<string>().HasMaxLength(16);
             list.Property(l => l.IsFavorite).HasColumnName("is_favorite");
             list.ComplexProperty(l => l.Format, MapFormat);
@@ -85,6 +86,7 @@ public sealed class MatchmakerDbContext(DbContextOptions<MatchmakerDbContext> op
             archive.Property(a => a.Owner).HasColumnName("owner_steam_id").HasMaxLength(20).HasConversion(PlayerIdConverter);
             archive.Property(a => a.Name).HasColumnName("name").HasMaxLength(ArmyList.NameMaxLength);
             archive.Property(a => a.Detachment).HasColumnName("detachment").HasMaxLength(ArmyList.DetachmentMaxLength);
+            archive.Property(a => a.MfmVersion).HasColumnName("mfm_version").HasMaxLength(ArmyList.MfmVersionMaxLength);
             archive.Property(a => a.Type).HasColumnName("type").HasConversion<string>().HasMaxLength(16);
             archive.ComplexProperty(a => a.Format, MapFormat);
             MapRoster(archive.Property(a => a.Roster));

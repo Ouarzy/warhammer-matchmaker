@@ -16,7 +16,7 @@
     <header class="list-header">
         <p class="badge">Liste archivée</p>
         <h1>@_archive.Name</h1>
-        <p>@(_archive.Faction ?? "Faction inconnue")@(_archive.Detachment is { } detachment ? $" · Détachement {detachment}" : "") · @GameFormats.LabelOf(_archive.Format) · @_archive.Type.Label() · @_archive.Roster.Units.Count unités · édition @_archive.Roster.Edition</p>
+        <p>@(_archive.Faction ?? "Faction inconnue")@(_archive.Detachment is { } detachment ? $" · Détachement {detachment}" : "")@(_archive.MfmVersion is { } mfmVersion ? $" · MFM {mfmVersion}" : "") · @GameFormats.LabelOf(_archive.Format) · @_archive.Type.Label() · @_archive.Roster.Units.Count unités · édition @_archive.Roster.Edition</p>
         <p>
             Jouée par
             @if (_owner is not null)

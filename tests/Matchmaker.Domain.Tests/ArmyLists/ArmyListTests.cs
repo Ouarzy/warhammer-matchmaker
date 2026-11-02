@@ -194,6 +194,35 @@ public class ArmyListTests
     }
 
     [Fact]
+    public void The_mfm_version_is_optional_at_import()
+    {
+        Assert.Null(Imported().MfmVersion);
+        Assert.Null(ArmyList.Import(Owner, null, StrikeForce, Custodes(), Noon, mfmVersion: "  ").MfmVersion);
+        Assert.Equal("3.4", ArmyList.Import(Owner, null, StrikeForce, Custodes(), Noon, mfmVersion: " 3.4 ").MfmVersion);
+    }
+
+    [Fact]
+    public void The_mfm_version_can_be_changed_or_removed()
+    {
+        var list = Imported();
+
+        list.ChangeMfmVersion("3.4");
+        Assert.Equal("3.4", list.MfmVersion);
+
+        list.ChangeMfmVersion("  ");
+        Assert.Null(list.MfmVersion);
+    }
+
+    [Fact]
+    public void An_mfm_version_is_limited_to_32_characters()
+    {
+        var list = Imported();
+        list.ChangeMfmVersion(new string('x', 32));
+        Assert.Equal(32, list.MfmVersion!.Length);
+        Assert.Throws<ArgumentException>(() => list.ChangeMfmVersion(new string('x', 33)));
+    }
+
+    [Fact]
     public void A_detachment_name_is_limited_to_128_characters()
     {
         var list = Imported();

@@ -9,14 +9,37 @@ public sealed class NavigationTests(PostgresFixture postgres) : IDisposable
     private readonly MatchmakerWebFactory _factory = new(postgres);
 
     [Fact]
-    public async Task Once_signed_in_the_home_page_leads_to_my_account()
+    public async Task Once_signed_in_the_home_page_stays_the_landing_page_and_offers_to_play()
     {
         var client = await _factory.CreateClientAsAsync(MatchmakerWebFactory.NewPlayerId());
 
         var response = await client.GetAsync("/");
 
-        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
-        Assert.Equal("/profile", response.Headers.Location!.AbsolutePath);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var html = await response.Content.ReadAsStringAsync();
+        Assert.Contains("Comment ça marche", html);
+        Assert.Contains("class=\"button call-to-action\"", html);
+        Assert.Contains("href=\"/play\"", html);
+        Assert.DoesNotContain("Se connecter avec Steam", html);
+        Assert.DoesNotContain("En vous connectant", html);
+    }
+
+    [Fact]
+    public async Task My_account_title_of_the_lists_leads_to_my_lists()
+    {
+        var client = await _factory.CreateClientAsAsync(MatchmakerWebFactory.NewPlayerId());
+
+        Assert.Contains("<h2><a href=\"/lists\">", await client.GetStringAsync("/profile"));
+    }
+
+    [Fact]
+    public async Task The_lists_title_of_another_player_profile_is_not_a_link()
+    {
+        var other = MatchmakerWebFactory.NewPlayerId();
+        await _factory.CreateClientAsAsync(other);
+        var client = await _factory.CreateClientAsAsync(MatchmakerWebFactory.NewPlayerId());
+
+        Assert.DoesNotContain("<h2><a href=\"/lists\">", await client.GetStringAsync($"/players/{other.SteamId}"));
     }
 
     [Fact]

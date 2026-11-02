@@ -95,6 +95,12 @@ else
             <ValidationMessage For="() => Import!.Detachment" class="error" />
 
             <label>
+                Version du MFM <span class="hint">(facultatif)</span>
+                <InputText @bind-Value="Import!.MfmVersion" placeholder="3.4" maxlength="@ArmyList.MfmVersionMaxLength" />
+            </label>
+            <ValidationMessage For="() => Import!.MfmVersion" class="error" />
+
+            <label>
                 Format
                 <InputSelect @bind-Value="Import!.Format">
                     @foreach (var format in GameFormats.Of(GameSystem.Warhammer40k))
@@ -171,7 +177,7 @@ else
         ArmyList list;
         try
         {
-            list = await Lists.ImportAsync(await CurrentPlayerAsync(), Import.Code, Import.Name, format, Import.Detachment, Import.Type);
+            list = await Lists.ImportAsync(await CurrentPlayerAsync(), Import.Code, Import.Name, format, Import.Detachment, Import.Type, Import.MfmVersion);
         }
         catch (RosterImportException e)
         {
@@ -203,6 +209,9 @@ else
 
         [MaxLength(ArmyList.DetachmentMaxLength, ErrorMessage = "Le détachement est limité à 128 caractères.")]
         public string? Detachment { get; set; }
+
+        [MaxLength(ArmyList.MfmVersionMaxLength, ErrorMessage = "La version du MFM est limitée à 32 caractères.")]
+        public string? MfmVersion { get; set; }
 
         public string Format { get; set; } = GameFormats.StrikeForce.Name;
 

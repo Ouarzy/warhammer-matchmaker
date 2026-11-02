@@ -12,6 +12,7 @@ public sealed class ArmyList
 {
     public const int NameMaxLength = 512;
     public const int DetachmentMaxLength = 128;
+    public const int MfmVersionMaxLength = 32;
 
     private static readonly StringComparer AlphabeticalOrder = StringComparer.Create(CultureInfo.GetCultureInfo("fr-FR"), ignoreCase: true);
 
@@ -38,6 +39,8 @@ public sealed class ArmyList
     public string Name { get; private set; }
     /// <summary>Saisi par le joueur : YellowScribe ne transmet pas le détachement.</summary>
     public string? Detachment { get; private set; }
+    /// <summary>Version du Munitorum Field Manual, saisie par le joueur : YellowScribe ne la transmet pas.</summary>
+    public string? MfmVersion { get; private set; }
     public ArmyListType Type { get; private set; }
     /// <summary>Choisie par défaut pour une nouvelle partie. Une seule par joueur : voir ArmyListService.</summary>
     public bool IsFavorite { get; private set; }
@@ -49,19 +52,22 @@ public sealed class ArmyList
     /// <param name="name">Facultatif : YellowScribe ne transmet pas le nom de la liste.
     /// Par défaut, la liste porte le nom de sa faction et ses points.</param>
     public static ArmyList Import(PlayerId owner, string? name, GameFormat format, Roster roster, DateTimeOffset now, string? detachment = null,
-        ArmyListType type = ArmyListType.Hybrid)
+        ArmyListType type = ArmyListType.Hybrid, string? mfmVersion = null)
     {
         if (roster.Units.Count == 0)
             throw new ArgumentException("La liste importée ne contient aucune unité.", nameof(roster));
 
         var chosenName = string.IsNullOrWhiteSpace(name) ? $"{roster.Faction ?? "Liste"} – {GameFormats.LabelOf(format)}" : name;
-        return new ArmyList(Guid.NewGuid(), owner, ValidName(chosenName), format, roster, now) { Detachment = ValidDetachment(detachment), Type = type };
+        return new ArmyList(Guid.NewGuid(), owner, ValidName(chosenName), format, roster, now) { Detachment = ValidDetachment(detachment), MfmVersion = ValidMfmVersion(mfmVersion), Type = type };
     }
 
     public void Rename(string name) => Name = ValidName(name);
 
     /// <param name="detachment">Vide pour retirer le détachement.</param>
     public void ChangeDetachment(string? detachment) => Detachment = ValidDetachment(detachment);
+
+    /// <param name="mfmVersion">Vide pour retirer la version.</param>
+    public void ChangeMfmVersion(string? mfmVersion) => MfmVersion = ValidMfmVersion(mfmVersion);
 
     public void ChangeType(ArmyListType type) => Type = type;
 
@@ -86,6 +92,15 @@ public sealed class ArmyList
         var trimmed = detachment.Trim();
         if (trimmed.Length > DetachmentMaxLength)
             throw new ArgumentException($"Le nom d'un détachement est limité à {DetachmentMaxLength} caractères.", nameof(detachment));
+        return trimmed;
+    }
+
+    private static string? ValidMfmVersion(string? mfmVersion)
+    {
+        if (string.IsNullOrWhiteSpace(mfmVersion)) return null;
+        var trimmed = mfmVersion.Trim();
+        if (trimmed.Length > MfmVersionMaxLength)
+            throw new ArgumentException($"La version du MFM est limitée à {MfmVersionMaxLength} caractères.", nameof(mfmVersion));
         return trimmed;
     }
 
