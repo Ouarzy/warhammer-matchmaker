@@ -26,4 +26,10 @@ public class GameFormatsTests
         Assert.Equal(2000, GameFormats.PointsOf(GameFormats.StrikeForce));
         Assert.Equal(3000, GameFormats.PointsOf(GameFormats.Onslaught));
     }
+
+    [Fact]
+    public void A_format_is_shown_by_its_points()
+    {
+        Assert.Equal("2000 pts", GameFormats.LabelOf(GameFormats.StrikeForce));
+    }
 }

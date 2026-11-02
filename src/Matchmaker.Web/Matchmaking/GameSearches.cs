@@ -56,7 +56,7 @@ public sealed class GameSearches(MatchmakingCoordinator coordinator, ScheduledGa
     {
         var list = await lists.FindAsync(armyListId, cancellationToken);
         if (list is null || !list.IsCompatibleWith(search.Ticket.Format))
-            throw new InvalidOperationException($"Choisissez une liste au format {search.Ticket.Format.Name}.");
+            throw new InvalidOperationException($"Choisissez une liste au format {GameFormats.LabelOf(search.Ticket.Format)}.");
 
         if (search.PlannedFor is not { } plannedFor)
         {

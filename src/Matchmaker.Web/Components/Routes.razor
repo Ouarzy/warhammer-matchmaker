@@ -1,6 +1,7 @@
 ﻿<Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.NotFound)">
     <Found Context="routeData">
         <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
-        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+        @* Le titre de la page, ou le premier champ de la fenêtre modale si elle est ouverte. *@
+        <FocusOnNavigate RouteData="routeData" Selector="h1:not(:has(~ .modal)), .modal input:not([type=hidden])" />
     </Found>
 </Router>

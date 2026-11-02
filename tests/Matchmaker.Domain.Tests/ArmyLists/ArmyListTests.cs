@@ -104,17 +104,17 @@ public class ArmyListTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Without_a_name_the_list_is_named_after_its_faction_and_format(string? name)
+    public void Without_a_name_the_list_is_named_after_its_faction_and_points(string? name)
     {
-        Assert.Equal("Adeptus Custodes – Strike Force", Imported(name).Name);
+        Assert.Equal("Adeptus Custodes – 2000 pts", Imported(name).Name);
     }
 
     [Fact]
-    public void Without_a_name_nor_a_faction_the_list_is_named_after_its_format()
+    public void Without_a_name_nor_a_faction_the_list_is_named_after_its_points()
     {
         var list = ArmyList.Import(Owner, null, StrikeForce, new Roster("11e", [Unit("Mystery")]), Noon);
 
-        Assert.Equal("Liste – Strike Force", list.Name);
+        Assert.Equal("Liste – 2000 pts", list.Name);
     }
 
     [Theory]

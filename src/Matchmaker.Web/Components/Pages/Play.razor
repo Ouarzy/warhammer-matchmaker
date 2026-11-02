@@ -42,7 +42,7 @@
 
     case PlayerActivity.Idle when _lists.Count == 0:
         <p>Importez d'abord une liste d'armée pour pouvoir chercher un adversaire.</p>
-        <p><a href="/lists" class="button"><Icon Name="import" /> Importer une liste</a></p>
+        <p><a href="/lists?import=1" class="button"><Icon Name="import" /> Importer une liste</a></p>
         break;
 
     case PlayerActivity.Idle:
@@ -52,7 +52,7 @@
     case PlayerActivity.Searching:
         <section class="card status searching">
             <h2>Recherche d'un adversaire…</h2>
-            <p>@_status.Search!.Format.Name · @(_status.Search.Ranked ? "classée" : "amicale") · depuis @Elapsed(_status.Search.EnqueuedAt)</p>
+            <p>@GameFormats.LabelOf(_status.Search!.Format) · @(_status.Search.Ranked ? "classée" : "amicale") · depuis @Elapsed(_status.Search.EnqueuedAt)</p>
             <p class="hint">Gardez cet onglet ouvert : vous serez prévenu dès qu'un adversaire est trouvé.</p>
             <button class="button secondary" @onclick="CancelSearch"><Icon Name="close" /> Annuler la recherche</button>
         </section>

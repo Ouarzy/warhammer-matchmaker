@@ -8,7 +8,7 @@
     <p class="badge">@StatusLabel</p>
     <h1>Partie du @Match.ProposedAt.ToString("dd/MM/yyyy")</h1>
     <p class="hint">
-        @Match.First.Format.Name · @(Match.First.Ranked ? "classée" : "amicale")
+        @GameFormats.LabelOf(Match.First.Format) · @(Match.First.Ranked ? "classée" : "amicale")
         @if (Match.ConfirmedAutomatically)
         {
             @(" · résultat confirmé automatiquement")

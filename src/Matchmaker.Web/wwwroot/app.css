@@ -197,6 +197,19 @@ input:focus-visible, select:focus-visible, a:focus-visible, button:focus-visible
 .checkbox { display: flex !important; gap: 0.5rem; align-items: center; }
 .list-search { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-block: 1rem 0.5rem; }
 .list-search input { flex: 1 1 14rem; max-width: 24rem; }
+.modal-backdrop { position: fixed; inset: 0; z-index: 60; background: rgb(0 0 0 / 0.65); }
+.modal {
+    position: fixed;
+    z-index: 61;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(32rem, calc(100vw - 2rem));
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
+    margin: 0;
+}
+.modal h2 { margin-top: 0; }
 .favorite-toggle { background: none; border: 0; padding: 0.15rem; cursor: pointer; color: var(--muted); font: inherit; }
 .favorite-toggle:hover, .favorite-toggle.active { color: var(--accent); }
 

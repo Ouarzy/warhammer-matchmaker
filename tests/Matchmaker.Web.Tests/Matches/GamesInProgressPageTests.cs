@@ -29,7 +29,8 @@ public sealed class GamesInProgressPageTests(PostgresFixture postgres) : IDispos
         Assert.Contains($"href=\"/matches/{matchId}\"", html);
         Assert.Contains($"Alice{_suffix}", html);
         Assert.Contains($"Bob{_suffix}", html);
-        Assert.Contains("Strike Force", html);
+        Assert.Contains("2000 pts", html);
+        Assert.DoesNotContain("Strike Force", html);
     }
 
     [Fact]

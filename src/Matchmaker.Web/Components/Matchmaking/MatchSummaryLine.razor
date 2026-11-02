@@ -7,7 +7,7 @@
 }
 @* Toute la ligne mène à l'écran de la partie (joueurs, listes, score). *@
 <a class="match-line" href="/matches/@Match.Id">
-    <span>@Match.ProposedAt.ToString("dd/MM/yyyy") · @Match.First.Format.Name · @(Match.First.Ranked ? "classée" : "amicale")</span>
+    <span>@Match.ProposedAt.ToString("dd/MM/yyyy") · @GameFormats.LabelOf(Match.First.Format) · @(Match.First.Ranked ? "classée" : "amicale")</span>
     <span>contre @opponentName</span>
     @if (Match.Status is MatchStatus.Completed or MatchStatus.Abandoned)
     {

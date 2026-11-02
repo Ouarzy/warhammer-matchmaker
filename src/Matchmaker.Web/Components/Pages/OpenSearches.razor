@@ -102,7 +102,7 @@ else
                     }
                     else
                     {
-                        <a href="/lists" class="button secondary"><Icon Name="import" /> Importer une liste @search.Ticket.Format.Name</a>
+                        <a href="/lists?import=1" class="button secondary"><Icon Name="import" /> Importer une liste @GameFormats.LabelOf(search.Ticket.Format)</a>
                     }
                     @if (search.PlannedSearchId is { } plannedId)
                     {
@@ -152,7 +152,7 @@ else
     private string ReturnUrl => Id is null ? "/searches" : $"/searches/{Id}";
 
     private string Summary(OpenSearch search) =>
-        $"{_lists.GetValueOrDefault(search.Ticket.ArmyListId)?.Faction ?? "Faction inconnue"} · {search.Ticket.Format.Name} ({GameFormats.PointsOf(search.Ticket.Format)} pts) · {(search.Ticket.Ranked ? "classée" : "amicale")} · Elo {_players.GetValueOrDefault(search.Ticket.Player)?.Rating.Value ?? search.Ticket.Rating.Value}";
+        $"{_lists.GetValueOrDefault(search.Ticket.ArmyListId)?.Faction ?? "Faction inconnue"} · {GameFormats.LabelOf(search.Ticket.Format)} · {(search.Ticket.Ranked ? "classée" : "amicale")} · Elo {_players.GetValueOrDefault(search.Ticket.Player)?.Rating.Value ?? search.Ticket.Rating.Value}";
 
     // L'aperçu d'un lien est le même pour tous : on ne connaît pas le fuseau du lecteur, et le site est francophone.
     private string SharedTitle => _searches.FirstOrDefault() is { PlannedFor: { } plannedFor } search

@@ -143,7 +143,7 @@ public sealed class PublicVisibilityTests(PostgresFixture postgres) : IDisposabl
 
         Assert.Contains($"<meta property=\"og:title\" content=\"Alice{_suffix} cherche un adversaire", html);
         Assert.Contains($"à {paris:HH}h00", html);
-        Assert.Contains("Adeptus Custodes · Strike Force (2000 pts)", html);
+        Assert.Contains("Adeptus Custodes · 2000 pts", html);
         Assert.Contains("heure de Paris", html);
         Assert.Contains("<meta name=\"robots\" content=\"noindex\"", html);
         Assert.Contains($"href=\"/login?returnUrl=/searches/{search.Id}\"", html);

@@ -22,4 +22,7 @@ public static class GameFormats
         All.FirstOrDefault(f => f.Game == game && f.Name == name);
 
     public static int PointsOf(GameFormat format) => Points[format];
+
+    /// <summary>Un format s'affiche par ses points : son nom n'apporte rien au joueur.</summary>
+    public static string LabelOf(GameFormat format) => $"{PointsOf(format)} pts";
 }

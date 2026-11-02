@@ -40,6 +40,13 @@
             }
         });
 
+        // Fenêtre modale : Échap la referme.
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") document.querySelector("[data-modal-close]")?.click();
+        });
+        // Ouverte par un clic, elle laisserait le focus sur le lien resté derrière elle.
+        Blazor.addEventListener("enhancedload", () => document.querySelector(".modal input:not([type=hidden])")?.focus());
+
         window.matchmakerTimeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
 
         // Dates (<LocalTime>) dans le fuseau du lecteur. On n'ajoute qu'un attribut : le texte reste à Blazor.

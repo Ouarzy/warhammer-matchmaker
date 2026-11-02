@@ -42,7 +42,7 @@ public sealed class PlayPageTests(PostgresFixture postgres) : IDisposable
 
         var html = await client.GetStringAsync("/play");
 
-        Assert.Contains("Mes Custodes (Strike Force)", html);
+        Assert.Contains("Mes Custodes (2000 pts)", html);
         Assert.Contains("Partie classée", html);
         Assert.Contains("Rechercher un adversaire", html);
     }

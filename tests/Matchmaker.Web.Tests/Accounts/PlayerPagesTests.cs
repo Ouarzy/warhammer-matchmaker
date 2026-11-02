@@ -64,8 +64,8 @@ public sealed class PlayerPagesTests(PostgresFixture postgres) : IDisposable
 
         var html = await Text(await _factory.CreateAnonymousClient().GetAsync($"/players/{player.SteamId}"));
 
-        Assert.Contains("· Adeptus Custodes · Shield Host · Strike Force", html);
-        Assert.Contains("· Adeptus Custodes · Strike Force", html);
+        Assert.Contains("· Adeptus Custodes · Shield Host · 2000 pts", html);
+        Assert.Contains("· Adeptus Custodes · 2000 pts", html);
     }
 
     [Fact]

@@ -33,7 +33,7 @@ public sealed class ArmyListPagesTests(PostgresFixture postgres) : IDisposable
     }
 
     [Fact]
-    public async Task My_lists_show_my_imported_lists_and_the_import_form()
+    public async Task My_lists_show_my_imported_lists_and_only_a_button_to_import()
     {
         var me = MatchmakerWebFactory.NewPlayerId();
         var client = await _factory.CreateClientAsAsync(me);
@@ -43,8 +43,56 @@ public sealed class ArmyListPagesTests(PostgresFixture postgres) : IDisposable
 
         Assert.Contains("Mes Custodes", html);
         Assert.Contains("Adeptus Custodes", html);
+        Assert.Contains("href=\"/lists?import=1\"", html);
+        Assert.DoesNotContain("Code YellowScribe", html);
+    }
+
+    [Fact]
+    public async Task A_player_without_a_list_can_still_open_the_import()
+    {
+        var client = await _factory.CreateClientAsAsync(MatchmakerWebFactory.NewPlayerId());
+
+        var html = await client.GetStringAsync("/lists");
+
+        Assert.Contains("href=\"/lists?import=1\"", html);
+    }
+
+    [Fact]
+    public async Task The_import_button_opens_a_modal_asking_for_the_list_and_its_points()
+    {
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+        await ImportCustodes(me, "Mes Custodes");
+
+        var html = await client.GetStringAsync("/lists?import=1");
+
+        Assert.Contains("role=\"dialog\"", html);
         Assert.Contains("Code YellowScribe", html);
-        Assert.Contains("Strike Force (2000 pts)", html);
+        Assert.Contains(">2000 pts</option>", html);
+        Assert.DoesNotContain(">Strike Force", html);
+        Assert.Contains("Mes Custodes", html);
+    }
+
+    [Fact]
+    public async Task A_refused_import_stays_in_the_modal()
+    {
+        var client = await _factory.CreateClientAsAsync(MatchmakerWebFactory.NewPlayerId());
+
+        var response = await client.SubmitAsync("/lists?import=1", "import", ImportForm("deadbeef"));
+
+        Assert.Contains("role=\"dialog\"", await response.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task Marking_a_favorite_does_not_open_the_import()
+    {
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+        var listId = await ImportCustodes(me);
+
+        var response = await client.SubmitAsync("/lists", "favorite", new Dictionary<string, string> { ["FavoriteListId"] = listId.ToString() });
+
+        Assert.DoesNotContain("role=\"dialog\"", await response.Content.ReadAsStringAsync());
     }
 
     [Fact]
@@ -82,7 +130,7 @@ public sealed class ArmyListPagesTests(PostgresFixture postgres) : IDisposable
         var me = MatchmakerWebFactory.NewPlayerId();
         var client = await _factory.CreateClientAsAsync(me);
 
-        var response = await client.SubmitAsync("/lists", "import", ImportForm(Samples.CustodesCode, "Nouvelle liste"));
+        var response = await client.SubmitAsync("/lists?import=1", "import", ImportForm(Samples.CustodesCode, "Nouvelle liste"));
 
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
         Assert.Matches("^/lists/[0-9a-f-]{36}$", response.Headers.Location!.AbsolutePath);
@@ -99,7 +147,7 @@ public sealed class ArmyListPagesTests(PostgresFixture postgres) : IDisposable
         var client = await _factory.CreateClientAsAsync(me);
         var longName = new string('x', 512);
 
-        await client.SubmitAsync("/lists", "import", ImportForm(Samples.CustodesCode, longName));
+        await client.SubmitAsync("/lists?import=1", "import", ImportForm(Samples.CustodesCode, longName));
 
         using var scope = _factory.Services.CreateScope();
         var stored = Assert.Single(await scope.ServiceProvider.GetRequiredService<ArmyListService>().ListOwnedByAsync(me));
@@ -112,12 +160,12 @@ public sealed class ArmyListPagesTests(PostgresFixture postgres) : IDisposable
         var me = MatchmakerWebFactory.NewPlayerId();
         var client = await _factory.CreateClientAsAsync(me);
 
-        var response = await client.SubmitAsync("/lists", "import", ImportForm(Samples.CustodesCode, name: ""));
+        var response = await client.SubmitAsync("/lists?import=1", "import", ImportForm(Samples.CustodesCode, name: ""));
 
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
         using var scope = _factory.Services.CreateScope();
         var stored = Assert.Single(await scope.ServiceProvider.GetRequiredService<ArmyListService>().ListOwnedByAsync(me));
-        Assert.Equal("Adeptus Custodes – Strike Force", stored.Name);
+        Assert.Equal("Adeptus Custodes – 2000 pts", stored.Name);
     }
 
     [Fact]
@@ -125,7 +173,7 @@ public sealed class ArmyListPagesTests(PostgresFixture postgres) : IDisposable
     {
         var client = await _factory.CreateClientAsAsync(MatchmakerWebFactory.NewPlayerId());
 
-        var response = await client.SubmitAsync("/lists", "import", ImportForm("deadbeef"));
+        var response = await client.SubmitAsync("/lists?import=1", "import", ImportForm("deadbeef"));
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("inconnu ou expiré", await response.Content.ReadAsStringAsync());
@@ -136,7 +184,7 @@ public sealed class ArmyListPagesTests(PostgresFixture postgres) : IDisposable
     {
         var client = await _factory.CreateClientAsAsync(MatchmakerWebFactory.NewPlayerId());
 
-        var response = await client.SubmitAsync("/lists", "import", ImportForm("pas-un-code"));
+        var response = await client.SubmitAsync("/lists?import=1", "import", ImportForm("pas-un-code"));
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("8 caractères", await response.Content.ReadAsStringAsync());
@@ -186,7 +234,7 @@ public sealed class ArmyListPagesTests(PostgresFixture postgres) : IDisposable
         var me = MatchmakerWebFactory.NewPlayerId();
         var client = await _factory.CreateClientAsAsync(me);
 
-        var response = await client.SubmitAsync("/lists", "import", ImportForm(Samples.CustodesCode, "Avec détachement", detachment: "Shield Host"));
+        var response = await client.SubmitAsync("/lists?import=1", "import", ImportForm(Samples.CustodesCode, "Avec détachement", detachment: "Shield Host"));
 
         var listUrl = response.Headers.Location!.AbsolutePath;
         Assert.Contains("Shield Host", WebUtility.HtmlDecode(await client.GetStringAsync("/lists")));
@@ -211,7 +259,7 @@ public sealed class ArmyListPagesTests(PostgresFixture postgres) : IDisposable
     {
         var client = await _factory.CreateClientAsAsync(MatchmakerWebFactory.NewPlayerId());
 
-        var html = WebUtility.HtmlDecode(await client.GetStringAsync("/lists"));
+        var html = WebUtility.HtmlDecode(await client.GetStringAsync("/lists?import=1"));
 
         Assert.Contains("Type de liste", html);
         var offered = System.Text.RegularExpressions.Regex.Matches(html, "<option value=\"(Team|Solo|Hybrid)\"[^>]*>([^<]+)</option>")
@@ -228,7 +276,7 @@ public sealed class ArmyListPagesTests(PostgresFixture postgres) : IDisposable
         var form = ImportForm(Samples.CustodesCode, "Custodes ETC");
         form["Import.Type"] = "Team";
 
-        var response = await client.SubmitAsync("/lists", "import", form);
+        var response = await client.SubmitAsync("/lists?import=1", "import", form);
 
         Assert.Contains("· Liste d'équipe ·", WebUtility.HtmlDecode(await client.GetStringAsync(response.Headers.Location!.AbsolutePath)));
         using var scope = _factory.Services.CreateScope();

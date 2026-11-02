@@ -27,7 +27,7 @@ else
                     <span class="active-match-info">
                         <strong>@NameOf(match.First.Player) – @NameOf(match.Second.Player)</strong>
                         <span class="hint">
-                            @match.First.Format.Name · @(match.First.Ranked ? "classée" : "amicale") ·
+                            @GameFormats.LabelOf(match.First.Format) · @(match.First.Ranked ? "classée" : "amicale") ·
                             @if (match.ScheduledFor is { } start)
                             {
                                 <text>prévue le <LocalTime Value="start" /></text>

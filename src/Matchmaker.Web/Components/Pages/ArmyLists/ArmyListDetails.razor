@@ -13,7 +13,7 @@
 
     <header class="list-header">
         <h1>@_list.Name</h1>
-        <p>@(_list.Faction ?? "Faction inconnue")@(_list.Detachment is { } detachment ? $" · Détachement {detachment}" : "") · @_list.Format.Name · @_list.Type.Label() · @_list.Roster.Units.Count unités · édition @_list.Roster.Edition</p>
+        <p>@(_list.Faction ?? "Faction inconnue")@(_list.Detachment is { } detachment ? $" · Détachement {detachment}" : "") · @GameFormats.LabelOf(_list.Format) · @_list.Type.Label() · @_list.Roster.Units.Count unités · édition @_list.Roster.Edition</p>
     </header>
 
     @if (_isOwner)

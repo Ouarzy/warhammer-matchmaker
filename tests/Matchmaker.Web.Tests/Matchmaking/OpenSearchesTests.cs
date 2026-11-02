@@ -147,7 +147,8 @@ public sealed class OpenSearchesTests(PostgresFixture postgres) : IDisposable
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync());
         Assert.Contains($"Alice{_suffix}", html);
-        Assert.Contains("Strike Force", html);
+        Assert.Contains("2000 pts", html);
+        Assert.DoesNotContain("Strike Force", html);
         Assert.Contains($"datetime=\"{_evening.UtcDateTime:yyyy-MM-ddTHH:mm:ssZ}\"", html);
         Assert.Contains("Se connecter pour jouer", html);
         Assert.DoesNotContain("Faire la même recherche", html);
@@ -162,8 +163,8 @@ public sealed class OpenSearchesTests(PostgresFixture postgres) : IDisposable
 
         var html = await Html(_factory.CreateAnonymousClient(), "/searches");
 
-        Assert.Contains("Adeptus Custodes · Strike Force (2000 pts)", html);
-        Assert.Contains("Adeptus Custodes · Incursion (1000 pts)", html);
+        Assert.Contains("Adeptus Custodes · 2000 pts", html);
+        Assert.Contains("Adeptus Custodes · 1000 pts", html);
     }
 
     [Fact]
@@ -202,7 +203,7 @@ public sealed class OpenSearchesTests(PostgresFixture postgres) : IDisposable
 
         var html = await Html(bobClient, "/searches");
 
-        Assert.Contains("Importer une liste Strike Force", html);
+        Assert.Contains("Importer une liste 2000 pts", html);
         Assert.DoesNotContain("Faire la même recherche", html);
     }
 

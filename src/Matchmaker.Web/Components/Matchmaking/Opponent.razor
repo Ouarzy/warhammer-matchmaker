@@ -24,7 +24,7 @@
             {
                 @($" · {detachment}")
             }
-            · @Ticket.Format.Name
+            · @GameFormats.LabelOf(Ticket.Format)
             · @(Ticket.Ranked ? "classée" : "amicale")
         </p>
         @if (List is not null)

@@ -8,7 +8,7 @@
         <select @bind="_listId">
             @foreach (var list in _offered)
             {
-                <option value="@list.Id">@list.Name (@list.Format.Name)</option>
+                <option value="@list.Id">@list.Name (@GameFormats.LabelOf(list.Format))</option>
             }
         </select>
     </label>

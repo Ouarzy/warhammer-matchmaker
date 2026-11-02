@@ -12,68 +12,17 @@
 
 <h1><Icon Name="lists" /> Mes listes</h1>
 
-<section class="card">
-    <h2><Icon Name="import" /> Importer une liste</h2>
-
-    <EditForm Model="Import" FormName="import" OnValidSubmit="ImportAsync" Enhance class="form">
-        <DataAnnotationsValidator />
-
-        <label>
-            Code YellowScribe
-            <InputText @bind-Value="Import!.Code" placeholder="0c6cfa93" autocomplete="off" />
-        </label>
-        <ValidationMessage For="() => Import!.Code" class="error" />
-
-        <label>
-            Nom de la liste <span class="hint">(facultatif : faction et format par défaut)</span>
-            <InputText @bind-Value="Import!.Name" placeholder="Adeptus Custodes – Strike Force" maxlength="@ArmyList.NameMaxLength" />
-        </label>
-        <ValidationMessage For="() => Import!.Name" class="error" />
-
-        <label>
-            Détachement <span class="hint">(facultatif : YellowScribe ne le transmet pas)</span>
-            <InputText @bind-Value="Import!.Detachment" placeholder="Shield Host" maxlength="@ArmyList.DetachmentMaxLength" />
-        </label>
-        <ValidationMessage For="() => Import!.Detachment" class="error" />
-
-        <label>
-            Format
-            <InputSelect @bind-Value="Import!.Format">
-                @foreach (var format in GameFormats.Of(GameSystem.Warhammer40k))
-                {
-                    <option value="@format.Name">@format.Name (@GameFormats.PointsOf(format) pts)</option>
-                }
-            </InputSelect>
-        </label>
-
-        <label>
-            Type de liste
-            <InputSelect @bind-Value="Import!.Type">
-                @foreach (var type in ArmyListTypes.Offered)
-                {
-                    <option value="@type">@type.Label()</option>
-                }
-            </InputSelect>
-        </label>
-
-        @if (_importError is not null)
-        {
-            <p class="error" role="alert">@_importError</p>
-        }
-
-        <button type="submit" class="button"><Icon Name="import" /> Importer</button>
-    </EditForm>
-</section>
-
 @if (_lists.Count == 0)
 {
     <p>Vous n'avez encore aucune liste.</p>
+    <p><a href="/lists?import=1" class="button"><Icon Name="import" /> Importer</a></p>
 }
 else
 {
     <form method="get" action="/lists" class="list-search" role="search">
         <input type="search" name="q" value="@Query" placeholder="Rechercher une liste par son nom" aria-label="Rechercher une liste par son nom" />
         <button type="submit" class="button"><Icon Name="search" /> Rechercher</button>
+        <a href="/lists?import=1" class="button secondary"><Icon Name="import" /> Importer</a>
         @if (!string.IsNullOrWhiteSpace(Query))
         {
             <a href="/lists">Tout afficher</a>
@@ -106,7 +55,7 @@ else
                             <td><a href="/lists/@list.Id"><Icon Name="eye" /> @list.Name</a></td>
                             <td>@(list.Faction ?? "Inconnue")</td>
                             <td>@(list.Detachment ?? "–")</td>
-                            <td>@list.Format.Name</td>
+                            <td>@GameFormats.LabelOf(list.Format)</td>
                             <td>@list.Type.Label()</td>
                             <td>@list.Roster.Units.Count</td>
                             <td>@list.ImportedAt.ToString("dd/MM/yyyy")</td>
@@ -116,6 +65,66 @@ else
             </table>
         </form>
     }
+}
+
+@if (_importOpen)
+{
+    <a href="/lists" class="modal-backdrop" aria-label="Fermer" tabindex="-1"></a>
+    <section class="card modal" role="dialog" aria-modal="true" aria-labelledby="import-title">
+        <h2 id="import-title"><Icon Name="import" /> Importer une liste</h2>
+
+        <EditForm Model="Import" FormName="import" OnValidSubmit="ImportAsync" Enhance class="form">
+            <DataAnnotationsValidator />
+
+            <label>
+                Code YellowScribe
+                <InputText @bind-Value="Import!.Code" placeholder="0c6cfa93" autocomplete="off" />
+            </label>
+            <ValidationMessage For="() => Import!.Code" class="error" />
+
+            <label>
+                Nom de la liste <span class="hint">(facultatif : faction et points par défaut)</span>
+                <InputText @bind-Value="Import!.Name" placeholder="Adeptus Custodes – 2000 pts" maxlength="@ArmyList.NameMaxLength" />
+            </label>
+            <ValidationMessage For="() => Import!.Name" class="error" />
+
+            <label>
+                Détachement <span class="hint">(facultatif : YellowScribe ne le transmet pas)</span>
+                <InputText @bind-Value="Import!.Detachment" placeholder="Shield Host" maxlength="@ArmyList.DetachmentMaxLength" />
+            </label>
+            <ValidationMessage For="() => Import!.Detachment" class="error" />
+
+            <label>
+                Format
+                <InputSelect @bind-Value="Import!.Format">
+                    @foreach (var format in GameFormats.Of(GameSystem.Warhammer40k))
+                    {
+                        <option value="@format.Name">@GameFormats.LabelOf(format)</option>
+                    }
+                </InputSelect>
+            </label>
+
+            <label>
+                Type de liste
+                <InputSelect @bind-Value="Import!.Type">
+                    @foreach (var type in ArmyListTypes.Offered)
+                    {
+                        <option value="@type">@type.Label()</option>
+                    }
+                </InputSelect>
+            </label>
+
+            @if (_importError is not null)
+            {
+                <p class="error" role="alert">@_importError</p>
+            }
+
+            <div class="actions">
+                <button type="submit" class="button"><Icon Name="import" /> Importer</button>
+                <a href="/lists" class="button secondary" data-modal-close>Annuler</a>
+            </div>
+        </EditForm>
+    </section>
 }
 
 @code {
@@ -130,15 +139,21 @@ else
     [SupplyParameterFromQuery(Name = "q")]
     private string? Query { get; set; }
 
+    [SupplyParameterFromQuery(Name = "import")]
+    private string? ImportRequested { get; set; }
+
     private IReadOnlyList<ArmyList> Shown => string.IsNullOrWhiteSpace(Query)
         ? _lists
         : [.. _lists.Where(l => l.Name.Contains(Query.Trim(), StringComparison.CurrentCultureIgnoreCase))];
 
     private IReadOnlyList<ArmyList> _lists = [];
     private string? _importError;
+    private bool _importOpen;
 
     protected override async Task OnInitializedAsync()
     {
+        // Un import envoyé qui revient ici a été refusé : la fenêtre reste ouverte pour afficher l'erreur.
+        _importOpen = ImportRequested is not null || Import is not null;
         // Pas d'initialiseur sur la propriété : un envoi du formulaire la remplacerait par null.
         Import ??= new ImportModel();
         _lists = await Lists.ListOwnedByAsync(await CurrentPlayerAsync());

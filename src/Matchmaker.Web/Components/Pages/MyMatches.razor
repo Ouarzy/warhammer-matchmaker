@@ -32,7 +32,7 @@
                         <span class="active-match-info">
                             <strong>@(_names.GetValueOrDefault(opponent.Player)?.DisplayName ?? opponent.Player.SteamId)</strong>
                             <span class="hint">
-                                @opponent.Format.Name · @(opponent.Ranked ? "classée" : "amicale") ·
+                                @GameFormats.LabelOf(opponent.Format) · @(opponent.Ranked ? "classée" : "amicale") ·
                                 @if (match.ScheduledFor is { } start)
                                 {
                                     <text>Prévue le <LocalTime Value="start" /></text>
