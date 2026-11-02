@@ -5,6 +5,7 @@
 @using Matchmaker.Domain.Matchmaking
 @using Matchmaker.Web.Accounts
 @using Matchmaker.Web.ArmyLists
+@using Microsoft.AspNetCore.WebUtilities
 @inject ArmyListService Lists
 @inject NavigationManager Navigation
 
@@ -20,12 +21,17 @@
 else
 {
     <form method="get" action="/lists" class="list-search" role="search">
+        @if (_order != ArmyListOrder.Default)
+        {
+            <input type="hidden" name="sort" value="@_order.Column" />
+            <input type="hidden" name="dir" value="@(_order.Descending ? "desc" : "asc")" />
+        }
         <input type="search" name="q" value="@Query" placeholder="Rechercher une liste par son nom" aria-label="Rechercher une liste par son nom" />
         <button type="submit" class="button"><Icon Name="search" /> Rechercher</button>
         <a href="/lists?import=1" class="button secondary"><Icon Name="import" /> Importer</a>
         @if (!string.IsNullOrWhiteSpace(Query))
         {
-            <a href="/lists">Tout afficher</a>
+            <a href="@ListsUrl(_order, null)">Tout afficher</a>
         }
     </form>
 
@@ -39,7 +45,16 @@ else
             <AntiforgeryToken />
             <table>
                 <thead>
-                    <tr><th><span class="visually-hidden">Favori</span></th><th>Nom</th><th>Faction</th><th>Détachement</th><th>Format</th><th>Type</th><th>Unités</th><th>Importée le</th></tr>
+                    <tr>
+                        <th><span class="visually-hidden">Favori</span></th>
+                        @SortableHeader(ArmyListOrder.Name, "Nom")
+                        @SortableHeader(ArmyListOrder.Faction, "Faction")
+                        @SortableHeader(ArmyListOrder.Detachment, "Détachement")
+                        @SortableHeader(ArmyListOrder.Format, "Format")
+                        @SortableHeader(ArmyListOrder.Type, "Type")
+                        @SortableHeader(ArmyListOrder.Units, "Unités")
+                        @SortableHeader(ArmyListOrder.Imported, "Importée le")
+                    </tr>
                 </thead>
                 <tbody>
                     @foreach (var list in Shown)
@@ -83,22 +98,28 @@ else
             <ValidationMessage For="() => Import!.Code" class="error" />
 
             <label>
-                Nom de la liste <span class="hint">(facultatif : faction et points par défaut)</span>
+                <span>Nom de la liste <span class="hint">(facultatif : faction et points par défaut)</span></span>
                 <InputText @bind-Value="Import!.Name" placeholder="Adeptus Custodes – 2000 pts" maxlength="@ArmyList.NameMaxLength" />
             </label>
             <ValidationMessage For="() => Import!.Name" class="error" />
 
             <label>
-                Détachement <span class="hint">(facultatif : YellowScribe ne le transmet pas)</span>
+                <span>Détachement <span class="hint">(facultatif : YellowScribe ne le transmet pas)</span></span>
                 <InputText @bind-Value="Import!.Detachment" placeholder="Shield Host" maxlength="@ArmyList.DetachmentMaxLength" />
             </label>
             <ValidationMessage For="() => Import!.Detachment" class="error" />
 
             <label>
-                Version du MFM <span class="hint">(facultatif)</span>
+                <span>Version du MFM <span class="hint">(facultatif)</span></span>
                 <InputText @bind-Value="Import!.MfmVersion" placeholder="3.4" maxlength="@ArmyList.MfmVersionMaxLength" />
             </label>
             <ValidationMessage For="() => Import!.MfmVersion" class="error" />
+
+            <label>
+                <span>Force disposition <span class="hint">(facultatif)</span></span>
+                <InputText @bind-Value="Import!.ForceDisposition" maxlength="@ArmyList.ForceDispositionMaxLength" />
+            </label>
+            <ValidationMessage For="() => Import!.ForceDisposition" class="error" />
 
             <label>
                 Format
@@ -145,19 +166,27 @@ else
     [SupplyParameterFromQuery(Name = "q")]
     private string? Query { get; set; }
 
+    [SupplyParameterFromQuery(Name = "sort")]
+    private string? SortColumn { get; set; }
+
+    [SupplyParameterFromQuery(Name = "dir")]
+    private string? SortDirection { get; set; }
+
     [SupplyParameterFromQuery(Name = "import")]
     private string? ImportRequested { get; set; }
 
-    private IReadOnlyList<ArmyList> Shown => string.IsNullOrWhiteSpace(Query)
+    private IReadOnlyList<ArmyList> Shown => _order.Apply(string.IsNullOrWhiteSpace(Query)
         ? _lists
-        : [.. _lists.Where(l => l.Name.Contains(Query.Trim(), StringComparison.CurrentCultureIgnoreCase))];
+        : _lists.Where(l => l.Name.Contains(Query.Trim(), StringComparison.CurrentCultureIgnoreCase)));
 
     private IReadOnlyList<ArmyList> _lists = [];
     private string? _importError;
     private bool _importOpen;
+    private ArmyListOrder _order = ArmyListOrder.Default;
 
     protected override async Task OnInitializedAsync()
     {
+        _order = ArmyListOrder.Parse(SortColumn, SortDirection);
         // Un import envoyé qui revient ici a été refusé : la fenêtre reste ouverte pour afficher l'erreur.
         _importOpen = ImportRequested is not null || Import is not null;
         // Pas d'initialiseur sur la propriété : un envoi du formulaire la remplacerait par null.
@@ -177,7 +206,7 @@ else
         ArmyList list;
         try
         {
-            list = await Lists.ImportAsync(await CurrentPlayerAsync(), Import.Code, Import.Name, format, Import.Detachment, Import.Type, Import.MfmVersion);
+            list = await Lists.ImportAsync(await CurrentPlayerAsync(), Import.Code, Import.Name, format, Import.Detachment, Import.Type, Import.MfmVersion, Import.ForceDisposition);
         }
         catch (RosterImportException e)
         {
@@ -193,6 +222,18 @@ else
         var me = await CurrentPlayerAsync();
         if (FavoriteListId is { } id && await Lists.ToggleFavoriteAsync(me, id))
             _lists = await Lists.ListOwnedByAsync(me);
+    }
+
+    private RenderFragment SortableHeader(string column, string label) =>
+        @<th aria-sort="@(column != _order.Column ? null : _order.Descending ? "descending" : "ascending")">
+            <a href="@ListsUrl(_order.Next(column), Query)" class="sort-link">@label @if (column == _order.Column) { <span aria-hidden="true">@(_order.Descending ? "▼" : "▲")</span> }</a>
+        </th>;
+
+    private static string ListsUrl(ArmyListOrder order, string? query)
+    {
+        var parameters = new Dictionary<string, string?> { ["sort"] = order.Column, ["dir"] = order.Descending ? "desc" : "asc" };
+        if (!string.IsNullOrWhiteSpace(query)) parameters["q"] = query;
+        return QueryHelpers.AddQueryString("/lists", parameters);
     }
 
     private async Task<Matchmaker.Domain.Players.PlayerId> CurrentPlayerAsync() =>
@@ -212,6 +253,9 @@ else
 
         [MaxLength(ArmyList.MfmVersionMaxLength, ErrorMessage = "La version du MFM est limitée à 32 caractères.")]
         public string? MfmVersion { get; set; }
+
+        [MaxLength(ArmyList.ForceDispositionMaxLength, ErrorMessage = "La force disposition est limitée à 128 caractères.")]
+        public string? ForceDisposition { get; set; }
 
         public string Format { get; set; } = GameFormats.StrikeForce.Name;
 

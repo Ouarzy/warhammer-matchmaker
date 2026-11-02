@@ -15,7 +15,7 @@ public class ArchivedArmyListTests
     [Fact]
     public void An_archive_is_a_copy_of_the_list_as_played_in_a_match()
     {
-        var list = ArmyList.Import(Owner, "Custodes 2000", StrikeForce, Custodes, Noon, "Shield Host", ArmyListType.Team, "3.4");
+        var list = ArmyList.Import(Owner, "Custodes 2000", StrikeForce, Custodes, Noon, "Shield Host", ArmyListType.Team, "3.4", "Vanguard");
 
         var archive = list.ArchiveFor(MatchId, Noon.AddDays(1));
 
@@ -26,6 +26,7 @@ public class ArchivedArmyListTests
         Assert.Equal("Custodes 2000", archive.Name);
         Assert.Equal("Shield Host", archive.Detachment);
         Assert.Equal("3.4", archive.MfmVersion);
+        Assert.Equal("Vanguard", archive.ForceDisposition);
         Assert.Equal(ArmyListType.Team, archive.Type);
         Assert.Equal(StrikeForce, archive.Format);
         Assert.Same(Custodes, archive.Roster);
@@ -42,9 +43,11 @@ public class ArchivedArmyListTests
         list.Rename("Custodes v2");
         list.ChangeDetachment("Talons of the Emperor");
         list.ChangeMfmVersion("3.5");
+        list.ChangeForceDisposition("Vanguard");
 
         Assert.Equal("Custodes 2000", archive.Name);
         Assert.Null(archive.Detachment);
         Assert.Null(archive.MfmVersion);
+        Assert.Null(archive.ForceDisposition);
     }
 }

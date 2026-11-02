@@ -223,6 +223,35 @@ public class ArmyListTests
     }
 
     [Fact]
+    public void The_force_disposition_is_optional_at_import()
+    {
+        Assert.Null(Imported().ForceDisposition);
+        Assert.Null(ArmyList.Import(Owner, null, StrikeForce, Custodes(), Noon, forceDisposition: "  ").ForceDisposition);
+        Assert.Equal("Vanguard", ArmyList.Import(Owner, null, StrikeForce, Custodes(), Noon, forceDisposition: " Vanguard ").ForceDisposition);
+    }
+
+    [Fact]
+    public void The_force_disposition_can_be_changed_or_removed()
+    {
+        var list = Imported();
+
+        list.ChangeForceDisposition("Vanguard");
+        Assert.Equal("Vanguard", list.ForceDisposition);
+
+        list.ChangeForceDisposition("  ");
+        Assert.Null(list.ForceDisposition);
+    }
+
+    [Fact]
+    public void A_force_disposition_is_limited_to_128_characters()
+    {
+        var list = Imported();
+        list.ChangeForceDisposition(new string('x', 128));
+        Assert.Equal(128, list.ForceDisposition!.Length);
+        Assert.Throws<ArgumentException>(() => list.ChangeForceDisposition(new string('x', 129)));
+    }
+
+    [Fact]
     public void A_detachment_name_is_limited_to_128_characters()
     {
         var list = Imported();

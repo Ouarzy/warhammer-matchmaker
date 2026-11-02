@@ -18,6 +18,7 @@ public sealed class ArchivedArmyList
         Name = original.Name;
         Detachment = original.Detachment;
         MfmVersion = original.MfmVersion;
+        ForceDisposition = original.ForceDisposition;
         Type = original.Type;
         Format = original.Format;
         Roster = original.Roster;
@@ -39,6 +40,7 @@ public sealed class ArchivedArmyList
     public string Name { get; }
     public string? Detachment { get; }
     public string? MfmVersion { get; }
+    public string? ForceDisposition { get; }
     public ArmyListType Type { get; }
     public GameFormat Format { get; }
     public Roster Roster { get; }

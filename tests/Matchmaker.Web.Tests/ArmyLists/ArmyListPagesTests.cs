@@ -20,8 +20,8 @@ public sealed class ArmyListPagesTests(PostgresFixture postgres) : IDisposable
         return (await lists.ImportAsync(owner, Samples.CustodesCode, name, GameFormats.StrikeForce)).Id;
     }
 
-    private static Dictionary<string, string> ImportForm(string code, string name = "Custodes 2000", string format = "Strike Force", string detachment = "", string mfmVersion = "") =>
-        new() { ["Import.Code"] = code, ["Import.Name"] = name, ["Import.Format"] = format, ["Import.Detachment"] = detachment, ["Import.MfmVersion"] = mfmVersion };
+    private static Dictionary<string, string> ImportForm(string code, string name = "Custodes 2000", string format = "Strike Force", string detachment = "", string mfmVersion = "", string forceDisposition = "") =>
+        new() { ["Import.Code"] = code, ["Import.Name"] = name, ["Import.Format"] = format, ["Import.Detachment"] = detachment, ["Import.MfmVersion"] = mfmVersion, ["Import.ForceDisposition"] = forceDisposition };
 
     [Fact]
     public async Task My_lists_require_to_be_signed_in()
@@ -93,6 +93,123 @@ public sealed class ArmyListPagesTests(PostgresFixture postgres) : IDisposable
         var response = await client.SubmitAsync("/lists", "favorite", new Dictionary<string, string> { ["FavoriteListId"] = listId.ToString() });
 
         Assert.DoesNotContain("role=\"dialog\"", await response.Content.ReadAsStringAsync());
+    }
+
+    private async Task ImportList(PlayerId owner, string name, GameFormat format, string? detachment = null)
+    {
+        using var scope = _factory.Services.CreateScope();
+        await scope.ServiceProvider.GetRequiredService<ArmyListService>().ImportAsync(owner, Samples.CustodesCode, name, format, detachment);
+    }
+
+    private static void AssertInOrder(string html, params string[] names)
+    {
+        var positions = names.Select(name => html.IndexOf(name, StringComparison.Ordinal)).ToList();
+        Assert.DoesNotContain(-1, positions);
+        Assert.Equal(positions.Order(), positions);
+    }
+
+    [Fact]
+    public async Task My_lists_can_be_sorted_by_name_in_both_directions()
+    {
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+        await ImportList(me, "Bravo", GameFormats.StrikeForce);
+        await ImportList(me, "Écarlate", GameFormats.StrikeForce);
+        await ImportList(me, "alpha", GameFormats.StrikeForce);
+        await ImportList(me, "Zélotes", GameFormats.StrikeForce);
+
+        AssertInOrder(await client.GetStringAsync("/lists?sort=name"), "alpha", "Bravo", "Écarlate", "Zélotes");
+        AssertInOrder(await client.GetStringAsync("/lists?sort=name&dir=desc"), "Zélotes", "Écarlate", "Bravo", "alpha");
+    }
+
+    [Fact]
+    public async Task The_format_column_is_sorted_by_points()
+    {
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+        await ImportList(me, "Liste trois", GameFormats.Onslaught);
+        await ImportList(me, "Liste une", GameFormats.Incursion);
+        await ImportList(me, "Liste deux", GameFormats.StrikeForce);
+
+        AssertInOrder(await client.GetStringAsync("/lists?sort=format"), "Liste une", "Liste deux", "Liste trois");
+    }
+
+    [Fact]
+    public async Task Lists_without_a_detachment_stay_last_in_both_directions()
+    {
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+        await ImportList(me, "Sans détachement", GameFormats.StrikeForce);
+        await ImportList(me, "Liste A", GameFormats.StrikeForce, "Aegis");
+        await ImportList(me, "Liste Z", GameFormats.StrikeForce, "Zenith");
+
+        AssertInOrder(WebUtility.HtmlDecode(await client.GetStringAsync("/lists?sort=detachment")), "Liste A", "Liste Z", "Sans détachement");
+        AssertInOrder(WebUtility.HtmlDecode(await client.GetStringAsync("/lists?sort=detachment&dir=desc")), "Liste Z", "Liste A", "Sans détachement");
+    }
+
+    [Fact]
+    public async Task An_unknown_sort_falls_back_on_the_default_order()
+    {
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+        await ImportCustodes(me);
+
+        var response = await client.GetAsync("/lists?sort=n-importe-quoi&dir=n-importe-quoi");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task The_sorted_column_is_marked_and_its_header_reverses_the_order_keeping_the_search()
+    {
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+        await ImportCustodes(me, "Custodes tournoi");
+
+        var html = WebUtility.HtmlDecode(await client.GetStringAsync("/lists?q=tournoi&sort=name"));
+
+        Assert.Contains("aria-sort=\"ascending\"", html);
+        Assert.Contains("href=\"/lists?sort=name&dir=desc&q=tournoi\"", html);
+        Assert.Contains("href=\"/lists?sort=units&dir=asc&q=tournoi\"", html);
+    }
+
+    [Fact]
+    public async Task By_default_the_date_is_the_sorted_column_and_its_header_shows_the_oldest_first()
+    {
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+        await ImportCustodes(me);
+
+        var html = WebUtility.HtmlDecode(await client.GetStringAsync("/lists"));
+
+        Assert.Contains("aria-sort=\"descending\"", html);
+        Assert.Contains("href=\"/lists?sort=imported&dir=asc\"", html);
+    }
+
+    [Fact]
+    public async Task A_new_search_keeps_the_sort()
+    {
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+        await ImportCustodes(me);
+
+        var html = await client.GetStringAsync("/lists?sort=name&dir=desc");
+
+        Assert.Contains("type=\"hidden\" name=\"sort\" value=\"name\"", html);
+        Assert.Contains("type=\"hidden\" name=\"dir\" value=\"desc\"", html);
+    }
+
+    [Fact]
+    public async Task Marking_a_favorite_keeps_the_sort()
+    {
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+        var listId = await ImportCustodes(me, "Alpha");
+        await ImportCustodes(me, "Zélotes");
+
+        var response = await client.SubmitAsync("/lists?sort=name&dir=desc", "favorite", new Dictionary<string, string> { ["FavoriteListId"] = listId.ToString() });
+
+        AssertInOrder(await response.Content.ReadAsStringAsync(), "Zélotes", "Alpha");
     }
 
     [Fact]
@@ -251,6 +368,42 @@ public sealed class ArmyListPagesTests(PostgresFixture postgres) : IDisposable
         var response = await client.SubmitAsync("/lists?import=1", "import", ImportForm(Samples.CustodesCode, mfmVersion: "3.4"));
 
         Assert.Contains("· MFM 3.4 ·", WebUtility.HtmlDecode(await client.GetStringAsync(response.Headers.Location!.AbsolutePath)));
+    }
+
+    [Fact]
+    public async Task The_force_disposition_given_at_import_is_shown_on_the_list()
+    {
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+        Assert.Contains("Force disposition", await client.GetStringAsync("/lists?import=1"));
+
+        var response = await client.SubmitAsync("/lists?import=1", "import", ImportForm(Samples.CustodesCode, forceDisposition: "Vanguard"));
+
+        Assert.Contains("· Force disposition Vanguard ·", WebUtility.HtmlDecode(await client.GetStringAsync(response.Headers.Location!.AbsolutePath)));
+    }
+
+    [Fact]
+    public async Task A_list_imported_without_force_disposition_does_not_mention_it()
+    {
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+
+        var response = await client.SubmitAsync("/lists?import=1", "import", ImportForm(Samples.CustodesCode));
+
+        Assert.DoesNotContain("· Force disposition", WebUtility.HtmlDecode(await client.GetStringAsync(response.Headers.Location!.AbsolutePath)));
+    }
+
+    [Fact]
+    public async Task The_owner_can_change_the_force_disposition_of_a_list()
+    {
+        var me = MatchmakerWebFactory.NewPlayerId();
+        var client = await _factory.CreateClientAsAsync(me);
+        var listId = await ImportCustodes(me);
+
+        await client.SubmitAsync($"/lists/{listId}", "edit",
+            new Dictionary<string, string> { ["Edit.Name"] = "Custodes", ["Edit.ForceDisposition"] = "Vanguard" });
+
+        Assert.Contains("· Force disposition Vanguard ·", WebUtility.HtmlDecode(await client.GetStringAsync($"/lists/{listId}")));
     }
 
     [Fact]

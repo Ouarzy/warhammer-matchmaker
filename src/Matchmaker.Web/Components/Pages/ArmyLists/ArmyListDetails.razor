@@ -13,7 +13,7 @@
 
     <header class="list-header">
         <h1>@_list.Name</h1>
-        <p>@(_list.Faction ?? "Faction inconnue")@(_list.Detachment is { } detachment ? $" · Détachement {detachment}" : "")@(_list.MfmVersion is { } mfmVersion ? $" · MFM {mfmVersion}" : "") · @GameFormats.LabelOf(_list.Format) · @_list.Type.Label() · @_list.Roster.Units.Count unités · édition @_list.Roster.Edition</p>
+        <p>@(_list.Faction ?? "Faction inconnue")@(_list.Detachment is { } detachment ? $" · Détachement {detachment}" : "")@(_list.MfmVersion is { } mfmVersion ? $" · MFM {mfmVersion}" : "")@(_list.ForceDisposition is { } forceDisposition ? $" · Force disposition {forceDisposition}" : "") · @GameFormats.LabelOf(_list.Format) · @_list.Type.Label() · @_list.Roster.Units.Count unités · édition @_list.Roster.Edition</p>
     </header>
 
     @if (_isOwner)
@@ -35,6 +35,11 @@
                     Version du MFM
                     <InputText @bind-Value="Edit!.MfmVersion" maxlength="@ArmyList.MfmVersionMaxLength" placeholder="Facultatif" />
                     <ValidationMessage For="() => Edit.MfmVersion" class="error" />
+                </label>
+                <label>
+                    Force disposition
+                    <InputText @bind-Value="Edit!.ForceDisposition" maxlength="@ArmyList.ForceDispositionMaxLength" placeholder="Facultatif" />
+                    <ValidationMessage For="() => Edit.ForceDisposition" class="error" />
                 </label>
                 <label>
                     Type de liste
@@ -83,12 +88,12 @@
         }
 
         _isOwner = _list.IsOwnedBy(_me);
-        Edit ??= new EditModel { Name = _list.Name, Detachment = _list.Detachment, MfmVersion = _list.MfmVersion, Type = _list.Type };
+        Edit ??= new EditModel { Name = _list.Name, Detachment = _list.Detachment, MfmVersion = _list.MfmVersion, ForceDisposition = _list.ForceDisposition, Type = _list.Type };
     }
 
     private async Task UpdateAsync()
     {
-        if (await Lists.UpdateAsync(_me, Id, Edit!.Name, Edit.Detachment, Edit.MfmVersion, Edit.Type))
+        if (await Lists.UpdateAsync(_me, Id, Edit!.Name, Edit.Detachment, Edit.MfmVersion, Edit.ForceDisposition, Edit.Type))
             _list = await Lists.FindAsync(Id);
     }
 
@@ -108,6 +113,9 @@
 
         [MaxLength(ArmyList.MfmVersionMaxLength, ErrorMessage = "La version du MFM est limitée à 32 caractères.")]
         public string? MfmVersion { get; set; }
+
+        [MaxLength(ArmyList.ForceDispositionMaxLength, ErrorMessage = "La force disposition est limitée à 128 caractères.")]
+        public string? ForceDisposition { get; set; }
 
         public ArmyListType Type { get; set; }
     }
