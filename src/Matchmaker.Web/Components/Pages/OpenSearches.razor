@@ -85,6 +85,10 @@ else
                             <Icon Name="swords" /><text>Live, maintenant</text>
                         }
                     </span>
+                    @if (search.Ticket.ReservedFor is { } reservedFor)
+                    {
+                        <span class="state"><Icon Name="account" /><text>@(reservedFor == _me ? "Proposée à vous uniquement" : $"Proposée uniquement à {_players.GetValueOrDefault(reservedFor)?.DisplayName ?? reservedFor.SteamId}")</text></span>
+                    }
                     <span class="hint">Recherche depuis le <LocalTime Value="search.Ticket.EnqueuedAt" /></span>
                 </span>
                 <div class="open-search-actions">
@@ -198,10 +202,11 @@ else
         {
             var games = services.GetRequiredService<GameSearches>();
             var searches = Id is { } id
-                ? await games.FindPlannedAsync(id) is { } shared ? [shared] : []
-                : await games.OpenAsync(_kind);
+                ? await games.FindPlannedAsync(id, _me) is { } shared ? [shared] : []
+                : await games.OpenAsync(_kind, _me);
+            var players = searches.Select(s => s.Ticket.Player).Concat(searches.Select(s => s.Ticket.ReservedFor).OfType<PlayerId>());
             return (searches,
-                await services.GetRequiredService<PlayerAccounts>().FindManyAsync(searches.Select(s => s.Ticket.Player)),
+                await services.GetRequiredService<PlayerAccounts>().FindManyAsync(players),
                 await services.GetRequiredService<ArmyListService>().FindManyAsync(searches.Select(s => s.Ticket.ArmyListId)));
         });
         _loaded = true;

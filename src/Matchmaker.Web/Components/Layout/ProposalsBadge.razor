@@ -19,6 +19,6 @@
 
         // Rendu en même temps que la page : un DbContext à part pour ne pas partager le sien.
         _count = await ScopeFactory.UsingScopeAsync(services =>
-            services.GetRequiredService<ScheduledGames>().ProposalsToAnswerAsync(SteamAuthentication.PlayerIdOf(user)));
+            services.GetRequiredService<GameSearches>().ToAnswerAsync(SteamAuthentication.PlayerIdOf(user)));
     }
 }

@@ -28,7 +28,13 @@
                 Steam ID : <code>@_player.Id.SteamId</code>
                 · <a href="https://steamcommunity.com/profiles/@_player.Id.SteamId" target="_blank" rel="noopener"><Icon Name="external" /> Profil Steam</a>
             </p>
-            <ShareLink Path="@ProfilePath" Label="Partager ce profil" />
+            <div class="actions">
+                <ShareLink Path="@ProfilePath" Label="Partager ce profil" />
+                @if (_viewer != PlayerId)
+                {
+                    <a href="/play?opponent=@PlayerId.SteamId" class="button"><Icon Name="swords" /> Proposer une partie</a>
+                }
+            </div>
         </div>
         @if (Actions is not null)
         {
@@ -100,6 +106,8 @@
 
     private string ProfileSummary => $"Elo {_player!.Rating.Value} · {_player.RankedGamesPlayed} {(_player.RankedGamesPlayed > 1 ? "parties classées" : "partie classée")} sur Warhammer Matchmaker, le matchmaking de Warhammer 40 000 sur Tabletop Simulator.";
 
+    [CascadingParameter] private Task<AuthenticationState> AuthenticationState { get; set; } = default!;
+
     [Parameter, EditorRequired] public PlayerId PlayerId { get; set; }
     [Parameter] public int Page { get; set; } = 1;
     /// <summary>Adresse de la page, à laquelle on ajoute ?page=N.</summary>
@@ -111,6 +119,7 @@
     [Parameter] public string? ListsUrl { get; set; }
 
     private Player? _player;
+    private PlayerId? _viewer;
     private IReadOnlyList<ArmyList> _lists = [];
     private Page<Match> _history = new([], 1, 20, 0);
     private IReadOnlyDictionary<PlayerId, Player> _opponents = new Dictionary<PlayerId, Player>();
@@ -124,6 +133,8 @@
             return;
         }
 
+        var user = (await AuthenticationState).User;
+        _viewer = user.Identity?.IsAuthenticated == true ? SteamAuthentication.PlayerIdOf(user) : null;
         _lists = await Lists.ListOwnedByAsync(PlayerId);
         _history = await Matches.HistoryPageAsync(PlayerId, Page);
         _opponents = await Accounts.FindManyAsync(_history.Items.Select(m => m.OpponentOf(PlayerId).Player));

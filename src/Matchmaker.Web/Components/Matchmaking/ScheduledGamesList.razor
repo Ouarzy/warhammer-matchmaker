@@ -31,7 +31,25 @@
         {
             <div class="card status searching">
                 <h3>Recherche d'un adversaire pour le <LocalTime Value="search.PlannedFor" /></h3>
-                <p>@GameFormats.LabelOf(search.Ticket.Format) · @(search.Ticket.Ranked ? "classée" : "amicale") · à une heure près</p>
+                @if (search.Ticket.ReservedFor is { } reservedFor)
+                {
+                    <p>@GameFormats.LabelOf(search.Ticket.Format) · @(search.Ticket.Ranked ? "classée" : "amicale")</p>
+                    <p>
+                        Partie proposée uniquement à
+                        @if (Players.GetValueOrDefault(reservedFor) is { } opponent)
+                        {
+                            <PlayerLink Player="opponent" />
+                        }
+                        else
+                        {
+                            @reservedFor.SteamId
+                        }
+                    </p>
+                }
+                else
+                {
+                    <p>@GameFormats.LabelOf(search.Ticket.Format) · @(search.Ticket.Ranked ? "classée" : "amicale") · à une heure près</p>
+                }
                 <p class="hint">Inutile de garder la page ouverte : la proposition vous attendra ici, signalée dans le menu.</p>
                 <div class="actions">
                     <button class="button secondary" @onclick="() => OnCancel.InvokeAsync(search.Id)" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="close" /> Annuler</button>
@@ -45,6 +63,7 @@
 @code {
     [Parameter, EditorRequired] public ScheduledOverview Overview { get; set; } = new([], []);
     [Parameter, EditorRequired] public PlayerId Me { get; set; }
+    /// <summary>Adversaires des propositions et joueurs à qui les recherches sont réservées.</summary>
     [Parameter] public IReadOnlyDictionary<PlayerId, Player> Players { get; set; } = new Dictionary<PlayerId, Player>();
     [Parameter] public IReadOnlyDictionary<Guid, ArmyList> Lists { get; set; } = new Dictionary<Guid, ArmyList>();
     /// <summary>Identifiant du match proposé.</summary>

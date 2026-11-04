@@ -39,10 +39,13 @@ public sealed class MatchmakingCoordinator(TimeProvider time, PlayerNotifier not
             return [.. _searches.Values];
     }
 
-    public void Search(Player player, ArmyList list, bool ranked)
+    /// <param name="reservedFor">Le seul joueur à qui proposer la partie, quel que soit son Elo ; null pour n'importe qui.</param>
+    public void Search(Player player, ArmyList list, bool ranked, PlayerId? reservedFor = null)
     {
         if (!list.IsOwnedBy(player.Id))
             throw new InvalidOperationException("Cette liste ne vous appartient pas.");
+        if (reservedFor == player.Id)
+            throw new InvalidOperationException("Vous ne pouvez pas vous proposer une partie à vous-même.");
 
         List<PlayerId> changed;
         lock (_gate)
@@ -51,19 +54,33 @@ public sealed class MatchmakingCoordinator(TimeProvider time, PlayerNotifier not
                 throw new InvalidOperationException("Vous cherchez déjà un adversaire ou avez un match en cours.");
 
             var now = time.GetUtcNow();
-            changed = Enqueue(new QueueTicket(player.Id, list.Id, list.Format, ranked, player.Rating, now), now);
+            changed = Enqueue(new QueueTicket(player.Id, list.Id, list.Format, ranked, player.Rating, now, reservedFor), now);
         }
         Notify(changed);
     }
 
     public void CancelSearch(PlayerId player)
     {
+        QueueTicket? search;
         lock (_gate)
         {
-            if (!_queue.Leave(player)) return;
-            _searches.Remove(player);
+            if (!_searches.Remove(player, out search)) return;
+            _queue.Leave(player);
         }
-        Notify([player]);
+        Notify(Concerned(search));
+    }
+
+    /// <summary>Le joueur refuse la partie que <paramref name="author"/> lui proposait : la recherche de celui-ci s'arrête.</summary>
+    public void DeclineReservedSearch(PlayerId player, PlayerId author)
+    {
+        lock (_gate)
+        {
+            if (!_searches.TryGetValue(author, out var search) || !search.IsReservedFor(player))
+                throw new InvalidOperationException("Cette proposition n'existe plus ou ne vous concerne pas.");
+            _queue.Leave(author);
+            _searches.Remove(author);
+        }
+        Notify([author, player]);
     }
 
     /// <returns>Le match, une fois accepté par les deux joueurs : à enregistrer puis à libérer.</returns>
@@ -136,7 +153,7 @@ public sealed class MatchmakingCoordinator(TimeProvider time, PlayerNotifier not
         if (match is null)
         {
             _searches[ticket.Player] = ticket;
-            return [ticket.Player];
+            return Concerned(ticket);
         }
 
         foreach (var player in new[] { match.First.Player, match.Second.Player })
@@ -146,6 +163,10 @@ public sealed class MatchmakingCoordinator(TimeProvider time, PlayerNotifier not
         }
         return [match.First.Player, match.Second.Player];
     }
+
+    // Le joueur à qui une recherche est réservée la voit sur sa page : il est concerné par ses changements.
+    private static List<PlayerId> Concerned(QueueTicket search) =>
+        search.ReservedFor is { } reservedFor ? [search.Player, reservedFor] : [search.Player];
 
     private List<PlayerId> Release(Match match)
     {

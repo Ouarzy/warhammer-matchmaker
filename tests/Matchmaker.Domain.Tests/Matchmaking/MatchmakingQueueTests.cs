@@ -118,4 +118,52 @@ public class MatchmakingQueueTests
 
         Assert.Equal(Noon.AddMinutes(3), match!.ProposedAt);
     }
+
+    [Fact]
+    public void A_search_reserved_for_a_player_is_not_proposed_to_anyone_else()
+    {
+        _queue.Enqueue(For("alice", reservedFor: "bob"), Noon);
+
+        Assert.Null(_queue.Enqueue(For("carol"), Noon));
+    }
+
+    [Fact]
+    public void A_search_reserved_for_a_player_matches_them_whatever_the_rating_gap()
+    {
+        var queue = new MatchmakingQueue(maxRatingGap: 300);
+        queue.Enqueue(For("alice", rating: 1200, reservedFor: "bob"), Noon);
+
+        var match = queue.Enqueue(For("bob", rating: 2200), Noon);
+
+        Assert.Equal(["alice", "bob"], [match!.First.Player.SteamId, match.Second.Player.SteamId]);
+    }
+
+    [Fact]
+    public void A_search_reserved_for_a_player_only_matches_them()
+    {
+        _queue.Enqueue(For("carol"), Noon);
+
+        Assert.Null(_queue.Enqueue(For("alice", reservedFor: "bob"), Noon));
+    }
+
+    [Fact]
+    public void A_reserved_search_still_needs_the_same_format_and_ranked_mode()
+    {
+        _queue.Enqueue(For("alice", format: StrikeForce, reservedFor: "bob"), Noon);
+
+        Assert.Null(_queue.Enqueue(For("bob", format: Incursion), Noon));
+        _queue.Leave(For("bob").Player);
+        Assert.Null(_queue.Enqueue(For("bob", ranked: false), Noon));
+    }
+
+    [Fact]
+    public void A_player_is_matched_first_with_the_search_reserved_for_them()
+    {
+        _queue.Enqueue(For("carol", rating: 1500, enqueuedAt: Noon.AddMinutes(-10)), Noon);
+        _queue.Enqueue(For("alice", rating: 2000, reservedFor: "bob"), Noon);
+
+        var match = _queue.Enqueue(For("bob", rating: 1500), Noon);
+
+        Assert.Equal("alice", match!.First.Player.SteamId);
+    }
 }

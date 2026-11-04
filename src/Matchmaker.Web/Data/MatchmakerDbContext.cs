@@ -164,6 +164,7 @@ public sealed class MatchmakerDbContext(DbContextOptions<MatchmakerDbContext> op
         ticket.Property(t => t.Ranked).HasColumnName($"{side}_ranked");
         ticket.Property(t => t.Rating).HasColumnName($"{side}_rating").HasConversion(EloRatingConverter);
         ticket.Property(t => t.EnqueuedAt).HasColumnName($"{side}_enqueued_at");
+        ticket.Property(t => t.ReservedFor).HasColumnName($"{side}_reserved_for_steam_id").HasMaxLength(20).HasConversion(PlayerIdConverter);
     }
 
     // Les propriétés calculées (faction, IsMelee) ne sont pas stockées.

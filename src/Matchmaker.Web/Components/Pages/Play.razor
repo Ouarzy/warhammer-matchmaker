@@ -46,13 +46,17 @@
         break;
 
     case PlayerActivity.Idle:
-        <NewGameForm Lists="_lists" OnSearch="SearchAsync" OnPlan="PlanAsync" />
+        <NewGameForm Lists="_lists" Opponents="_opponents" Opponent="OpponentGiven" OnSearch="SearchAsync" OnPlan="PlanAsync" />
         break;
 
     case PlayerActivity.Searching:
         <section class="card status searching">
             <h2>Recherche d'un adversaire…</h2>
             <p>@GameFormats.LabelOf(_status.Search!.Format) · @(_status.Search.Ranked ? "classée" : "amicale") · depuis @Elapsed(_status.Search.EnqueuedAt)</p>
+            @if (_status.Search.ReservedFor is { } reservedFor && _opponents.FirstOrDefault(p => p.Id == reservedFor) is { } opponent)
+            {
+                <p>Partie proposée uniquement à <PlayerLink Player="opponent" />.</p>
+            }
             <p class="hint">Gardez cet onglet ouvert : vous serez prévenu dès qu'un adversaire est trouvé.</p>
             <button class="button secondary" @onclick="CancelSearch"><Icon Name="close" /> Annuler la recherche</button>
         </section>
@@ -84,6 +88,40 @@
         break;
 }
 
+@if (_proposedToMe.Count > 0)
+{
+    <section class="proposed-to-me">
+        <h2><Icon Name="swords" /> Parties qu'on vous propose</h2>
+        @foreach (var search in _proposedToMe)
+        {
+            <div @key="search" class="card status proposed">
+                <h3>
+                    @if (search.PlannedFor is { } plannedFor)
+                    {
+                        <text>Partie proposée pour le <LocalTime Value="plannedFor" /></text>
+                    }
+                    else
+                    {
+                        <text>Partie proposée maintenant</text>
+                    }
+                </h3>
+                <Opponent Ticket="search.Ticket" Player="_proposedToMePlayers.GetValueOrDefault(search.Ticket.Player)" List="ListLink.To(_proposedToMeLists.GetValueOrDefault(search.Ticket.ArmyListId))" />
+                <div class="actions">
+                    @if (ListsFor(search.Ticket.Format) is { Count: > 0 } lists)
+                    {
+                        <JoinSearchForm Lists="lists" Icon="check" Label="Jouer cette partie" OnJoin="listId => JoinProposedAsync(search, listId)" />
+                    }
+                    else
+                    {
+                        <a href="/lists?import=1" class="button secondary"><Icon Name="import" /> Importer une liste @GameFormats.LabelOf(search.Ticket.Format)</a>
+                    }
+                    <button class="button secondary" @onclick="() => DeclineProposedAsync(search)" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="close" /> Refuser</button>
+                </div>
+            </div>
+        }
+    </section>
+}
+
 <ScheduledGamesList Overview="_scheduled" Me="_me" Players="_scheduledPlayers" Lists="_scheduledLists"
                     OnAccept="AcceptPlannedAsync" OnDecline="DeclinePlannedAsync" OnCancel="CancelPlannedAsync" />
 
@@ -94,11 +132,17 @@
 
 @code {
     [CascadingParameter] private Task<AuthenticationState> AuthenticationState { get; set; } = default!;
+    /// <summary>Steam ID de l'adversaire à présélectionner (ex. depuis son profil).</summary>
+    [SupplyParameterFromQuery(Name = "opponent")] public string? OpponentSteamId { get; set; }
 
     private PlayerId _me;
     private PlayerStatus _status = PlayerStatus.Idle;
     private IReadOnlyList<Match> _activeMatches = [];
     private IReadOnlyList<ArmyList> _lists = [];
+    private IReadOnlyList<Player> _opponents = [];
+    private IReadOnlyList<OpenSearch> _proposedToMe = [];
+    private IReadOnlyDictionary<PlayerId, Player> _proposedToMePlayers = new Dictionary<PlayerId, Player>();
+    private IReadOnlyDictionary<Guid, ArmyList> _proposedToMeLists = new Dictionary<Guid, ArmyList>();
     private TimeZoneInfo _timeZone = TimeZoneInfo.Utc;
     private bool _confirmedPlanned;
     private ScheduledOverview _scheduled = new([], []);
@@ -118,6 +162,7 @@
     {
         _me = SteamAuthentication.PlayerIdOf((await AuthenticationState).User);
         _lists = await ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<ArmyListService>().ListOwnedByAsync(_me));
+        _opponents = await ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<PlayerAccounts>().OthersThanAsync(_me));
         await RefreshAsync();
 
         if (RendererInfo.IsInteractive)
@@ -132,7 +177,7 @@
         if (_startingSearch) return;
 
         _startingSearch = true;
-        await RunAsync(() => ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<GameSearches>().SearchNowAsync(_me, request.ListId, request.Ranked)));
+        await RunAsync(() => ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<GameSearches>().SearchNowAsync(_me, request.ListId, request.Ranked, request.Opponent)));
         _startingSearch = false;
 
         // Surtout pas avant la recherche, ni en l'attendant : le joueur peut laisser la question du navigateur sans réponse,
@@ -148,8 +193,14 @@
         var plannedFor = new DateTimeOffset(local, _timeZone.GetUtcOffset(local));
         if (plannedFor < Time.GetUtcNow() + Match.ScheduledAcceptanceNotice)
             throw new InvalidOperationException("Choisissez une heure au moins 1 h à l'avance.");
-        await ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<ScheduledGames>().PlanAsync(_me, request.ListId, request.Ranked, plannedFor));
+        await ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<ScheduledGames>().PlanAsync(_me, request.ListId, request.Ranked, plannedFor, request.Opponent));
     });
+
+    private Task JoinProposedAsync(OpenSearch search, Guid listId) =>
+        RunAsync(() => ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<GameSearches>().JoinAsync(_me, listId, search)));
+
+    private Task DeclineProposedAsync(OpenSearch search) =>
+        RunAsync(() => ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<GameSearches>().DeclineAsync(_me, search)));
 
     private Task CancelPlannedAsync(Guid searchId) =>
         RunAsync(() => ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<ScheduledGames>().CancelAsync(_me, searchId)));
@@ -214,6 +265,7 @@
         _activeMatches = await ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<MatchService>().ActiveMatchesOfAsync(_me));
         _status = Coordinator.StatusOf(_me);
         await RefreshScheduledAsync();
+        await RefreshProposedToMeAsync();
 
         var proposal = _status.Match;
         if (proposal is null || proposal.Id == _proposalLoadedFor) return;
@@ -224,17 +276,34 @@
         _proposalLoadedFor = proposal.Id;
     }
 
+    private async Task RefreshProposedToMeAsync()
+    {
+        (_proposedToMe, _proposedToMePlayers, _proposedToMeLists) = await ScopeFactory.UsingScopeAsync(async services =>
+        {
+            var searches = await services.GetRequiredService<GameSearches>().ProposedToAsync(_me);
+            return (searches,
+                await services.GetRequiredService<PlayerAccounts>().FindManyAsync(searches.Select(s => s.Ticket.Player)),
+                await services.GetRequiredService<ArmyListService>().FindManyAsync(searches.Select(s => s.Ticket.ArmyListId)));
+        });
+    }
+
+    private IReadOnlyList<ArmyList> ListsFor(GameFormat format) =>
+        [.. ArmyList.FavoriteFirstThenByName(_lists).Where(l => l.IsCompatibleWith(format))];
+
+    private PlayerId? OpponentGiven => string.IsNullOrEmpty(OpponentSteamId) ? null : new PlayerId(OpponentSteamId);
+
     private async Task RefreshScheduledAsync()
     {
         _scheduled = await ScopeFactory.UsingScopeAsync(services => services.GetRequiredService<ScheduledGames>().OverviewAsync(_me));
         var opponents = _scheduled.Proposals.Select(m => m.OpponentOf(_me)).ToList();
+        var reservedFor = _scheduled.OpenSearches.Select(s => s.Ticket.ReservedFor).OfType<PlayerId>();
         (_scheduledPlayers, _scheduledLists) = await ScopeFactory.UsingScopeAsync(async services =>
         {
             var lists = new Dictionary<Guid, ArmyList>();
             foreach (var opponent in opponents)
                 if (await services.GetRequiredService<ArmyListService>().FindAsync(opponent.ArmyListId) is { } list)
                     lists[list.Id] = list;
-            return (await services.GetRequiredService<PlayerAccounts>().FindManyAsync(opponents.Select(o => o.Player)), lists);
+            return (await services.GetRequiredService<PlayerAccounts>().FindManyAsync(opponents.Select(o => o.Player).Concat(reservedFor)), lists);
         });
     }
 

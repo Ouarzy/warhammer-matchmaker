@@ -21,6 +21,7 @@ Tous les joueurs jouent via le mod LCT (11e édition) de TTS et enregistrent leu
   - une de ses listes compatible avec ce format
   - partie classée (impacte l'Elo, compétitive) ou non classée (fun)
 - voir toutes les recherches en cours (immédiates et planifiées) et lancer la même en un clic
+- proposer une partie (immédiate ou planifiée) à un joueur précis, choisi dans la recherche ou depuis sa fiche (« Proposer une partie »)
 - être notifié dans le navigateur quand un adversaire est trouvé
 - accepter / refuser le match proposé
 - une fois accepté : voir l'identifiant steam de son adversaire et pouvoir parcourir sa liste d'armée
@@ -87,6 +88,7 @@ Catégorie du résultat selon le score WTC du joueur :
 - Un joueur peut avoir jusqu'à 5 parties en cours ; il peut chercher un nouvel adversaire tant qu'il n'a pas atteint cette limite
 - Une partie en cours n'a pas de limite de durée
 - Parmi les adversaires compatibles, on choisit l'Elo le plus proche, puis celui qui attend depuis le plus longtemps
+- Une partie proposée à un joueur précis n'est visible et proposée qu'à lui, quel que soit l'écart d'Elo (même format et même mode requis) ; il la rejoint avec une de ses listes, puis la partie s'accepte comme les autres, ou il la refuse et la recherche de son auteur s'arrête
 
 ## Données
 On s'identifie avec son compte steam.

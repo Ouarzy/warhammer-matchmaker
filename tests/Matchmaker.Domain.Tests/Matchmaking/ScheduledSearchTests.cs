@@ -8,8 +8,9 @@ public class ScheduledSearchTests
 {
     private static readonly DateTimeOffset Evening = Noon.AddDays(2).AddHours(9);
 
-    private static ScheduledSearch Search(string player, DateTimeOffset plannedFor, GameFormatChoice? choice = null, int rating = 1500) =>
-        ScheduledSearch.Open(For(player, choice?.Format, choice?.Ranked ?? true, rating), plannedFor, Noon);
+    private static ScheduledSearch Search(string player, DateTimeOffset plannedFor, GameFormatChoice? choice = null, int rating = 1500,
+        string? reservedFor = null) =>
+        ScheduledSearch.Open(For(player, choice?.Format, choice?.Ranked ?? true, rating, reservedFor: reservedFor), plannedFor, Noon);
 
     public sealed record GameFormatChoice(GameFormat Format, bool Ranked);
 
@@ -164,5 +165,31 @@ public class ScheduledSearchTests
         Assert.False(search.ExpireIfTooLate(Noon.AddHours(4)));
         Assert.True(search.ExpireIfTooLate(Noon.AddHours(4).AddSeconds(1)));
         Assert.Equal(ScheduledSearchStatus.Expired, search.Status);
+    }
+
+    [Fact]
+    public void A_search_reserved_for_a_player_is_not_proposed_to_anyone_else()
+    {
+        var alice = Search("alice", Evening, reservedFor: "bob");
+
+        Assert.Null(Search("carol", Evening).BestOpponentAmong([alice], Noon));
+    }
+
+    [Fact]
+    public void A_search_reserved_for_a_player_only_matches_them()
+    {
+        var carol = Search("carol", Evening);
+        var bob = Search("bob", Evening);
+
+        Assert.Same(bob, Search("alice", Evening, reservedFor: "bob").BestOpponentAmong([carol, bob], Noon));
+    }
+
+    [Fact]
+    public void The_search_reserved_for_a_player_is_preferred_to_a_closer_one()
+    {
+        var carol = Search("carol", Evening);
+        var alice = Search("alice", Evening.AddMinutes(30), rating: 2400, reservedFor: "bob");
+
+        Assert.Same(alice, Search("bob", Evening).BestOpponentAmong([carol, alice], Noon));
     }
 }

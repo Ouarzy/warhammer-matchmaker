@@ -28,11 +28,14 @@ public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches,
         public List<PlayerId> Players { get; } = [];
     }
 
+    /// <param name="reservedFor">Le seul joueur à qui proposer la partie, quel que soit son Elo ; null pour n'importe qui.</param>
     public async Task<ScheduledSearch> PlanAsync(PlayerId player, Guid armyListId, bool ranked, DateTimeOffset plannedFor,
-        CancellationToken cancellationToken = default)
+        PlayerId? reservedFor = null, CancellationToken cancellationToken = default)
     {
         var account = await db.Players.FindAsync([player], cancellationToken)
             ?? throw new InvalidOperationException("Joueur introuvable.");
+        if (reservedFor is { } opponent && (opponent == player || await db.Players.FindAsync([opponent], cancellationToken) is null))
+            throw new InvalidOperationException("Choisissez un autre joueur inscrit comme adversaire.");
         var list = await db.ArmyLists.FindAsync([armyListId], cancellationToken);
         if (list is null || !list.IsOwnedBy(player))
             throw new InvalidOperationException("Cette liste ne vous appartient pas.");
@@ -45,9 +48,9 @@ public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches,
 
             var now = time.GetUtcNow();
             // PostgreSQL n'enregistre que des dates UTC ; l'heure saisie arrive dans le fuseau du joueur.
-            var search = ScheduledSearch.Open(new QueueTicket(player, list.Id, list.Format, ranked, account.Rating, now), plannedFor.ToUniversalTime(), now);
+            var search = ScheduledSearch.Open(new QueueTicket(player, list.Id, list.Format, ranked, account.Rating, now, reservedFor), plannedFor.ToUniversalTime(), now);
             db.ScheduledSearches.Add(search);
-            changed.Players.Add(player);
+            changed.Players.AddRange(Concerned(search));
             await TryMatchAsync(search, now, changed, cancellationToken);
             return search;
         }, cancellationToken);
@@ -60,7 +63,19 @@ public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches,
             if (search is null || search.Ticket.Player != player)
                 throw new InvalidOperationException("Cette recherche n'existe pas ou ne vous concerne pas.");
             search.Cancel();
-            changed.Players.Add(player);
+            changed.Players.AddRange(Concerned(search));
+            return 0;
+        }, cancellationToken);
+
+    /// <summary>Le joueur refuse la partie qu'on lui proposait : la recherche de son auteur s'arrête.</summary>
+    public Task DeclineReservedSearchAsync(PlayerId player, Guid searchId, CancellationToken cancellationToken = default) =>
+        SerializedAsync(async changed =>
+        {
+            var search = await db.ScheduledSearches.FindAsync([searchId], cancellationToken);
+            if (search is not { Status: ScheduledSearchStatus.Open } || !search.Ticket.IsReservedFor(player))
+                throw new InvalidOperationException("Cette proposition n'existe plus ou ne vous concerne pas.");
+            search.Cancel();
+            changed.Players.AddRange([player, search.Ticket.Player]);
             return 0;
         }, cancellationToken);
 
@@ -104,7 +119,7 @@ public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches,
                 .Where(s => s.Status == Open && s.PlannedFor < latest)
                 .ToListAsync(cancellationToken);
             foreach (var search in tooLate.Where(s => s.ExpireIfTooLate(now)))
-                changed.Players.Add(search.Ticket.Player);
+                changed.Players.AddRange(Concerned(search));
             return 0;
         }, cancellationToken);
 
@@ -134,9 +149,23 @@ public sealed class ScheduledGames(MatchmakerDbContext db, MatchService matches,
             .FirstOrDefaultAsync(s => s.Id == id && s.Status == Open && s.PlannedFor >= latest, cancellationToken);
     }
 
-    /// <summary>Propositions que le joueur n'a pas encore acceptées : pastille du menu.</summary>
+    /// <summary>Propositions que le joueur n'a pas encore acceptées.</summary>
     public async Task<int> ProposalsToAnswerAsync(PlayerId player, CancellationToken cancellationToken = default) =>
         (await ProposalsOfAsync(player, cancellationToken)).Count(m => !m.HasAccepted(player));
+
+    /// <summary>Recherches ouvertes réservées à ce joueur, qu'il est encore temps de rejoindre.</summary>
+    public async Task<IReadOnlyList<ScheduledSearch>> ReservedForAsync(PlayerId player, CancellationToken cancellationToken = default)
+    {
+        var latest = time.GetUtcNow() + Match.ScheduledAcceptanceNotice;
+        return await db.ScheduledSearches
+            .Where(s => s.Status == Open && s.PlannedFor >= latest && s.Ticket.ReservedFor == player)
+            .OrderBy(s => s.PlannedFor)
+            .ToListAsync(cancellationToken);
+    }
+
+    // Le joueur à qui une recherche est réservée la voit sur sa page : il est concerné par ses changements.
+    private static IEnumerable<PlayerId> Concerned(ScheduledSearch search) =>
+        search.Ticket.ReservedFor is { } reservedFor ? [search.Ticket.Player, reservedFor] : [search.Ticket.Player];
 
     private async Task<List<Match>> ProposalsOfAsync(PlayerId player, CancellationToken cancellationToken) =>
         await db.Matches

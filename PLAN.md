@@ -35,6 +35,7 @@ Spécifications : voir [PROJECT.md](PROJECT.md).
 | 7 | **V2** : objet TTS de remontée du score ([étude](docs/V2-OBJET-TTS.md)) : score en direct + bouton score final, facultatif (la saisie à la main reste possible), en bêta, essai réel à deux joueurs dans TTS à faire | Plus de saisie des VP | Fait (à essayer) |
 | 7b | **Parties planifiées** : recherche à une date et heure précises enregistrée en base, appariement à ± 1 h (heure la plus proche, puis Elo), partie fixée à l'heure du premier joueur, 24 h pour accepter et au plus tard 1 h avant, refus/expiration qui relancent la recherche de l'autre, pastille dans le menu, heures affichées dans le fuseau de chacun | Jouer sans être en ligne en même temps | Fait |
 | 7c | **Notifications push** du navigateur : partie planifiée proposée, confirmée ou annulée, résultat à confirmer, score contesté, abandon de l'adversaire | Être prévenu sans garder le site ouvert | Fait |
+| 7d | **Partie proposée à un joueur** : adversaire souhaité au choix dans la recherche (« N'importe qui » par défaut), immédiate ou planifiée, proposée à lui seul quel que soit l'Elo ; il la rejoint avec une liste au même format ou la refuse depuis « Rechercher une partie » (pastille du menu) ; bouton « Proposer une partie » sur la fiche d'un joueur | Défier un joueur précis | Fait |
 | 8 | **Suite** : essai réel de l'objet TTS à deux joueurs, prise de contact avec les mainteneurs de YellowScribe et de LCT, Age of Sigmar… | Évolutions | À faire |
 
 ## Résultats de l'itération 0

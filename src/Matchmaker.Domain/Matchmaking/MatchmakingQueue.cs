@@ -19,7 +19,8 @@ public sealed class MatchmakingQueue(int maxRatingGap = int.MaxValue)
 
         var opponent = _waiting
             .Where(waiting => waiting.CanFace(ticket, maxRatingGap))
-            .OrderBy(waiting => waiting.RatingGapWith(ticket))
+            .OrderByDescending(waiting => waiting.IsReservedFor(ticket.Player))
+            .ThenBy(waiting => waiting.RatingGapWith(ticket))
             .ThenBy(waiting => waiting.EnqueuedAt)
             .FirstOrDefault();
 

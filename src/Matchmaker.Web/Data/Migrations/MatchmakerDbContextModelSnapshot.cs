@@ -285,6 +285,11 @@ namespace Matchmaker.Web.Data.Migrations
                                 .HasColumnType("integer")
                                 .HasColumnName("first_rating");
 
+                            b1.Property<string>("ReservedFor")
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)")
+                                .HasColumnName("first_reserved_for_steam_id");
+
                             b1.ComplexProperty(typeof(Dictionary<string, object>), "Format", "Matchmaker.Domain.Matches.Match.First#QueueTicket.Format#GameFormat", b2 =>
                                 {
                                     b2.IsRequired();
@@ -328,6 +333,11 @@ namespace Matchmaker.Web.Data.Migrations
                             b1.Property<int>("Rating")
                                 .HasColumnType("integer")
                                 .HasColumnName("second_rating");
+
+                            b1.Property<string>("ReservedFor")
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)")
+                                .HasColumnName("second_reserved_for_steam_id");
 
                             b1.ComplexProperty(typeof(Dictionary<string, object>), "Format", "Matchmaker.Domain.Matches.Match.Second#QueueTicket.Format#GameFormat", b2 =>
                                 {
@@ -407,6 +417,11 @@ namespace Matchmaker.Web.Data.Migrations
                             b1.Property<int>("Rating")
                                 .HasColumnType("integer")
                                 .HasColumnName("player_rating");
+
+                            b1.Property<string>("ReservedFor")
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)")
+                                .HasColumnName("player_reserved_for_steam_id");
 
                             b1.ComplexProperty(typeof(Dictionary<string, object>), "Format", "Matchmaker.Domain.Matchmaking.ScheduledSearch.Ticket#QueueTicket.Format#GameFormat", b2 =>
                                 {

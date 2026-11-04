@@ -44,12 +44,15 @@ public sealed class ScheduledSearch
         return new(ticket, plannedFor);
     }
 
-    /// <summary>La recherche ouverte la plus proche en heure, puis en Elo, puis la plus ancienne.</summary>
+    /// <summary>
+    /// La recherche ouverte qui était réservée à ce joueur, sinon la plus proche en heure, puis en Elo, puis la plus ancienne.
+    /// </summary>
     public ScheduledSearch? BestOpponentAmong(IEnumerable<ScheduledSearch> candidates, DateTimeOffset now) =>
         candidates
             .Where(other => other.Status == ScheduledSearchStatus.Open && other.PlannedFor >= LatestStartForMatching(now))
             .Where(other => other.Ticket.CanFace(Ticket, int.MaxValue) && Gap(other) <= Tolerance)
-            .OrderBy(Gap)
+            .OrderByDescending(other => other.Ticket.IsReservedFor(Ticket.Player))
+            .ThenBy(Gap)
             .ThenBy(other => other.Ticket.RatingGapWith(Ticket))
             .ThenBy(other => other.Ticket.EnqueuedAt)
             .FirstOrDefault();

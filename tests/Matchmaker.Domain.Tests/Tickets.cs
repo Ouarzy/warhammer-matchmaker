@@ -15,6 +15,8 @@ internal static class Tickets
         GameFormat? format = null,
         bool ranked = true,
         int rating = 1500,
-        DateTimeOffset? enqueuedAt = null) =>
-        new(new PlayerId(steamId), Guid.NewGuid(), format ?? StrikeForce, ranked, new EloRating(rating), enqueuedAt ?? Noon);
+        DateTimeOffset? enqueuedAt = null,
+        string? reservedFor = null) =>
+        new(new PlayerId(steamId), Guid.NewGuid(), format ?? StrikeForce, ranked, new EloRating(rating), enqueuedAt ?? Noon,
+            reservedFor is null ? null : new PlayerId(reservedFor));
 }

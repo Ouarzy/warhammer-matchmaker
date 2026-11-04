@@ -1,6 +1,7 @@
 @using Matchmaker.Domain.ArmyLists
+@using Matchmaker.Domain.Players
 
-@* Choix de la liste, du type de partie et du moment : la page fait la recherche ou la planification. *@
+@* Choix de la liste, de l'adversaire, du type de partie et du moment : la page fait la recherche ou la planification. *@
 <section class="card form">
     <h2>Nouvelle partie</h2>
     <label>
@@ -12,6 +13,20 @@
             }
         </select>
     </label>
+    <label>
+        Adversaire souhaité
+        <select @bind="_opponent">
+            <option value="">N'importe qui</option>
+            @foreach (var player in Opponents)
+            {
+                <option value="@player.Id.SteamId">@player.DisplayName</option>
+            }
+        </select>
+    </label>
+    @if (Chosen is { } chosen)
+    {
+        <p class="hint">La partie ne sera proposée qu'à @chosen.DisplayName, quel que soit son Elo. Elle apparaîtra sur sa page « Rechercher une partie », d'où elle pourra être rejointe avec une liste au même format.</p>
+    }
     <label class="checkbox">
         <input type="checkbox" @bind="_ranked" />
         Partie classée <span class="hint">(compte pour l'Elo ; décochez pour une partie amicale)</span>
@@ -27,20 +42,30 @@
             Date et heure de la partie <span class="hint">(votre heure locale)</span>
             <input type="datetime-local" @bind="_plannedLocal" step="900" />
         </label>
-        <p class="hint">Vous serez mis en relation avec un joueur qui planifie une partie à une heure d'écart au plus. Il faudra l'accepter dans les 24 h, et au plus tard 1 h avant la partie.</p>
-        <button class="button call-to-action" @onclick="() => OnPlan.InvokeAsync(new(_listId, _ranked, _plannedLocal))" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="clock" /> Planifier la partie</button>
+        @if (Chosen is null)
+        {
+            <p class="hint">Vous serez mis en relation avec un joueur qui planifie une partie à une heure d'écart au plus. Il faudra l'accepter dans les 24 h, et au plus tard 1 h avant la partie.</p>
+        }
+        <button class="button call-to-action" @onclick="() => OnPlan.InvokeAsync(new(_listId, _ranked, _plannedLocal, Chosen?.Id))" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="clock" /> Planifier la partie</button>
     }
     else
     {
-        <button class="button call-to-action" @onclick="() => OnSearch.InvokeAsync(new(_listId, _ranked, null))" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="search" /> Rechercher un adversaire</button>
+        <button class="button call-to-action" @onclick="() => OnSearch.InvokeAsync(new(_listId, _ranked, null, Chosen?.Id))" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="search" /> Rechercher un adversaire</button>
     }
 </section>
 
 @code {
-    /// <summary>Partie demandée ; <paramref name="PlannedLocal"/> est l'heure locale du joueur, null pour une partie immédiate.</summary>
-    public sealed record Request(Guid ListId, bool Ranked, DateTime? PlannedLocal);
+    /// <summary>
+    /// Partie demandée ; <paramref name="PlannedLocal"/> est l'heure locale du joueur, null pour une partie immédiate,
+    /// et <paramref name="Opponent"/> le seul joueur à qui la proposer, null pour n'importe qui.
+    /// </summary>
+    public sealed record Request(Guid ListId, bool Ranked, DateTime? PlannedLocal, PlayerId? Opponent);
 
     [Parameter, EditorRequired] public IReadOnlyList<ArmyList> Lists { get; set; } = [];
+    /// <summary>Joueurs à qui proposer la partie, dans l'ordre où les afficher.</summary>
+    [Parameter] public IReadOnlyList<Player> Opponents { get; set; } = [];
+    /// <summary>Adversaire choisi à l'ouverture du formulaire (ex. depuis son profil).</summary>
+    [Parameter] public PlayerId? Opponent { get; set; }
     [Parameter, EditorRequired] public EventCallback<Request> OnSearch { get; set; }
     [Parameter, EditorRequired] public EventCallback<Request> OnPlan { get; set; }
 
@@ -49,9 +74,19 @@
     private bool _ranked = true;
     private bool _planned;
     private DateTime _plannedLocal = DateTime.Today.AddDays(1).AddHours(21);
+    private string _opponent = "";
+    private PlayerId? _opponentGiven;
+
+    private Player? Chosen => Opponents.FirstOrDefault(p => p.Id.SteamId == _opponent);
 
     protected override void OnParametersSet()
     {
+        if (Opponent != _opponentGiven)
+        {
+            _opponentGiven = Opponent;
+            _opponent = Opponent?.SteamId ?? "";
+        }
+
         _offered = ArmyList.FavoriteFirstThenByName(Lists);
         if (_offered.All(l => l.Id != _listId))
             _listId = _offered.FirstOrDefault()?.Id ?? Guid.Empty;

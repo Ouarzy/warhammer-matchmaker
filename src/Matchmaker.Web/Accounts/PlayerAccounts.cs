@@ -44,6 +44,14 @@ public sealed class PlayerAccounts(MatchmakerDbContext db)
         return new Page<Player>(players, page, DirectoryPageSize, total);
     }
 
+    /// <summary>Tous les joueurs sauf celui-ci, par ordre alphabétique sans tenir compte de la casse : adversaires à qui proposer une partie.</summary>
+    public async Task<IReadOnlyList<Player>> OthersThanAsync(PlayerId player, CancellationToken cancellationToken = default) =>
+        await db.Players
+            .Where(p => p.Id != player)
+            .OrderBy(p => p.DisplayName.ToLower())
+            .ThenBy(p => p.Id)
+            .ToListAsync(cancellationToken);
+
     public async Task<IReadOnlyDictionary<PlayerId, Player>> FindManyAsync(IEnumerable<PlayerId> ids, CancellationToken cancellationToken = default)
     {
         var wanted = ids.Distinct().ToList();

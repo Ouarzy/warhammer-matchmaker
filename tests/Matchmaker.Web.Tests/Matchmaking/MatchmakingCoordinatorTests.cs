@@ -207,4 +207,30 @@ public class MatchmakingCoordinatorTests
 
         Assert.Throws<InvalidOperationException>(() => _coordinator.Accept(_carol.Id, matchId));
     }
+
+    [Fact]
+    public void The_player_a_search_is_reserved_for_is_notified_of_it_and_of_its_end()
+    {
+        _coordinator.Search(_alice, ListOf(_alice), ranked: true, reservedFor: _bob.Id);
+        _coordinator.CancelSearch(_alice.Id);
+
+        Assert.Equal([_alice.Id, _bob.Id, _alice.Id, _bob.Id], _notified);
+    }
+
+    [Fact]
+    public void Only_the_player_a_search_is_reserved_for_can_decline_it()
+    {
+        _coordinator.Search(_alice, ListOf(_alice), ranked: true, reservedFor: _bob.Id);
+
+        Assert.Throws<InvalidOperationException>(() => _coordinator.DeclineReservedSearch(_carol.Id, _alice.Id));
+        _coordinator.DeclineReservedSearch(_bob.Id, _alice.Id);
+
+        Assert.Equal(PlayerActivity.Idle, _coordinator.StatusOf(_alice.Id).Activity);
+    }
+
+    [Fact]
+    public void A_player_cannot_reserve_a_search_for_themselves()
+    {
+        Assert.Throws<InvalidOperationException>(() => _coordinator.Search(_alice, ListOf(_alice), ranked: true, reservedFor: _alice.Id));
+    }
 }
