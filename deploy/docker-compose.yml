@@ -39,7 +39,7 @@ services:
         condition: service_healthy
 
   db:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     restart: unless-stopped
     environment:
       POSTGRES_DB: matchmaker
@@ -55,7 +55,7 @@ services:
 
   # Une sauvegarde par jour dans deploy/backups/, gardée 14 jours.
   backup:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     restart: unless-stopped
     environment:
       PGPASSWORD: ${POSTGRES_PASSWORD}
