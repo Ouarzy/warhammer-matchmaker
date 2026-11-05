@@ -99,6 +99,10 @@ public sealed class MatchService(MatchmakerDbContext db, TimeProvider time)
         CancellationToken cancellationToken = default) =>
         UpdateAsync(player, matchId, match => match.ContestResult(player, myVictoryPoints, opponentVictoryPoints, time.GetUtcNow()), cancellationToken);
 
+    /// <summary>Annule le score proposé par erreur : la partie redevient en cours.</summary>
+    public Task<Match> CancelResultAsync(PlayerId player, Guid matchId, CancellationToken cancellationToken = default) =>
+        UpdateAsync(player, matchId, match => match.CancelResult(player), cancellationToken);
+
     /// <summary>Abandon : victoire 20-0 pour l'adversaire, Elo mis à jour pour un match classé.</summary>
     public Task<Match> AbandonAsync(PlayerId player, Guid matchId, CancellationToken cancellationToken = default) =>
         UpdateAsync(player, matchId, match => match.Abandon(player), cancellationToken);

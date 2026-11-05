@@ -1,7 +1,6 @@
 -- Objet « Warhammer Matchmaker » pour Tabletop Simulator (mod LCT).
--- Lit la feuille de score LCT et envoie le score à https://warhammer-matchmaker.com :
---   * en direct, à chaque changement, pour suivre la partie sur le site (rien n'est déclaré) ;
---   * sur clic « Envoyer le score final » : déclaration que l'adversaire confirme sur le site.
+-- Lit la feuille de score LCT et envoie le score à https://warhammer-matchmaker.com en direct, à chaque
+-- changement, pour suivre la partie sur le site. Rien n'est déclaré : le score final se valide sur le site.
 -- Lua 5.2 (MoonSharp). Les scripts TTS ne tournent que chez l'hôte de la partie.
 
 SITE = "https://warhammer-matchmaker.com"
@@ -48,9 +47,7 @@ function onLoad(savedState)
     self.createInput(withLayout(-0.8, { input_function = "onCodeChanged", label = "Code de la partie",
         value = code, alignment = 3, validation = 1, tooltip = "Code de 8 caractères affiché sur la page de la partie",
         width = 1800, height = 260, font_size = 180 }))
-    self.createButton(withLayout(0.6, { click_function = "sendFinalScore", label = "Envoyer le score final",
-        width = 1800, height = 260, font_size = 150, color = { 0.85, 0.65, 0.2 } }))
-    self.createButton(withLayout(2.0, { click_function = "noop", label = wrap(status),
+    self.createButton(withLayout(1.0, { click_function = "noop", label = wrap(status),
         width = 0, height = 0, font_size = 100, font_color = WHITE }))
     Wait.time(shareLiveScore, LIVE_INTERVAL_SECONDS, -1)
 end
@@ -76,8 +73,8 @@ end
 
 function noop() end
 
--- Boutons dans l'ordre de création : titre (0), envoi (1), ligne d'état (2).
-local STATUS_BUTTON = 2
+-- Boutons dans l'ordre de création : titre (0), ligne d'état (1).
+local STATUS_BUTTON = 1
 
 function setStatus(text)
     status = text
@@ -154,34 +151,28 @@ function post(path, report, onAnswer)
         end)
 end
 
-function sendFinalScore(_, playerColor)
-    local report, problem = readReport()
-    if not report then
-        setStatus(problem)
-        broadcastToColor(problem, playerColor, { 1, 0.4, 0.4 })
-        return
-    end
-    setStatus("Envoi du score final : " .. scoreText(report) .. "...")
-    post("/api/tts/results", report, function(success, _, message)
-        setStatus(message)
-        broadcastToAll("Warhammer Matchmaker : " .. message, success and { 0.5, 1, 0.5 } or { 1, 0.4, 0.4 })
-        if success then liveStopped = true end
-    end)
-end
-
 -- Appelé toutes les 30 s : n'envoie que si le score a changé depuis le dernier envoi réussi.
 function shareLiveScore()
     if liveStopped then return end
-    local report = readReport()
-    if not report then return end
+    local report, problem = readReport()
+    if not report then
+        -- Sans code, la ligne d'état garde l'invitation à le coller ; sinon elle dit ce qui bloque le direct.
+        if code ~= "" and status ~= problem then setStatus(problem) end
+        return
+    end
     local key = report.red.vp .. ":" .. report.blue.vp .. ":" .. report.roundsPlayed
     if key == lastLiveScore then return end
     post("/api/tts/live", report, function(success, responseCode, message)
         if success then
             lastLiveScore = key
             setStatus("En direct sur le site : " .. scoreText(report))
-        elseif responseCode == 409 or responseCode == 403 or responseCode == 404 then
-            -- Résultat déjà déclaré, ou mauvais code : inutile d'insister jusqu'au prochain code.
+        elseif responseCode == 409 then
+            -- Score final proposé sur le site : on n'insiste pas avec ce score, mais on reprend au prochain
+            -- changement, au cas où la proposition serait annulée et la partie reprise.
+            lastLiveScore = key
+            setStatus(message)
+        elseif responseCode == 403 or responseCode == 404 then
+            -- Mauvais code ou mauvais joueurs : inutile d'insister jusqu'au prochain code.
             liveStopped = true
             setStatus(message)
         end

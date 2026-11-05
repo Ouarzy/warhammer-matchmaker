@@ -292,6 +292,52 @@ public class MatchTests
             Assert.Throws<ArgumentException>(() => Declared(aliceVp: 85, bobVp: 70).ContestResult(Bob.Player, 70, 85, Noon));
         }
 
+        [Theory]
+        [InlineData("alice")]
+        [InlineData("bob")]
+        public void Either_player_cancels_a_score_proposed_by_mistake_and_the_game_goes_on(string player)
+        {
+            var match = Declared();
+            match.ContestResult(Bob.Player, 80, 75, Noon);
+
+            match.CancelResult(new PlayerId(player));
+
+            Assert.Equal(MatchStatus.Accepted, match.Status);
+            Assert.Null(match.Declarer);
+            Assert.Null(match.DeclaredAt);
+            Assert.Null(match.ResultConfirmationDeadline);
+            Assert.Equal(0, match.Contestations);
+            Assert.Throws<InvalidOperationException>(() => match.VictoryPointsOf(Alice.Player));
+        }
+
+        [Fact]
+        public void A_cancelled_score_can_be_declared_again_at_the_end_of_the_game()
+        {
+            var match = Declared();
+            match.CancelResult(Bob.Player);
+
+            match.DeclareResult(Bob.Player, 60, 90, Noon.AddHours(2));
+
+            Assert.Equal(MatchStatus.ResultDeclared, match.Status);
+            Assert.Equal(Bob.Player, match.Declarer);
+            Assert.Equal(90, match.VictoryPointsOf(Alice.Player));
+        }
+
+        [Fact]
+        public void Only_a_proposed_score_can_be_cancelled()
+        {
+            Assert.Throws<InvalidOperationException>(() => Accepted().CancelResult(Alice.Player));
+            var completed = Declared();
+            completed.ConfirmResult(Bob.Player);
+            Assert.Throws<InvalidOperationException>(() => completed.CancelResult(Alice.Player));
+        }
+
+        [Fact]
+        public void Only_participants_can_cancel_a_proposed_score()
+        {
+            Assert.Throws<InvalidOperationException>(() => Declared().CancelResult(Stranger));
+        }
+
         [Fact]
         public void A_counter_proposal_cannot_have_negative_victory_points()
         {

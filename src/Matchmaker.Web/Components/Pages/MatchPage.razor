@@ -35,7 +35,7 @@
                        MineLabel="@NameOf(player)" TheirsLabel="@NameOf(opponentPlayer)"
                        InitialMine="mine" InitialTheirs="theirs"
                        Hint="@(live is null
-                           ? "À déclarer en fin de partie, ici ou depuis l'objet TTS, qui remplit ce score au fil des rounds."
+                           ? "À valider ici en fin de partie. L'objet TTS remplit ce score au fil des rounds."
                            : $"Lu sur la feuille de score LCT, round {live.RoundsPlayed} · mis à jour {Ago(live.At)}. Corrigez-le si besoin avant de le déclarer.")">
                 @if (!_confirmingAbandon)
                 {
@@ -80,7 +80,7 @@
                         </li>
                         <li>Lancez Tabletop Simulator avec le mod LCT et invitez-le. La partie peut se jouer en plusieurs fois.</li>
                         <li>Consultez sa liste ci-dessus avant de commencer.</li>
-                        <li>À la fin de la partie, l'un de vous déclare le score, depuis l'objet TTS ou ci-dessus, et l'autre le confirme.</li>
+                        <li>À la fin de la partie, l'un de vous valide le score ci-dessus, et l'autre le confirme.</li>
                     </ol>
 
                     @if (_reportCode is not null)
@@ -124,6 +124,10 @@
 
             @if (_match.Status == MatchStatus.ResultDeclared)
             {
+                @* Score proposé trop tôt, ou à la mauvaise partie : on l'annule et la partie reprend. *@
+                <div class="actions">
+                    <button class="button secondary" @onclick="CancelResult" disabled="@(!RendererInfo.IsInteractive)"><Icon Name="back" /> La partie continue</button>
+                </div>
                 <div class="abandon">
                     @if (_confirmingAbandon)
                     {
@@ -187,6 +191,7 @@
     private Task ConfirmResult() => Update((matches, me) => matches.ConfirmResultAsync(me, Id));
     private Task ContestResult((int Mine, int Theirs) score) =>
         Update((matches, me) => matches.ContestResultAsync(me, Id, score.Mine, score.Theirs));
+    private Task CancelResult() => Update((matches, me) => matches.CancelResultAsync(me, Id));
     private Task Abandon() => Update((matches, me) => matches.AbandonAsync(me, Id));
 
     private async Task Update(Func<MatchService, PlayerId, Task<Match>> change)

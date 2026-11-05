@@ -50,7 +50,8 @@ public sealed class TtsObjectDownloadTests(PostgresFixture postgres) : IDisposab
         var html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync());
         Assert.Contains("/tts/WarhammerMatchmaker.json", html);
         Assert.Contains("Saved Objects", html);
-        Assert.Contains("Envoyer le score final", html);
+        Assert.DoesNotContain("Envoyer le score final", html);
+        Assert.Contains("validez le score final sur la page de la partie", html);
         Assert.Contains("Rouge", html);
     }
 

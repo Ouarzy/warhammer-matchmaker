@@ -134,6 +134,16 @@ public sealed class MatchPageTests(PostgresFixture postgres) : IDisposable
     }
 
     [Fact]
+    public async Task Both_players_can_say_the_proposed_score_is_a_mistake_and_the_game_goes_on()
+    {
+        var (alice, aliceId, bob, _, matchId) = await MatchInProgress();
+        await _factory.WithMatchesAsync(matches => matches.DeclareResultAsync(aliceId, matchId, 85, 70));
+
+        Assert.Contains("La partie continue", await Text(await alice.GetAsync($"/matches/{matchId}")));
+        Assert.Contains("La partie continue", await Text(await bob.GetAsync($"/matches/{matchId}")));
+    }
+
+    [Fact]
     public async Task The_opponent_can_contest_by_proposing_another_score()
     {
         var (_, alice, bob, _, matchId) = await MatchInProgress();

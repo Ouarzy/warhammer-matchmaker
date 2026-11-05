@@ -57,7 +57,7 @@ local function answer(request, responseCode, message)
 end
 
 -- La ligne d'état est coupée en plusieurs lignes : on la relit d'un seul tenant.
-local function statusLabel() return (world.buttons[3].label:gsub("\n", " ")) end
+local function statusLabel() return (world.buttons[2].label:gsub("\n", " ")) end
 local function typeCode(value) onCodeChanged(self, "Red", value, false) end
 
 -- Petit cadre de test ------------------------------------------------------------------------------
@@ -76,12 +76,14 @@ end
 
 -- Tests -------------------------------------------------------------------------------------------
 
-test("le bouton envoie le score final de la feuille LCT au nom de l'hôte", function()
+local function tick() world.timers[1].fn() end
+
+test("le score en cours de la feuille LCT est envoyé en direct au nom de l'hôte", function()
     onLoad("")
     typeCode("  k7q2m9xa ")
-    sendFinalScore(self, "Red")
+    tick()
     local request = world.requests[1]
-    eq("https://warhammer-matchmaker.com/api/tts/results", request.url, "url")
+    eq("https://warhammer-matchmaker.com/api/tts/live", request.url, "url")
     eq("POST", request.method)
     eq("application/json", request.headers["Content-Type"])
     eq(1, request.report.version, "version")
@@ -92,30 +94,30 @@ test("le bouton envoie le score final de la feuille LCT au nom de l'hôte", func
     eq(3, request.report.roundsPlayed)
 end)
 
-test("l'objet a un titre, un champ pour le code, un bouton d'envoi et une ligne d'état", function()
+test("l'objet a un titre, un champ pour le code et une ligne d'état, sans bouton d'envoi du score final", function()
     onLoad("")
+    eq(2, #world.buttons, "boutons")
     eq("Warhammer Matchmaker", world.buttons[1].label)
     eq("onCodeChanged", world.inputs[1].input_function)
-    eq("sendFinalScore", world.buttons[2].click_function)
+    eq(nil, sendFinalScore, "plus d'envoi du score final : il se valide sur le site")
     eq("Collez le code de la partie (page de la partie sur le site).", statusLabel())
 end)
 
 test("les boutons gardent leur taille sur un bloc aplati, quelle que soit son échelle", function()
     onLoad("")
-    local title, send = world.buttons[1], world.buttons[2]
+    local title = world.buttons[1]
     eq(2, title.scale[1] * 13, "largeur du titre"); eq(2, title.scale[3] * 7, "hauteur du titre")
     eq(-2.2, title.position[3] * 7, "titre en haut")
-    eq(0.6, send.position[3] * 7, "bouton d'envoi")
     eq(2, world.inputs[1].scale[1] * 13, "largeur du champ")
 end)
 
 test("le titre et la ligne d'état sont écrits en blanc sur le bloc sombre", function()
     onLoad("")
-    eq(1, world.buttons[1].font_color[1]); eq(1, world.buttons[3].font_color[3])
+    eq(1, world.buttons[1].font_color[1]); eq(1, world.buttons[2].font_color[3])
 end)
 
 test("une ligne d'état trop longue est coupée entre les mots", function()
-    local text = "Score 45 - 30 envoyé, en attente de confirmation par l'adversaire."
+    local text = "Les joueurs assis à la table ne sont pas ceux de cette partie."
     local wrapped = wrap(text)
     for line in wrapped:gmatch("[^\n]+") do
         assert(#line <= STATUS_LINE_LENGTH, "ligne trop longue : " .. line)
@@ -124,27 +126,18 @@ test("une ligne d'état trop longue est coupée entre les mots", function()
     eq("Code enregistré.", wrap("Code enregistré."), "texte court inchangé")
 end)
 
-test("la réponse du site est affichée à tous", function()
+test("sans code, rien n'est envoyé et l'objet invite toujours à le coller", function()
     onLoad("")
-    typeCode("K7Q2M9XA")
-    sendFinalScore(self, "Red")
-    answer(world.requests[1], 200, "Score 45 - 30 envoyé, en attente de confirmation par l'adversaire.")
-    eq("Score 45 - 30 envoyé, en attente de confirmation par l'adversaire.", statusLabel(), "état")
-    eq("Warhammer Matchmaker : Score 45 - 30 envoyé, en attente de confirmation par l'adversaire.", world.broadcasts[1])
-end)
-
-test("sans code, rien n'est envoyé", function()
-    onLoad("")
-    sendFinalScore(self, "Blue")
+    tick()
     eq(0, #world.requests, "requêtes")
-    eq("Blue: Collez d'abord le code de la partie.", world.broadcasts[1])
+    eq("Collez le code de la partie (page de la partie sur le site).", statusLabel())
 end)
 
 test("les deux joueurs doivent être assis en Rouge et en Bleu", function()
     onLoad("")
     typeCode("K7Q2M9XA")
     Player.Blue.seated = false
-    sendFinalScore(self, "Red")
+    tick()
     eq(0, #world.requests, "requêtes")
     eq("Les deux joueurs doivent être assis en Rouge et en Bleu.", statusLabel())
 end)
@@ -153,7 +146,7 @@ test("sans feuille de score LCT, l'objet l'explique", function()
     onLoad("")
     typeCode("K7Q2M9XA")
     world.sheetPresent = false
-    sendFinalScore(self, "Red")
+    tick()
     eq(0, #world.requests, "requêtes")
     eq("Feuille de score LCT introuvable : cet objet ne fonctionne qu'avec le mod LCT.", statusLabel())
 end)
@@ -165,7 +158,7 @@ test("le code est gardé avec la sauvegarde de la table", function()
     newWorld()
     onLoad(saved)
     eq("K7Q2M9XA", world.inputs[1].value, "champ")
-    sendFinalScore(self, "Red")
+    tick()
     eq("K7Q2M9XA", world.requests[1].report.code)
 end)
 
@@ -173,8 +166,7 @@ test("le score en cours est envoyé en direct toutes les 30 secondes", function(
     onLoad("")
     eq(30, world.timers[1].seconds, "intervalle"); eq(-1, world.timers[1].repetitions, "répétitions")
     typeCode("K7Q2M9XA")
-    world.timers[1].fn()
-    eq("https://warhammer-matchmaker.com/api/tts/live", world.requests[1].url)
+    tick()
     answer(world.requests[1], 200, "ok")
     eq("En direct sur le site : Rouge 45 - Bleu 30 (round 3)", statusLabel())
 end)
@@ -182,11 +174,11 @@ end)
 test("le score en direct n'est renvoyé que s'il a changé", function()
     onLoad("")
     typeCode("K7Q2M9XA")
-    world.timers[1].fn(); answer(world.requests[1], 200, "ok")
-    world.timers[1].fn()
+    tick(); answer(world.requests[1], 200, "ok")
+    tick()
     eq(1, #world.requests, "requêtes sans changement")
     world.summary.red.total = 50
-    world.timers[1].fn()
+    tick()
     eq(2, #world.requests, "requêtes après changement")
     eq(50, world.requests[2].report.red.vp)
 end)
@@ -194,38 +186,41 @@ end)
 test("un envoi en direct raté est retenté au tour suivant", function()
     onLoad("")
     typeCode("K7Q2M9XA")
-    world.timers[1].fn(); answer(world.requests[1], 429, "Trop d'envois : réessayez dans une minute.")
-    world.timers[1].fn()
+    tick(); answer(world.requests[1], 429, "Trop d'envois : réessayez dans une minute.")
+    tick()
     eq(2, #world.requests, "requêtes")
 end)
 
-test("le direct s'arrête une fois le résultat déclaré", function()
+test("une fois un score final proposé sur le site, le même score n'est pas renvoyé", function()
     onLoad("")
     typeCode("K7Q2M9XA")
-    world.timers[1].fn(); answer(world.requests[1], 409, "Un résultat a déjà été déclaré pour cette partie.")
-    world.summary.red.total = 60
-    world.timers[1].fn()
+    tick(); answer(world.requests[1], 409, "Un résultat a déjà été déclaré pour cette partie.")
+    tick()
     eq(1, #world.requests, "requêtes")
     eq("Un résultat a déjà été déclaré pour cette partie.", statusLabel())
 end)
 
-test("le direct reprend avec un nouveau code", function()
+test("si la proposition est annulée sur le site, le direct reprend au prochain changement de score", function()
     onLoad("")
     typeCode("K7Q2M9XA")
-    sendFinalScore(self, "Red"); answer(world.requests[1], 200, "envoyé")
-    world.timers[1].fn()
-    eq(1, #world.requests, "plus de direct après le score final")
-    typeCode("ABCDEFGH")
-    world.timers[1].fn()
-    eq(2, #world.requests, "direct de la nouvelle partie")
+    tick(); answer(world.requests[1], 409, "Un résultat a déjà été déclaré pour cette partie.")
+    world.summary.red.total = 60
+    tick()
+    eq(2, #world.requests, "requêtes")
+    answer(world.requests[2], 200, "ok")
+    eq("En direct sur le site : Rouge 60 - Bleu 30 (round 3)", statusLabel())
 end)
 
-test("le site injoignable est signalé", function()
+test("un mauvais code arrête le direct jusqu'au prochain code", function()
     onLoad("")
     typeCode("K7Q2M9XA")
-    sendFinalScore(self, "Red")
-    world.requests[1].callback({ response_code = 0, text = "", is_error = true, error = "Cannot resolve destination host" })
-    eq("Cannot resolve destination host", statusLabel())
+    tick(); answer(world.requests[1], 404, "Code de partie inconnu : recopiez-le depuis la page de la partie sur le site.")
+    world.summary.red.total = 60
+    tick()
+    eq(1, #world.requests, "plus de direct avec ce code")
+    typeCode("ABCDEFGH")
+    tick()
+    eq(2, #world.requests, "direct avec le nouveau code")
 end)
 
 print(passed .. " tests réussis, " .. failures .. " en échec")

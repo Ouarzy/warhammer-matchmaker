@@ -25,6 +25,4 @@ public sealed class LiveScores
     }
 
     public LiveScore? Of(Guid matchId) => _scores.GetValueOrDefault(matchId);
-
-    public void Forget(Guid matchId) => _scores.TryRemove(matchId, out _);
 }

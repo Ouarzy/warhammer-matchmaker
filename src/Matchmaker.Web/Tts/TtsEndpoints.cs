@@ -29,8 +29,6 @@ public static class TtsEndpoints
     public static void MapTtsReporting(this IEndpointRouteBuilder app)
     {
         var api = app.MapGroup("/api/tts").RequireRateLimiting(RateLimitPolicy).DisableAntiforgery();
-        api.MapPost("/results", (TtsReport report, TtsReporting reporting, PlayerNotifier notifier, CancellationToken cancellationToken) =>
-            Answer(reporting.ReportAsync(report, cancellationToken), notifier));
         app.MapGet("/tts/WarhammerMatchmaker.json", () =>
             Results.File(TtsSavedObject.Json(), "application/json", "WarhammerMatchmaker.json"));
         api.MapPost("/live", (TtsReport report, TtsReporting reporting, PlayerNotifier notifier, CancellationToken cancellationToken) =>

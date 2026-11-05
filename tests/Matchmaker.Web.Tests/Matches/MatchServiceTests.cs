@@ -254,6 +254,27 @@ public class MatchServiceTests(PostgresFixture postgres)
     }
 
     [Fact]
+    public async Task A_score_proposed_by_mistake_is_cancelled_and_the_game_goes_on()
+    {
+        var (alice, bob, matchId) = await StartedMatch();
+
+        await using (var db = postgres.CreateDbContext())
+            await Service(db).DeclareResultAsync(alice, matchId, 100, 40);
+        await using (var db = postgres.CreateDbContext())
+            await Service(db).CancelResultAsync(bob, matchId);
+
+        await using (var db = postgres.CreateDbContext())
+        {
+            var cancelled = (await db.Matches.FindAsync(matchId))!;
+            Assert.Equal(MatchStatus.Accepted, cancelled.Status);
+            Assert.Null(cancelled.Declarer);
+            Assert.Null(cancelled.DeclaredAt);
+            Assert.Empty(await Service(db).ConfirmOverdueResultsAsync());
+        }
+        Assert.Equal(EloRating.Initial, (await Reload(alice)).Rating);
+    }
+
+    [Fact]
     public async Task Abandoning_a_ranked_match_gives_the_opponent_a_20_0_victory()
     {
         var (alice, bob, matchId) = await StartedMatch();

@@ -8,7 +8,8 @@ namespace Matchmaker.Domain.Matches;
 /// Cycle de vie d'un match : proposé → accepté par les deux joueurs → résultat déclaré → confirmé
 /// (par l'adversaire, ou automatiquement après 24 h sans réponse). Une partie en cours n'a pas de
 /// limite de durée. Contester un résultat, c'est proposer un autre score, que l'autre joueur confirme
-/// ou conteste à son tour, jusqu'à ce que les deux soient d'accord. Un abandon donne la victoire 20-0
+/// ou conteste à son tour, jusqu'à ce que les deux soient d'accord. Un score proposé par erreur peut être
+/// annulé par l'un ou l'autre joueur : la partie redevient en cours. Un abandon donne la victoire 20-0
 /// à l'adversaire. Un match refusé ou expiré n'impacte pas l'Elo.
 /// </summary>
 public sealed class Match
@@ -137,6 +138,22 @@ public sealed class Match
 
         Propose(player, playerVp, opponentVp, now);
         Contestations++;
+    }
+
+    /// <summary>
+    /// Le score a été proposé par erreur, la partie n'est pas finie : l'un ou l'autre joueur annule la
+    /// proposition (et les contre-propositions), et la partie redevient en cours.
+    /// </summary>
+    public void CancelResult(PlayerId player)
+    {
+        EnsureParticipant(player);
+        EnsureStatus(MatchStatus.ResultDeclared);
+
+        Declarer = null;
+        DeclaredAt = null;
+        (_firstVictoryPoints, _secondVictoryPoints) = (null, null);
+        Contestations = 0;
+        Status = MatchStatus.Accepted;
     }
 
     private void Propose(PlayerId declarer, int declarerVp, int opponentVp, DateTimeOffset now)

@@ -4,6 +4,7 @@ using Matchmaker.Domain.Matches;
 using Matchmaker.Domain.Players;
 using Matchmaker.Web.Tests.Infrastructure;
 using Matchmaker.Web.Tts;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Matchmaker.Web.Tests.Tts;
@@ -23,11 +24,12 @@ public sealed class TtsLiveScoreApiTests(PostgresFixture postgres) : IDisposable
         return (alice, bob, matchId, (await scope.ServiceProvider.GetRequiredService<TtsReporting>().CodeOfAsync(matchId))!);
     }
 
-    private static object Report(string code, PlayerId red, int redVp, PlayerId blue, int blueVp, int roundsPlayed = 3) => new
+    private static object Report(string code, PlayerId red, int redVp, PlayerId blue, int blueVp, int roundsPlayed = 3,
+        PlayerId? host = null, int version = 1) => new
     {
-        version = 1,
+        version,
         code,
-        hostSteamId = red.SteamId,
+        hostSteamId = (host ?? red).SteamId,
         red = new { steamId = red.SteamId, vp = redVp },
         blue = new { steamId = blue.SteamId, vp = blueVp },
         roundsPlayed,
@@ -95,7 +97,27 @@ public sealed class TtsLiveScoreApiTests(PostgresFixture postgres) : IDisposable
     }
 
     [Fact]
-    public async Task The_live_score_is_checked_like_a_final_score()
+    public async Task The_code_may_be_typed_in_lower_case_with_spaces()
+    {
+        var (alice, bob, _, code) = await MatchInProgress();
+
+        var response = await SendLive(Report($"  {code.ToLowerInvariant()} ", alice, 10, bob, 5));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task An_unknown_code_is_refused()
+    {
+        var (alice, bob, _, _) = await MatchInProgress();
+
+        var response = await SendLive(Report("ZZZZZZZZ", alice, 10, bob, 5));
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task The_seated_players_must_be_the_players_of_the_match()
     {
         var (alice, _, _, code) = await MatchInProgress();
 
@@ -105,7 +127,39 @@ public sealed class TtsLiveScoreApiTests(PostgresFixture postgres) : IDisposable
     }
 
     [Fact]
-    public async Task No_live_score_once_the_result_is_declared()
+    public async Task The_game_must_be_hosted_by_one_of_the_players()
+    {
+        var (alice, bob, _, code) = await MatchInProgress();
+
+        var response = await SendLive(Report(code, alice, 10, bob, 5, host: MatchmakerWebFactory.NewPlayerId()));
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData(-1, 50)]
+    [InlineData(50, 101)]
+    public async Task Victory_points_must_be_between_0_and_100(int redVp, int blueVp)
+    {
+        var (alice, bob, _, code) = await MatchInProgress();
+
+        var response = await SendLive(Report(code, alice, redVp, bob, blueVp));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task An_unknown_object_version_is_refused()
+    {
+        var (alice, bob, _, code) = await MatchInProgress();
+
+        var response = await SendLive(Report(code, alice, 10, bob, 5, version: 99));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task No_live_score_once_a_final_score_is_proposed()
     {
         var (alice, bob, matchId, code) = await MatchInProgress();
         await SendLive(Report(code, alice, 10, bob, 5));
@@ -115,6 +169,37 @@ public sealed class TtsLiveScoreApiTests(PostgresFixture postgres) : IDisposable
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         Assert.DoesNotContain("Score en direct", await MatchPage(matchId));
+    }
+
+    [Fact]
+    public async Task The_live_score_resumes_once_the_proposed_score_is_cancelled()
+    {
+        var (alice, bob, matchId, code) = await MatchInProgress();
+        await _factory.WithMatchesAsync(async matches =>
+        {
+            await matches.DeclareResultAsync(alice, matchId, 60, 50);
+            await matches.CancelResultAsync(bob, matchId);
+        });
+
+        var response = await SendLive(Report(code, alice, 62, bob, 50, roundsPlayed: 4));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("Alice 62 – 50 Bob", await MatchPage(matchId));
+    }
+
+    [Fact]
+    public async Task Sending_is_limited_per_minute_to_prevent_guessing_codes()
+    {
+        using var limited = new MatchmakerWebFactory(postgres);
+        using var strict = limited.WithWebHostBuilder(builder => builder.UseSetting("Tts:RequestsPerMinute", "3"));
+        var report = Report("ZZZZZZZZ", MatchmakerWebFactory.NewPlayerId(), 1, MatchmakerWebFactory.NewPlayerId(), 2);
+        var client = strict.CreateClient();
+
+        var statuses = new List<HttpStatusCode>();
+        for (var i = 0; i < 4; i++)
+            statuses.Add((await client.PostAsJsonAsync("/api/tts/live", report)).StatusCode);
+
+        Assert.Equal([HttpStatusCode.NotFound, HttpStatusCode.NotFound, HttpStatusCode.NotFound, HttpStatusCode.TooManyRequests], statuses);
     }
 
     public void Dispose() => _factory.Dispose();

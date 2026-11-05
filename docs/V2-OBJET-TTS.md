@@ -2,6 +2,8 @@
 
 Étude de faisabilité du 2026-10-27. **Verdict : faisable**, sans modifier le mod LCT, avec un objet que les joueurs ajoutent à leur table.
 
+> **Mise à jour du 2026-11-05** : l'objet n'a plus de bouton « Envoyer le score final ». Il ne fait que remonter le score en direct (`POST /api/tts/live`), qui pré-remplit le formulaire de la page de la partie ; le score final se valide sur le site. `POST /api/tts/results` a été supprimé. Un score final proposé par erreur peut être annulé sur le site par l'un ou l'autre joueur : la partie redevient en cours et le direct reprend au prochain changement de score.
+
 ## Principe
 
 ```mermaid

@@ -15,7 +15,10 @@ public enum TtsReportStatus { Accepted, Invalid, UnknownCode, NotTheirMatch, Alr
 
 public sealed record TtsReportOutcome(TtsReportStatus Status, string Message, Match? Match = null);
 
-/// <summary>Scores envoyés depuis Tabletop Simulator par l'objet « Warhammer Matchmaker ».</summary>
+/// <summary>
+/// Scores en cours envoyés depuis Tabletop Simulator par l'objet « Warhammer Matchmaker ». Rien n'est
+/// déclaré depuis TTS : le score final se valide sur le site.
+/// </summary>
 public sealed class TtsReporting(MatchmakerDbContext db, MatchService matches, LiveScores liveScores, TimeProvider time)
 {
     public const int SupportedVersion = 1;
@@ -23,21 +26,6 @@ public sealed class TtsReporting(MatchmakerDbContext db, MatchService matches, L
 
     public async Task<string?> CodeOfAsync(Guid matchId, CancellationToken cancellationToken = default) =>
         await db.ReportCodes.Where(c => c.MatchId == matchId).Select(c => c.Code).FirstOrDefaultAsync(cancellationToken);
-
-    /// <summary>
-    /// Déclare le score au nom de l'hôte de la partie TTS, comme s'il l'avait saisi sur le site :
-    /// son adversaire doit encore le confirmer.
-    /// </summary>
-    public async Task<TtsReportOutcome> ReportAsync(TtsReport report, CancellationToken cancellationToken = default)
-    {
-        var (outcome, seated) = await CheckAsync(report, cancellationToken);
-        if (seated is not { } s) return outcome!;
-
-        var (hostVp, opponentVp) = s.Host == s.Red ? (report.Red!.Vp, report.Blue!.Vp) : (report.Blue!.Vp, report.Red!.Vp);
-        var declared = await matches.DeclareResultAsync(s.Host, s.Match.Id, hostVp, opponentVp, cancellationToken);
-        liveScores.Forget(s.Match.Id);
-        return new(TtsReportStatus.Accepted, $"Score {hostVp} - {opponentVp} envoyé, en attente de confirmation par l'adversaire.", declared);
-    }
 
     /// <summary>Score en cours, affiché en direct sur la page de la partie sans rien déclarer.</summary>
     public async Task<TtsReportOutcome> ShareLiveAsync(TtsReport report, CancellationToken cancellationToken = default)
@@ -50,7 +38,7 @@ public sealed class TtsReporting(MatchmakerDbContext db, MatchService matches, L
         return new(TtsReportStatus.Accepted, "Score en cours visible sur le site.", s.Match);
     }
 
-    private sealed record Seated(Match Match, PlayerId Host, PlayerId Red);
+    private sealed record Seated(Match Match, PlayerId Red);
 
     private async Task<(TtsReportOutcome? Refused, Seated? Seated)> CheckAsync(TtsReport report, CancellationToken cancellationToken)
     {
@@ -67,10 +55,12 @@ public sealed class TtsReporting(MatchmakerDbContext db, MatchService matches, L
         if (!players.Contains(red) || !players.Contains(blue) || red == blue || !players.Contains(host))
             return (new(TtsReportStatus.NotTheirMatch, "Les joueurs assis à la table ne sont pas ceux de cette partie."), null);
 
+        if (match.Status == MatchStatus.ResultDeclared)
+            return (new(TtsReportStatus.AlreadyReported, "Un score final a été proposé sur le site : le direct reprendra si la proposition est annulée."), null);
         if (match.Status != MatchStatus.Accepted)
-            return (new(TtsReportStatus.AlreadyReported, "Un résultat a déjà été déclaré pour cette partie."), null);
+            return (new(TtsReportStatus.AlreadyReported, "Cette partie est terminée."), null);
 
-        return (null, new Seated(match, host, red));
+        return (null, new Seated(match, red));
     }
 
     private static string? Invalid(TtsReport report)
